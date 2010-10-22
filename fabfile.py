@@ -7,8 +7,8 @@ from fabric.contrib.files import upload_template, append
 import ConfigParser, os
 import simplejson as json
 
-env.user     = "fabric"
-env.password = "fab8AzyI2s"
+env.user     = ""
+env.password = ""
 NODEPATH     = "nodes/"
 APPNAME      = 'littlechef'
 
