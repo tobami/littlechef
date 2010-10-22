@@ -20,7 +20,9 @@ h3. Deploy
 h3. Cook
 
 @fab host:MYHOST recipe:MYRECIPE@
+@fab host:MYHOST recipe:MYRECIPE,save=False@ => to not overwrite existing config file
 @fab host:MYHOST role:MYROLE@
+@fab host:MYHOST role:MYROLE,save=False@ => to not overwrite existing config file
 @fab host:MYHOST configure@ => Configures node as specified in the config file
 @fab configure@ => Configures all nodes
 
