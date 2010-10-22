@@ -3,14 +3,14 @@
 # using Chef Solo in a push based system using Python and Fabric
 import fabric
 from fabric.api import *
-from fabric.contrib.files import upload_template
+from fabric.contrib.files import upload_template, append
 import ConfigParser, os
 import simplejson as json
 
 env.user     = ""
 env.password = ""
-NODEPATH = "nodes/"
-APPNAME = 'serverchef'
+NODEPATH     = "nodes/"
+APPNAME      = 'littlechef'
 
 def _get_nodes():
     nodes = []
@@ -50,20 +50,6 @@ def runrole(role, save=False):
     filepath = _save_config(save, data)
     _sync_node(filepath)
 
-def _save_config(save, data):
-    if save:
-        filepath = NODEPATH + data[APPNAME]['hostname'] + ".json"
-    else:
-        filepath = 'tmp_node.json'
-    with open(filepath, 'w') as f:
-        f.write(json.dumps(data))
-        f.write('\n')
-    return filepath
-
-def _sync_node(filepath):
-    _update_cookbooks()
-    _configure_node(filepath)
-
 def configure():
     '''Configures all nodes using existing config files'''
     with hide('stdout', 'running'): hostname = run('hostname')
@@ -89,9 +75,45 @@ def list_nodes_with_recipe(recipe):
         if recipename in node.get('run_list'):
             _print_node(node)
 
+def deploy_chef_solo(server):
+    '''Install Chef-solo'''
+    env.host_string = server
+    append('deb http://apt.opscode.com/ lenny main',
+        '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
+    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
+    sudo('apt-get update')
+    with hide('stdout'):
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+    
+    # We only want chef-solo
+    sudo('update-rc.d -f chef-client remove')
+    with settings(hide('warnings'), warn_only=True): sudo('pkill chef-client')
+    
+    # Setup
+    put('chef-solo.rb', 'solo.rb')
+    sudo('mv solo.rb /etc/chef/')
+    sudo('mkdir -p /tmp/chef-solo/roles')
+    
+    # Copy cookbooks
+    _update_cookbooks()
+
 #########################
 ### Private functions ###
 #########################
+def _save_config(save, data):
+    if save:
+        filepath = NODEPATH + data[APPNAME]['hostname'] + ".json"
+    else:
+        filepath = 'tmp_node.json'
+    with open(filepath, 'w') as f:
+        f.write(json.dumps(data))
+        f.write('\n')
+    return filepath
+
+def _sync_node(filepath):
+    _update_cookbooks()
+    _configure_node(filepath)
+
 def _print_node(node):
     print "\n" + node[APPNAME]['hostname']
     for a in node.get('run_list'):
