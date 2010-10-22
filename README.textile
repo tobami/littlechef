@@ -9,6 +9,14 @@ h2. Requirements
 
 h2. Usage
 
+h3. Configure
+
+* Edit fabfile.py and enter username and password to use to connect to the nodes
+
+h3. Deploy
+
+* fab deploy_chef:MYHOST
+
 h3. Cook
 
 * fab host:MYHOST recipe:MYRECIPE

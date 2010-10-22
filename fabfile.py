@@ -75,7 +75,7 @@ def list_nodes_with_recipe(recipe):
         if recipename in node.get('run_list'):
             _print_node(node)
 
-def deploy_chef_solo(server):
+def deploy_chef(server):
     '''Install Chef-solo'''
     env.host_string = server
     append('deb http://apt.opscode.com/ lenny main',
