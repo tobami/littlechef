@@ -1,0 +1,53 @@
+{
+    "recommendations": {
+    },
+    "attributes": {
+      "haproxy/servers": {
+        "required": "recommended",
+        "calculated": false,
+        "choice": [
+
+        ],
+        "default": [
+          { "name": "server1", "ip": "1.1.1.1" },
+          { "name": "server2", "ip": "1.1.1.2" }
+        ],
+        "type": "array",
+        "recipes": [
+
+        ],
+        "display_name": "Servers",
+        "description": "Real Servers to redirect requests to"
+      }
+    },
+    "maintainer": "edelight",
+    "suggestions": {
+    },
+    "dependencies": {
+    },
+    "maintainer_email": "miquel.torres@edelight.de",
+    "conflicting": {
+    },
+    "platforms": {
+      "debian": [
+
+      ],
+      "ubuntu": [
+
+      ]
+    },
+    "license": "Apache 2.0",
+    "version": "0.7.0",
+    "providing": {
+    },
+    "recipes": {
+      "haproxy": "Installs and configures haproxy"
+    },
+    "replacing": {
+    },
+    "name": "haproxy",
+    "description": "Installs and configures haproxy",
+    "groupings": {
+    },
+    "long_description": "= DESCRIPTION:\n\nInstalls haproxy and prepares the configuration location.\n\n= REQUIREMENTS:\n\n== Platform:\n\nTested on Debian Lenny.\n\n== Cookbooks:\n"
+  }

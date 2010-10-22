@@ -1,0 +1,9 @@
+{
+    "name": "loadbalancer",
+    "default_attributes": { },
+    "override_attributes": { },
+    "json_class": "Chef::Role",
+    "description": "A sample load balancer role using haproxy",
+    "chef_type": "role",
+    "run_list": [ "recipe[haproxy]" ]
+}
