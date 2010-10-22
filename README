@@ -1,0 +1,25 @@
+h1. LitteChef
+
+With LittleChef you will be able to get started more quickly cooking with Chef.
+
+h2. Requirements
+
+* Python 2.6+
+* fabric (python-fabric package in Ubuntu and Debian based distros)
+
+h2. Usage
+
+h3. Cook
+
+* fab host:MYHOST recipe:MYRECIPE
+* fab host:MYHOST role:MYROLE
+* fab host:MYHOST configure
+** Configure node as specified in the config file
+* fab configure
+** Configures all nodes
+
+h3. Consulting the inventory
+
+* fab list_nodes
+* fab list_nodes_with_recipe:MYRECIPE
+
