@@ -15,19 +15,19 @@ h3. Configure
 
 h3. Deploy
 
-* fab deploy_chef:MYHOST
+@fab deploy_chef:MYHOST@
 
 h3. Cook
 
-* fab host:MYHOST recipe:MYRECIPE
-* fab host:MYHOST role:MYROLE
-* fab host:MYHOST configure
-** Configure node as specified in the config file
-* fab configure
-** Configures all nodes
+@fab host:MYHOST recipe:MYRECIPE@
+@fab host:MYHOST role:MYROLE@
+@fab host:MYHOST configure@
+* Configures node as specified in the config file
+@fab configure@
+* Configures all nodes
 
 h3. Consulting the inventory
 
-* fab list_nodes
-* fab list_nodes_with_recipe:MYRECIPE
-
+@fab list_nodes@
+@fab list_nodes_with_recipe:MYRECIPE@
+@fab list_nodes_with_role:MYROLE@

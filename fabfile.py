@@ -7,8 +7,8 @@ from fabric.contrib.files import upload_template, append
 import ConfigParser, os
 import simplejson as json
 
-env.user     = ""
-env.password = ""
+env.user     = "fabric"
+env.password = "fab8AzyI2s"
 NODEPATH     = "nodes/"
 APPNAME      = 'littlechef'
 
@@ -16,7 +16,10 @@ def _get_nodes():
     nodes = []
     for filename in sorted([f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
         with open(NODEPATH + filename, 'r') as f:
-            nodes.append(json.loads(f.read()))
+            try:
+                nodes.append(json.loads(f.read()))
+            except json.decoder.JSONDecodeError:
+                print "Warning: file %s contains no JSON" % filename
     return nodes
 
 env.hosts = [node[APPNAME]['hostcall'] for node in _get_nodes()]
@@ -27,7 +30,7 @@ def host(host):
     '''Select a host'''
     env.hosts = [host]
 
-def runrecipe(recipe, save=False):
+def recipe(recipe, save=True):
     '''Execute the given recipe,ignores existing config'''
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
@@ -39,7 +42,7 @@ def runrecipe(recipe, save=False):
     filepath = _save_config(save, data)
     _sync_node(filepath)
 
-def runrole(role, save=False):
+def role(role, save=True):
     '''Execute the given recipe,ignores existing config'''
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
@@ -72,6 +75,14 @@ def list_nodes_with_recipe(recipe):
     '''Show all nodes which have asigned a given recipe'''
     for node in _get_nodes():
         recipename = 'recipe[' + recipe + ']'
+        if recipename in node.get('run_list'):
+            _print_node(node)
+
+@hosts('api')
+def list_nodes_with_role(role):
+    '''Show all nodes which have asigned a given recipe'''
+    for node in _get_nodes():
+        recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
             _print_node(node)
 
@@ -152,7 +163,6 @@ def _upload_and_unpack(source):
         put('temp.tar.gz', 'temp.tar.gz')
         local('rm temp.tar.gz')
         sudo('rm -rf %s/%s' % (target, source))
-        print 'rm -rf %s%s' % (target, source)
         run('tar -xzf temp.tar.gz')
         run('rm temp.tar.gz')
         sudo('mv %s %s' % (source, target))
