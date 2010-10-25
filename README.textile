@@ -35,17 +35,17 @@ h2. Usage
 h3. Disclaimer
 
 Careful what you do with your nodes!:
-<pre>Great Chef: What do I always say? Anyone can cook.
-Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.</pre>
+
+bq. Great Chef: What do I always say? Anyone can cook.
+Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 h3. Preparing and cooking
 
 To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. For that, create a file named @auth.py@ and enter, ini format style:
-<code>
-[userinfo]
+
+bc. [userinfo]
 user     = yoursudouser
 password = yourpassword
-</code>
 
 h3. Deploy
 
@@ -82,8 +82,7 @@ or
 
 The haproxy is a modified opscode recipe so that it accepts an array of load balanced servers. You can edit the new configuration file at @nodes/MYNODE2.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
 
-<code>
-{
+bc. {
   "littlechef": {"nodename": "srv00082.edelight.net", "nodeid": "78.47.252.75"},
   "haproxy": {
     "servers": [
@@ -93,7 +92,6 @@ The haproxy is a modified opscode recipe so that it accepts an array of load bal
   },
   "run_list": ["recipe[haproxy]"]
 }
-</code>
 
 Next, reapply configuration to all nodes:
 @./cook configure@
