@@ -4,6 +4,7 @@
 import fabric
 from fabric.api import *
 from fabric.contrib.files import upload_template, append
+from fabric.contrib.console import confirm
 import ConfigParser, os
 import simplejson as json
 
@@ -112,19 +113,19 @@ def list_nodes_with_role(role):
         if recipename in node.get('run_list'):
             _print_node(node)
 
-def deploy_chef(server):
+def deploy_chef(distro):
     '''Install Chef-solo on a node'''
-    env.host_string = server
-    append('deb http://apt.opscode.com/ lenny main',
-        '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
-    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
-    sudo('apt-get update')
-    with hide('stdout'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+    distro_type = _check_supported_distro(distro)
+    if not distro_type:
+        abort('%s is not a supported distro' % distro)
+    message = 'Are you sure you want to install Chef at the '
+    message += 'nodes %s, using "%s" packages?' % (", ".join(env.hosts), distro)
+    if not confirm(message):
+        abort('Aborted by user')
     
-    # We only want chef-solo
-    sudo('update-rc.d -f chef-client remove')
-    with settings(hide('warnings'), warn_only=True): sudo('pkill chef-client')
+    if distro_type == "debian": _apt_install(distro)
+    elif distro_type == "rpm": _rpm_install(distro)
+    else: abort('wrong distro type: %s' % distro_type)
     
     # Setup
     put('chef-solo.rb', 'solo.rb')
@@ -137,6 +138,39 @@ def deploy_chef(server):
 #########################
 ### Private functions ###
 #########################
+def _apt_install(distro):
+    sudo('rm /etc/apt/sources.list.d/opscode.list')
+    append('deb http://apt.opscode.com/ %s main' % distro,
+        '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
+    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
+    sudo('apt-get update')
+    with hide('stdout'):
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+    
+    # We only want chef-solo
+    sudo('update-rc.d -f chef-client remove')
+    with settings(hide('warnings'), warn_only=True): sudo('pkill chef-client')
+
+def _rpm_install(distro):
+    # Install the EPEL Yum Repository.
+    sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
+    # Install the ELFF Yum Repository.
+    sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
+    # Install Chef Solo
+    sudo('yum install chef')
+
+def _check_supported_distro(distro):
+    debianbased_distros = [
+        'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny']
+    rmpbased_distros = [
+        'centos', 'rhel']
+    if distro in debianbased_distros:
+        return 'debian'
+    elif distro in rmpbased_distros:
+        return 'rpm'
+    else:
+        return False
+
 def _save_config(save, data):
     filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
     if os.path.exists(filepath) and not save:

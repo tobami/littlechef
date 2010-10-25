@@ -1,6 +1,6 @@
 h1. LitteChef
 
-With LittleChef you will be able to get started more quickly cooking with Chef.
+With LittleChef you will be able to get started more quickly cooking with "Chef":http://www.opscode.com/chef, the excelent Configuration Management System.
 
 h2. Overview
 
@@ -17,7 +17,7 @@ in the @littlechef@ directory there is:
 
 h3. How it all works
 
-Whenever you apply a recipe to a node, your cookbook dir is gzipped and uploaded to that node. A node.json file gets created on the fly, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb as Chef configuration. Cookbooks and roles are configured to be found at (@/tmp/chef-solo/@).
+Whenever you apply a recipe to a node, your cookbook dir is gzipped and uploaded to that node. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration. Cookbooks and roles are configured to be found at (@/tmp/chef-solo/@).
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @littlechef/cookbook/ directory@ to your repository. LittleChef brings back sanity to cookbook development.
 
@@ -36,7 +36,7 @@ h3. Disclaimer
 
 Careful what you do with your nodes!:
 
-bq. Great Chef: What do I always say? Anyone can cook.
+bq. A certain famous Chef: What do I always say? Anyone can cook.
 Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 h3. Preparing and cooking
@@ -49,15 +49,22 @@ password = yourpassword
 
 h3. Deploy
 
-There is a command that allows you to deploy the chef-client/-solo related packages using the Opscode repository:
-@fab deploy_chef:MYNODE@
+There is a command that allows you to deploy chef-client/-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
+@fab node:MYNODE deploy_chef:MYDISTRO@
+
+MYDISTRO can have the following values for debian based distributions:
+'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny'
+and for RHEL based distros:
+'centos', 'rhel'
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
+
+Also, the CentOS and RHEL installation method has not been tested. Feedback is welcome.
 
 h3. Cook
 
 * @./cook -l@: Show a list of all available commands.
-* @./cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node:  
+* @./cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP.
 Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes for example. Further runs of this command will not overwrite this configuration file.
 You can force the saving of the run with @./cook node:MYNODE recipe:MYRECIPE,save=True@.
 * @./cook node:MYNODE role:MYROLE@: The same as above but role-based
@@ -83,7 +90,7 @@ or
 The haproxy is a modified opscode recipe so that it accepts an array of load balanced servers. You can edit the new configuration file at @nodes/MYNODE2.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
 
 bc. {
-  "littlechef": {"nodename": "srv00082.edelight.net", "nodeid": "78.47.252.75"},
+  "littlechef": {"nodename": "myhostname", "nodeid": "myhostnameorip"},
   "haproxy": {
     "servers": [
       { "name": "server1", "ip": "1.1.1.1" },
