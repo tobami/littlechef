@@ -8,14 +8,22 @@ You can think of this like a pocket Chef. You don't need to worry about installa
 
 Downloading LittleChef is all you need to get you started.
 
-h3. Deploying
+in the @littlechef@ directory there is:
+@fabfile.py@: this is where the actual code is
+@nodes/@: after recipes are run on nodes, their configuration is stored here
+@cookbooks/@: This will be your cookbooks repository. You should put this under version control. Note that it is not recommended to clone the whole opscode cookbooks repository because its 7 MB compressed would make synching cookbooks at the nodes a bit slow.
+@roles/@: Define here your roles
 
-There is a helper command that allows to 
+h3. How it all works
+
+Whenever you apply a recipe to a node, your cookbook dir gets gzipped and uploaded to that node. A node.json file gets created on the fly, and Chef Solo gets executed at the remote node, using node.json as the node configuration, the pre-installed solo.rb as Chef configuration, which specifies cookbooks and roles as local (@/tmp/chef-solo/cookbooks@).
+
+The result is that you can play as often with your revipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @littlechef/cookbook/ directory@. LittleChef brings back sanity to cookbook development.
 
 h2. Requirements
 
 * Python 2.6+
-* fabric 0.9.2 (python-fabric package in Ubuntu and Debian based distros)
+* Fabric 0.9.2 (python-fabric package in Ubuntu and Debian based distros)
 
 h2. Installation
 
@@ -26,33 +34,67 @@ h2. Usage
 h3. Disclaimer
 
 Carefull what you do with your nodes!:
-Great Chef: What do I always say? Anyone can cook.
-Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.
+@Great Chef: What do I always say? Anyone can cook.
+Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.@
 
 h3. Preparing and cooking
 
-To be able to issue commands to remote nodes, you need to enter a user and password at the top of @littlechef/fabfile.py@ by editing @env.user@ and @env.password@
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. For that, create a file named @auth.py@ and enter:
+@
+[userinfo]
+user     = yoursudouser
+password = yourpassword
+@
 
 h3. Deploy
 
-There is a command that allows you to deploy the chef-client/-solo related packages using the opscode repository. Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
-
+There is a command that allows you to deploy the chef-client/-solo related packages using the opscode repository:
 @fab deploy_chef:MYNODE@
+
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
 
 h3. Cook
 
-* @./cook -l@ will show a list of all available commands.
-* Cooking a recipe on a particular node:  @./cook node:MYNODE recipe:MYRECIPE@
-  Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes for example. Further runs of this command will not overrite this configuration file. You can force the saving of the run by passing @recipe:MYRECIPE,save=True@.
-
-@fab node:MYNODE recipe:MYRECIPE,save=False@ => to not overwrite existing config file
-@fab node:MYNODE role:MYROLE@
-@fab node:MYNODE role:MYROLE,save=False@ => to not overwrite existing config file
-@fab node:MYNODE configure@ => Configures node as specified in the config file
-@fab configure@ => Configures all nodes
+* @./cook -l@: Show a list of all available commands.
+* @./cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node:  
+Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes for example. Further runs of this command will not overwrite this configuration file.
+You can force the saving of the run with @./cook node:MYNODE recipe:MYRECIPE,save=True@.
+*@./cook node:MYNODE role:MYROLE@: The same as above but role-based
+*@./cook node:MYNODE configure@: Configures node as specified in an existing config file
+*@./cook configure@: Configures all nodes present in @littlechef/nodes/@
+*@./cook node:MYNODE configure@: Configures a particular pre-configured node
+*@./cook debug configure@: You can start all your commands with @./cook debug@ to see all Chef Solo debbuging information
 
 h3. Consulting the inventory
 
-@fab list_nodes@
-@fab list_nodes_with_recipe:MYRECIPE@
-@fab list_nodes_with_role:MYROLE@
+*@fab list_nodes@: Lists all nodes showing its associated recipes, roles and attributes
+*@fab list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
+*@fab list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
+
+h2. Getting started
+
+There are some sample cookbooks and a sample role to get you started.
+try:
+@fab node:MYNODE1 recipe:nginx@
+or
+@fab node:MYNODE2 recipe:haproxy@
+
+The haproxy is a modified opscode recipe so that it accepts an array of loadbalanced servers. You can edit the new configuration file at @nodes/MYNODE2.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
+
+@
+{
+  "littlechef": {"nodename": "srv00082.edelight.net", "nodeid": "78.47.252.75"},
+  "haproxy": {
+    "servers": [
+      { "name": "server1", "ip": "1.1.1.1" },
+      { "name": "server2", "ip": "1.1.1.2" }
+    ]
+  },
+  "run_list": ["recipe[haproxy]"]
+}
+@
+
+Next, reapply configuration to all nodes:
+@./cook configure@
+
+Happy cooking!
