@@ -27,14 +27,8 @@ defaults
     clitimeout  50000
     srvtimeout  50000
 
-listen itemsearch <%= node[:ipaddress] %>:88
+listen loadbalancer <%= node[:ipaddress] %>:88
     <% for server in node[:haproxy][:servers] %>
     server <%= server[:name] %> <%= server[:ip] %> weight 1 check
     <% end %>
     option httpchk GET /httpchk.txt
-
-listen edelight-lb-2 <%= node[:ipaddress] %>:81
-    mode http
-    stats enable
-    stats uri /status
-    stats auth edel:kfw$600

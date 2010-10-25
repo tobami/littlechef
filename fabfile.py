@@ -22,32 +22,32 @@ def _get_nodes():
                 print "Warning: file %s contains no JSON" % filename
     return nodes
 
-env.hosts = [node[APPNAME]['hostcall'] for node in _get_nodes()]
+env.hosts = [node[APPNAME]['nodeid'] for node in _get_nodes()]
 fabric.state.output['running'] = False
 
 @hosts('setup')
-def host(host):
-    '''Select a host'''
+def node(host):
+    '''Select a node'''
     env.hosts = [host]
 
-def recipe(recipe, save=True):
+def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     configfile = hostname + ".json"
     data = {
-        APPNAME: {'hostname': hostname, 'hostcall': env.host_string},
+        APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
         "run_list": [ "recipe[%s]" % recipe ],
     }
     filepath = _save_config(save, data)
     _sync_node(filepath)
 
-def role(role, save=True):
-    '''Execute the given recipe,ignores existing config'''
+def role(role, save=False):
+    '''Execute the given role, ignores existing config'''
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
     data = {
-        APPNAME: {'hostname': hostname, 'hostcall': env.host_string},
+        APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
         "run_list": [ "role[%s]" % role ],
     }
     filepath = _save_config(save, data)
@@ -87,7 +87,7 @@ def list_nodes_with_role(role):
             _print_node(node)
 
 def deploy_chef(server):
-    '''Install Chef-solo'''
+    '''Install Chef-solo on a node'''
     env.host_string = server
     append('deb http://apt.opscode.com/ lenny main',
         '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
@@ -112,9 +112,8 @@ def deploy_chef(server):
 ### Private functions ###
 #########################
 def _save_config(save, data):
-    if save:
-        filepath = NODEPATH + data[APPNAME]['hostname'] + ".json"
-    else:
+    filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
+    if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
     with open(filepath, 'w') as f:
         f.write(json.dumps(data))
@@ -126,7 +125,7 @@ def _sync_node(filepath):
     _configure_node(filepath)
 
 def _print_node(node):
-    print "\n" + node[APPNAME]['hostname']
+    print "\n" + node[APPNAME]['nodename']
     for a in node.get('run_list'):
         if a.startswith("recipe"):
             recipe = a.split('[')[1].split(']')[0]

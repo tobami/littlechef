@@ -2,28 +2,53 @@ h1. LitteChef
 
 With LittleChef you will be able to get started more quickly cooking with Chef.
 
+h2. Overview
+
+You can think of this like a pocket Chef. You don't need to worry about installation, repository synching, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
+
+Downloading LittleChef is all you need to get you started.
+
+h3. Deploying
+
+There is a helper command that allows to 
+
 h2. Requirements
 
 * Python 2.6+
-* fabric (python-fabric package in Ubuntu and Debian based distros)
+* fabric 0.9.2 (python-fabric package in Ubuntu and Debian based distros)
+
+h2. Installation
+
+There is none. You just need to install the required packages and download and uncompress LittleChef. To start cooking change to the @littlechef@ dir and always issue commands from there, calling @./cook@
 
 h2. Usage
 
-h3. Configure
+h3. Disclaimer
 
-* Edit fabfile.py and enter username and password to use to connect to the nodes
+Carefull what you do with your nodes!:
+Great Chef: What do I always say? Anyone can cook.
+Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.
+
+h3. Preparing and cooking
+
+To be able to issue commands to remote nodes, you need to enter a user and password at the top of @littlechef/fabfile.py@ by editing @env.user@ and @env.password@
 
 h3. Deploy
 
-@fab deploy_chef:MYHOST@
+There is a command that allows you to deploy the chef-client/-solo related packages using the opscode repository. Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
+
+@fab deploy_chef:MYNODE@
 
 h3. Cook
 
-@fab host:MYHOST recipe:MYRECIPE@
-@fab host:MYHOST recipe:MYRECIPE,save=False@ => to not overwrite existing config file
-@fab host:MYHOST role:MYROLE@
-@fab host:MYHOST role:MYROLE,save=False@ => to not overwrite existing config file
-@fab host:MYHOST configure@ => Configures node as specified in the config file
+* @./cook -l@ will show a list of all available commands.
+* Cooking a recipe on a particular node:  @./cook node:MYNODE recipe:MYRECIPE@
+  Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes for example. Further runs of this command will not overrite this configuration file. You can force the saving of the run by passing @recipe:MYRECIPE,save=True@.
+
+@fab node:MYNODE recipe:MYRECIPE,save=False@ => to not overwrite existing config file
+@fab node:MYNODE role:MYROLE@
+@fab node:MYNODE role:MYROLE,save=False@ => to not overwrite existing config file
+@fab node:MYNODE configure@ => Configures node as specified in the config file
 @fab configure@ => Configures all nodes
 
 h3. Consulting the inventory
