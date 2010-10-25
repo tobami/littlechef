@@ -52,7 +52,7 @@ h3. Deploy
 There is a command that allows you to deploy chef-client/-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
 @fab node:MYNODE deploy_chef:MYDISTRO@
 
-MYDISTRO can have the following values for debian based distributions:
+MYDISTRO can have one of the following values for debian based distributions:
 'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny'
 and for RHEL based distros:
 'centos', 'rhel'
@@ -84,7 +84,7 @@ h2. Getting started
 There are some sample cookbooks and a sample role to get you started.
 try:
 @fab node:MYNODE1 recipe:nginx@
-or
+and
 @fab node:MYNODE2 recipe:haproxy@
 
 The haproxy is a modified opscode recipe so that it accepts an array of load balanced servers. You can edit the new configuration file at @nodes/MYNODE2.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
