@@ -6,11 +6,9 @@ h2. Overview
 
 You can think of this like a pocket Chef. You don't need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
 
-Downloading LittleChef is all you need to get you started.
+Installing or downloading LittleChef is all you need to get you started.
 
-in the @littlechef@ directory there is:
-@cook@: Bash script that calls fabric so that you can type 'cook' instead of 'fab'
-@fabfile.py@: this is where the actual code is
+in your working @littlechef@ directory there is:
 @nodes/@: after recipes are run on nodes, their configuration is stored here
 @cookbooks/@: This will be your cookbooks repository. You should put this under version control. Note that it is not recommended to clone the whole opscode cookbooks repository because its 7 MB compressed would make syncing cookbooks at the nodes a bit slow
 @roles/@: Where roles are defined
@@ -24,22 +22,22 @@ The result is that you can play as often with your recipes and nodes as you want
 h2. Requirements
 
 * Python 2.6+
+* Setuptools
 * Fabric 0.9.2
 
 All needed packages should get installed by typing
-@sudo apt-get install python-fabric@ for Debian and Ubuntu
+@sudo apt-get install python-setuptools python-fabric@ for Debian and Ubuntu
 or
-@yum install fabric@ for RHEL and CentOS
+@yum install python-setuptools fabric@ for RHEL and CentOS
 
 h2. Installation
 
-There is none. You just need to install the required packages and download and uncompress LittleChef.
+You can install LittleChef directly from the PyPI:
+@easy_install littlechef@
 
-To start cooking change to the @littlechef@ dir and always issue commands from there, calling @./cook@
+A directory called @littlechef@ will be created in your home directory with a sample recipe and role. You can however copy or remove it and use any other directory to keep your deployment "projects".
 
-For convenience, you can copy the file @cook@ to your PATH. For example:
-@sudo cp cook /user/bin/@
-You will then be able to type @cook@ instead of @./cook@.
+Note: there is a package that also provides a cook executable. To avoid it colliding with LittleChef's executable, you need to remove the "cook" package.
 
 h2. Usage
 
@@ -61,7 +59,7 @@ password = yourpassword
 h3. Deploy
 
 There is a command that allows you to deploy chef-client/-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
-@./cook node:MYNODE deploy_chef:MYDISTRO@
+@cook node:MYNODE deploy_chef:MYDISTRO@
 
 MYDISTRO can have one of the following values for debian based distributions:
 'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny'
@@ -74,32 +72,30 @@ Also, the CentOS and RHEL installation method has not been tested. Feedback is w
 
 h3. Cook
 
-Note: Allways cook inside your local @littlechef/@ directory.
+Note: Always cook inside your working directory, where you should have a roles, a nodes, and a recipes directory.
 
-* @./cook -l@: Show a list of all available commands.
-* @./cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP.
+* @cook -l@: Show a list of all available commands.
+* @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP.
 Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes for example. Further runs of this command will not overwrite this configuration file.
-You can force the saving of the run with @./cook node:MYNODE recipe:MYRECIPE,save=True@.
-* @./cook node:MYNODE role:MYROLE@: The same as above but role-based
-* @./cook configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @littlechef/nodes/@.
-* @./cook node:MYNODE configure@: Configures a particular pre-configured node
-* @./cook debug configure@: You can start all your commands with @./cook debug@ to see all Chef Solo debbuging information
+You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=True@.
+* @cook node:MYNODE role:MYROLE@: The same as above but role-based
+* @cook configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @littlechef/nodes/@.
+* @cook node:MYNODE configure@: Configures a particular pre-configured node
+* @cook debug configure@: You can start all your commands with @cook debug@ to see all Chef Solo debbuging information
 
 h3. Consulting the inventory
 
-* @./cook list_nodes@: Lists all nodes showing its associated recipes, roles and attributes
-* @./cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
-* @./cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
+* @cook list_nodes@: Lists all nodes showing its associated recipes, roles and attributes
+* @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
+* @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 
 h2. Getting started
 
-There are some sample cookbooks and a sample role to get you started.
+There is a sample cookbook and a sample role to get you started.
 try:
-@./cook node:MYNODE1 recipe:nginx@
-and
-@./cook node:MYNODE2 recipe:haproxy@
+@cook node:MYNODE recipe:haproxy@
 
-The haproxy is a modified opscode recipe so that it accepts an array of load balanced servers. You can edit the new configuration file at @nodes/MYNODE2.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
+The haproxy is a modified opscode recipe so that it accepts an array of load balanced servers. You can edit the new configuration file at @nodes/MYNODE.json@ and add some attributes. Make it look like this (ignore the littlechef custom fields):
 
 bc. {
   "littlechef": {"nodename": "myhostname", "nodeid": "myhostnameorip"},
@@ -113,6 +109,6 @@ bc. {
 }
 
 Next, reapply configuration to all nodes:
-@./cook configure@
+@cook configure@
 
 Happy cooking!

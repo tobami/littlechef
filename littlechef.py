@@ -37,7 +37,7 @@ def _readconfig():
             abort('You need to define a valid user in auth.cfg')
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoSectionError:
-        abort('You need to define user and password in the "userinfo" section of auth.cfg. Refer to the README for help')
+        abort('You need to define user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
     env.loglevel = "info"
     if not os.path.exists('nodes'): os.mkdir('nodes')
 
@@ -142,8 +142,14 @@ def deploy_chef(distro):
     else: abort('wrong distro type: %s' % distro_type)
     
     # Setup
-    put('chef-solo.rb', 'solo.rb')
-    sudo('mv solo.rb /etc/chef/')
+    sudo('touch /etc/chef/solo.rb')
+    sudo('rm /etc/chef/solo.rb')
+    append('file_cache_path "/tmp/chef-solo"',
+        '/etc/chef/solo.rb', use_sudo=True)
+    append('cookbook_path "/tmp/chef-solo/cookbooks"',
+        '/etc/chef/solo.rb', use_sudo=True)
+    append('role_path "/tmp/chef-solo/roles"',
+        '/etc/chef/solo.rb', use_sudo=True)
     sudo('mkdir -p /tmp/chef-solo/roles')
     
     # Copy cookbooks

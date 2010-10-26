@@ -1,2 +1,15 @@
-#!/bin/bash
-fab -f littlechef.py $@
+#!/usr/bin/env python
+import sys
+from subprocess import call
+from distutils.sysconfig import get_python_lib
+
+args = ['fab', '-f', '%s/littlechef.py' % get_python_lib()]
+
+if len(sys.argv) > 1:
+    # Pass on arguments to fabric
+    args.extend(sys.argv[1:])
+else:
+    sys.exit("No command given. Type '%s -l' for a list of commands" % sys.argv[0])
+
+# Call fabric with the given arguments
+call(args)
