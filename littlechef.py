@@ -37,8 +37,9 @@ def _readconfig():
             abort('You need to define a valid user in auth.cfg')
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoSectionError:
-        abort('No section "userinfo" found in auth.cfg. Refer to the README for help')
+        abort('You need to define user and password in the "userinfo" section of auth.cfg. Refer to the README for help')
     env.loglevel = "info"
+    if not os.path.exists('nodes'): os.mkdir('nodes')
 
 _readconfig()
 
