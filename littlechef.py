@@ -26,21 +26,15 @@ APPNAME  = "littlechef"
 
 def _readconfig():
     '''Read main fabric configuration'''
-    env.loglevel = "info"
-    # If user wants to create a new kitchen, don't make any checks, just call
-    # new_deployment()
     import sys
     if sys.argv[3] == "new_deployment": return
     
-    # Check that a proper kitchen exists before starting cooking
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
         if not os.path.exists(dirname):
             msg = "You are executing 'cook' outside of a deployment directory\n"
             msg += "To create a new deployment in the current directory you can"
             msg += " type 'cook new_deployment'"
             abort(msg)
-    
-    # Now read the authenticatio info
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
     try:
@@ -52,26 +46,15 @@ def _readconfig():
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoSectionError:
         abort('You need to define a user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
+    env.loglevel = "info"
 
 _readconfig()
 
-def _get_nodes():
-    if not os.path.exists(NODEPATH): return []
-    nodes = []
-    for filename in sorted([f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
-        with open(NODEPATH + filename, 'r') as f:
-            try:
-                nodes.append(json.loads(f.read()))
-            except json.decoder.JSONDecodeError:
-                print "Warning: file %s contains no JSON" % filename
-    return nodes
-
-env.hosts = [node[APPNAME]['nodeid'] for node in _get_nodes()]
 fabric.state.output['running'] = False
 
 @hosts('setup')
 def new_deployment():
-    '''Create LittleChef directory structure (a Kitchen)'''
+    '''Create LittleChef directory structure (Kitchen)'''
     local('mkdir -p nodes')
     local('mkdir -p cookbooks')
     local('mkdir -p roles')
@@ -79,18 +62,56 @@ def new_deployment():
     local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
 
 @hosts('setup')
-def node(host):
-    '''Select a node'''
-    env.hosts = [host]
-
-@hosts('setup')
 def debug():
     '''Sets logging level to debug'''
     print "Setting logging level to 'debug'..."
     env.loglevel = 'debug'
 
+@hosts('setup')
+def node(host):
+    '''Select a node'''
+    if host == 'all':
+        env.hosts = [node[APPNAME]['nodeid'] for node in _get_nodes()]
+        if not len(env.hosts):
+            abort('No nodes found')
+    else:
+        env.hosts = [host]
+
+def deploy_chef(distro):
+    '''Install Chef-solo on a node'''
+    if not len(env.hosts):
+        abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
+    
+    distro_type = _check_supported_distro(distro)
+    if not distro_type:
+        abort('%s is not a supported distro' % distro)
+    message = 'Are you sure you want to install Chef at the '
+    message += 'nodes %s, using "%s" packages?' % (", ".join(env.hosts), distro)
+    if not confirm(message):
+        abort('Aborted by user')
+    
+    if distro_type == "debian": _apt_install(distro)
+    elif distro_type == "rpm": _rpm_install(distro)
+    else: abort('wrong distro type: %s' % distro_type)
+    
+    # Setup
+    sudo('touch /etc/chef/solo.rb')
+    sudo('rm /etc/chef/solo.rb')
+    append('file_cache_path "/tmp/chef-solo"',
+        '/etc/chef/solo.rb', use_sudo=True)
+    append('cookbook_path "/tmp/chef-solo/cookbooks"',
+        '/etc/chef/solo.rb', use_sudo=True)
+    append('role_path "/tmp/chef-solo/roles"',
+        '/etc/chef/solo.rb', use_sudo=True)
+    sudo('mkdir -p /tmp/chef-solo/roles')
+    
+    # Copy cookbooks
+    _update_cookbooks()
+
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
+    if not len(env.hosts):
+        abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     configfile = hostname + ".json"
@@ -105,6 +126,8 @@ def recipe(recipe, save=False):
 
 def role(role, save=False):
     '''Execute the given role, ignores existing config'''
+    if not len(env.hosts):
+        abort('no node specified\nUsage: cook node:MYNODE role:MYRECIPE')
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
     if not os.path.exists('roles/' + role):
@@ -117,7 +140,11 @@ def role(role, save=False):
     _sync_node(filepath)
 
 def configure():
-    '''Configures all nodes using existing config files'''
+    '''Configure node using existing config file'''
+    if not len(env.hosts):
+        msg = 'no node specified\n'
+        msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
+        abort(msg)
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Configuring %s ==" % hostname
     configfile = hostname + ".json"
@@ -148,34 +175,6 @@ def list_nodes_with_role(role):
         recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
             _print_node(node)
-
-def deploy_chef(distro):
-    '''Install Chef-solo on a node'''
-    distro_type = _check_supported_distro(distro)
-    if not distro_type:
-        abort('%s is not a supported distro' % distro)
-    message = 'Are you sure you want to install Chef at the '
-    message += 'nodes %s, using "%s" packages?' % (", ".join(env.hosts), distro)
-    if not confirm(message):
-        abort('Aborted by user')
-    
-    if distro_type == "debian": _apt_install(distro)
-    elif distro_type == "rpm": _rpm_install(distro)
-    else: abort('wrong distro type: %s' % distro_type)
-    
-    # Setup
-    sudo('touch /etc/chef/solo.rb')
-    sudo('rm /etc/chef/solo.rb')
-    append('file_cache_path "/tmp/chef-solo"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    append('cookbook_path "/tmp/chef-solo/cookbooks"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    append('role_path "/tmp/chef-solo/roles"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    sudo('mkdir -p /tmp/chef-solo/roles')
-    
-    # Copy cookbooks
-    _update_cookbooks()
 
 #########################
 ### Private functions ###
@@ -221,6 +220,17 @@ def _save_config(save, data):
         f.write(json.dumps(data))
         f.write('\n')
     return filepath
+
+def _get_nodes():
+    if not os.path.exists(NODEPATH): return []
+    nodes = []
+    for filename in sorted([f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
+        with open(NODEPATH + filename, 'r') as f:
+            try:
+                nodes.append(json.loads(f.read()))
+            except json.decoder.JSONDecodeError:
+                print "Warning: file %s contains no JSON" % filename
+    return nodes
 
 def _sync_node(filepath):
     _update_cookbooks()
