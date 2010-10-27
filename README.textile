@@ -4,7 +4,7 @@ With LittleChef you will be able to get started more quickly cooking with "Chef"
 
 h2. Overview
 
-You can think of this like a pocket Chef. You don't need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
+You may think of this like a pocket Chef. You don't need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
 
 Installing LittleChef to your work computer is all you need to get you started.
 
@@ -20,7 +20,9 @@ Whenever you apply a recipe to a node, your cookbook dir is gzipped and uploaded
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @cookbooks/@ directory to your repository. LittleChef brings back sanity to cookbook development.
 
-h2. Requirements
+h2. Installation
+
+h3. Requirements
 
 * Python 2.6+
 * Setuptools
@@ -31,7 +33,7 @@ All needed packages are installed by typing
 or
 @yum install python-setuptools fabric@ for RHEL and CentOS
 
-h2. Installation
+h3. Installation
 
 You can install LittleChef directly from the PyPI:
 @easy_install littlechef@
@@ -69,9 +71,9 @@ The CentOS and RHEL installation method has not been tested. Feedback is welcome
 
 h3. Cook
 
-Note: Don't cook outside a kitchen!
+Note: Don't cook outside a of kitchen!
 
-* *@cook -l@*: Show a list of all available orders
+* @cook -l@: Show a list of all available orders
 * @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP
 Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
 You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=True@
