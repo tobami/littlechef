@@ -71,7 +71,7 @@ The CentOS and RHEL installation method has not been tested. Feedback is welcome
 
 h3. Cook
 
-Note: Don't cook outside a of kitchen!
+Note: Don't cook outside of a kitchen!
 
 * @cook -l@: Show a list of all available orders
 * @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP
