@@ -3,26 +3,13 @@ from distutils.core import setup
 setup(
     name = "littlechef",
     version = "0.1",
-    description = "Cook with Chef without Chef Server",
+    description = "Cook with Chef without a Chef Server",
     author = "Miquel Torres",
     author_email = "tobami@googlemail.com",
     url = "http://github.com/tobami/littlechef",
     download_url = "http://github.com/tobami/littlechef/archives/master",
     keywords = ["chef", "devops"],
-    install_requires=['fabric>=0.9.2'],
-    data_files=[
-        ('littlechef/roles', ['roles/loadbalancer.json']),
-        ('littlechef/cookbooks/haproxy', [
-            'cookbooks/haproxy/README.rdoc', 'cookbooks/haproxy/metadata.json',
-            'cookbooks/haproxy/metadata.rb']),
-        ('littlechef/cookbooks/haproxy/attributes', [
-            'cookbooks/haproxy/attributes/default.rb']),
-        ('littlechef/cookbooks/haproxy/recipes', [
-            'cookbooks/haproxy/recipes/default.rb']),
-        ('littlechef/cookbooks/haproxy/templates/default', [
-            'cookbooks/haproxy/templates/default/haproxy-default.erb',
-            'cookbooks/haproxy/templates/default/haproxy.cfg.erb']),
-    ],
+    install_requires=['fabric>=0.9.1'],
     py_modules = ['littlechef'],
     scripts = ['cook'],
     classifiers = [

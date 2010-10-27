@@ -9,7 +9,7 @@ if len(sys.argv) > 1:
     # Pass on arguments to fabric
     args.extend(sys.argv[1:])
 else:
-    sys.exit("No command given. Type '%s -l' for a list of commands" % sys.argv[0])
+    sys.exit("No order given. Type '%s -l' for a list of orders\n" % sys.argv[0])
 
 # Call fabric with the given arguments
 call(args)

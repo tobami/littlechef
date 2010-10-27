@@ -12,8 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-# LittleChef: Configuration management using Chef Solo
-# in a push based system using Python and Fabric
+# LittleChef: Configuration management using Chef Solo in a push based system
 import fabric
 from fabric.api import *
 from fabric.contrib.files import upload_template, append
@@ -27,6 +26,21 @@ APPNAME  = "littlechef"
 
 def _readconfig():
     '''Read main fabric configuration'''
+    env.loglevel = "info"
+    # If user wants to create a new kitchen, don't make any checks, just call
+    # new_deployment()
+    import sys
+    if sys.argv[3] == "new_deployment": return
+    
+    # Check that a proper kitchen exists before starting cooking
+    for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
+        if not os.path.exists(dirname):
+            msg = "You are executing 'cook' outside of a deployment directory\n"
+            msg += "To create a new deployment in the current directory you can"
+            msg += " type 'cook new_deployment'"
+            abort(msg)
+    
+    # Now read the authenticatio info
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
     try:
@@ -37,13 +51,12 @@ def _readconfig():
             abort('You need to define a valid user in auth.cfg')
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoSectionError:
-        abort('You need to define user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
-    env.loglevel = "info"
-    if not os.path.exists('nodes'): os.mkdir('nodes')
+        abort('You need to define a user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
 
 _readconfig()
 
 def _get_nodes():
+    if not os.path.exists(NODEPATH): return []
     nodes = []
     for filename in sorted([f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
         with open(NODEPATH + filename, 'r') as f:
@@ -55,6 +68,15 @@ def _get_nodes():
 
 env.hosts = [node[APPNAME]['nodeid'] for node in _get_nodes()]
 fabric.state.output['running'] = False
+
+@hosts('setup')
+def new_deployment():
+    '''Create LittleChef directory structure (a Kitchen)'''
+    local('mkdir -p nodes')
+    local('mkdir -p cookbooks')
+    local('mkdir -p roles')
+    local('touch auth.cfg')
+    local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
 
 @hosts('setup')
 def node(host):

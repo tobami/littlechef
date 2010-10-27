@@ -1,4 +1,3 @@
 include README.textile
 include LICENSE
-graft cookbooks
-graft roles
+include NOTICE
