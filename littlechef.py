@@ -164,9 +164,19 @@ def list_nodes():
 def list_nodes_with_recipe(recipe):
     '''Show all nodes which have asigned a given recipe'''
     for node in _get_nodes():
-        recipename = 'recipe[' + recipe + ']'
-        if recipename in node.get('run_list'):
+        if recipe in _get_recipes_in_node(node):
             _print_node(node)
+        else:
+            for role in _get_roles_in_node(node):
+                with open('roles/' + role + '.json', 'r') as f:
+                    roles = json.loads(f.read())
+                    # Check that name is correct
+                    if roles.get("name") != role:
+                        print "Warning: role '%s' has an incorrect name defined" % role
+                    # Reuse _get_recipes_in_node to extract recipes in a role
+                    if recipe in _get_recipes_in_node(roles):
+                        _print_node(node)
+                        break
 
 @hosts('api')
 def list_nodes_with_role(role):

@@ -1,0 +1,24 @@
+===================
+Little Chef Change Log
+===================
+
+Version 0.2.0, October 28, 2010
+--------------------------------
+* New query: cook list_recipes
+* OPTIMIZATION: only configured cookbooks and its dependencies are uploaded to nodes
+* Output and error checking improvements
+* FIXED: "subrecipes" are now supported
+* FIXED: roles now really work
+
+
+Version 0.1.0, October 27, 2010
+--------------------------------
+
+* Deployment: deploy_chef installs chef-solo using opscode repository
+* Apply a recipe or role to a particular node
+* Save recipes, roles and attributes for every node in configuration
+files, which can afterwards be edited to override attributes
+* Update cookbooks on every node automagically, without the need for repo
+syncing
+* Reconfigure (sync) every node
+* Queries: list_nodes, list_nodes_with_recipe, list_nodes_with_role

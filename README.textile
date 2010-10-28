@@ -13,10 +13,10 @@ h3. How it all works
 In a working deployment directory, the kitchen, there is:
 @auth.cfg@: Authentication information is neede to be able to connect to the nodes
 @nodes/@: After recipes are run on nodes, their configuration is stored here
-@cookbooks/@: This will be your cookbooks repository. You should put this under version control. Note that it is not recommended to clone the whole opscode cookbooks repository because its 7 MB compressed would make syncing cookbooks at the nodes a bit slow
+@cookbooks/@: This will be your cookbooks repository. You should put this under version control.
 @roles/@: Where roles are defined
 
-Whenever you apply a recipe to a node, your cookbook and roles dirs are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directoy. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directoy. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @cookbooks/@ directory to your repository. LittleChef brings back sanity to cookbook development.
 
