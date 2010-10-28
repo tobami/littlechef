@@ -176,9 +176,41 @@ def list_nodes_with_role(role):
         if recipename in node.get('run_list'):
             _print_node(node)
 
+@hosts('api')
+def list_recipes():
+    '''Show all available recipes'''
+    for recipe in _get_recipes():
+        _print_recipe(recipe)
+
 #########################
 ### Private functions ###
 #########################
+def _get_recipes():
+    recipes = []
+    for dirname in sorted(os.listdir('cookbooks')):
+        try:
+            with open('cookbooks/' + dirname + '/metadata.json', 'r') as f:
+                cookbook = json.loads(f.read())
+                for recipe in cookbook.get('recipes', []):
+                    recipes.append(
+                        {
+                            'name': recipe,
+                            'description': cookbook.get('description'),
+                            'dependencies': cookbook.get('dependencies').keys(),
+                            'attributes': cookbook.get('attributes').keys(),
+                        }
+                    )
+        except IOError:
+            print "Warning: invalid cookbook '%s'" % dirname
+    return recipes
+
+def _print_recipe(recipe):
+    '''Prety print a recipe'''
+    print "\nRecipe: " + recipe['name']
+    print "  description:", recipe['description']
+    print "  dependencies:", ", ".join(recipe['dependencies'])
+    print "  attributes:", ", ".join(recipe['attributes'])
+
 def _apt_install(distro):
     sudo('rm /etc/apt/sources.list.d/opscode.list')
     append('deb http://apt.opscode.com/ %s main' % distro,

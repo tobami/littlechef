@@ -84,8 +84,9 @@ You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=
 
 h3. Consulting the inventory
 
-* @cook list_nodes@: Lists all nodes showing its associated recipes, roles and attributes
+* @cook list_nodes@: Lists all configured nodes, showing its associated recipes, roles and attributes
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
+* @cook list_recipes@: Lists all recipes, with associated information
 
 Happy cooking!
