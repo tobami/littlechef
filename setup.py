@@ -2,14 +2,14 @@
 from distutils.core import setup
 setup(
     name = "littlechef",
-    version = "0.2.0",
+    version = "0.2.1",
     description = "Cook with Chef without a Chef Server",
     author = "Miquel Torres",
     author_email = "tobami@googlemail.com",
     url = "http://github.com/tobami/littlechef",
     download_url = "http://github.com/tobami/littlechef/archives/master",
     keywords = ["chef", "devops"],
-    install_requires=['fabric>=0.9.1'],
+    install_requires=['fabric>=0.9.1', 'simplejson'],
     py_modules = ['littlechef'],
     scripts = ['cook'],
     classifiers = [

@@ -56,9 +56,13 @@ fabric.state.output['running'] = False
 def new_deployment():
     '''Create LittleChef directory structure (Kitchen)'''
     local('mkdir -p nodes')
+    print "Created nodes/ directory"
     local('mkdir -p cookbooks')
+    print "Created cookbooks/ directory"
     local('mkdir -p roles')
+    print "Created roles/ directory"
     local('touch auth.cfg')
+    print "Created auth.cfg"
     local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
 
 @hosts('setup')
@@ -215,7 +219,8 @@ def _get_recipes_in_cookbook(name):
 
 def _get_recipes():
     recipes = []
-    for dirname in sorted(os.listdir('cookbooks')):
+    for dirname in sorted(
+        [d for d in os.listdir('cookbooks') if not d.startswith('.')]):
         recipes.extend(_get_recipes_in_cookbook(dirname))
     return recipes
 
