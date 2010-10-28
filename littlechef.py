@@ -130,7 +130,7 @@ def role(role, save=False):
         abort('no node specified\nUsage: cook node:MYNODE role:MYRECIPE')
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
-    if not os.path.exists('roles/' + role):
+    if not os.path.exists('roles/' + role + '.json'):
         abort("Role '%s' not found" % role)
     data = {
         APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
@@ -185,23 +185,28 @@ def list_recipes():
 #########################
 ### Private functions ###
 #########################
+def _get_recipes_in_cookbook(name):
+    recipes = []
+    try:
+        with open('cookbooks/' + name + '/metadata.json', 'r') as f:
+            cookbook = json.loads(f.read())
+            for recipe in cookbook.get('recipes', []):
+                recipes.append(
+                    {
+                        'name': recipe,
+                        'description': cookbook['recipes'][recipe],
+                        'dependencies': cookbook.get('dependencies').keys(),
+                        'attributes': cookbook.get('attributes').keys(),
+                    }
+                )
+    except IOError:
+        print "Warning: invalid cookbook '%s'" % name
+    return recipes
+
 def _get_recipes():
     recipes = []
     for dirname in sorted(os.listdir('cookbooks')):
-        try:
-            with open('cookbooks/' + dirname + '/metadata.json', 'r') as f:
-                cookbook = json.loads(f.read())
-                for recipe in cookbook.get('recipes', []):
-                    recipes.append(
-                        {
-                            'name': recipe,
-                            'description': cookbook.get('description'),
-                            'dependencies': cookbook.get('dependencies').keys(),
-                            'attributes': cookbook.get('attributes').keys(),
-                        }
-                    )
-        except IOError:
-            print "Warning: invalid cookbook '%s'" % dirname
+        recipes.extend(_get_recipes_in_cookbook(dirname))
     return recipes
 
 def _print_recipe(recipe):
@@ -256,7 +261,8 @@ def _save_config(save, data):
 def _get_nodes():
     if not os.path.exists(NODEPATH): return []
     nodes = []
-    for filename in sorted([f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
+    for filename in sorted(
+        [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
         with open(NODEPATH + filename, 'r') as f:
             try:
                 nodes.append(json.loads(f.read()))
@@ -265,21 +271,34 @@ def _get_nodes():
     return nodes
 
 def _sync_node(filepath):
-    _update_cookbooks()
+    _update_cookbooks(filepath)
     _configure_node(filepath)
 
-def _print_node(node):
-    print "\n" + node[APPNAME]['nodename']
+def _get_recipes_in_node(node):
+    recipes = []
     for a in node.get('run_list'):
         if a.startswith("recipe"):
             recipe = a.split('[')[1].split(']')[0]
             recipe = a.lstrip('recipe[').rstrip(']')
-            print "  Recipe:", recipe
-            print "    attributes: " + str(node.get(recipe))
-        elif a.startswith("role"):
+            recipes.append(recipe)
+    return recipes
+
+def _get_roles_in_node(node):
+    roles = []
+    for a in node.get('run_list'):
+        if a.startswith("role"):
             role = a.split('[')[1].split(']')[0]
-            print "  Role:", role
-            print "    attributes: " + str(node.get(role))
+            roles.append(role)
+    return roles
+
+def _print_node(node):
+    print "\n" + node[APPNAME]['nodename']
+    for recipe in _get_recipes_in_node(node):
+        print "  Recipe:", recipe
+        print "    attributes: " + str(node.get(recipe))
+    for role in _get_roles_in_node(node):
+        print "  Role:", role
+        print "    attributes: " + str(node.get(role))
 
 def _configure_node(configfile):
     print "Uploading node.json..."
@@ -291,21 +310,66 @@ def _configure_node(configfile):
             use_sudo=True
         )
         print "Cooking..."
-        sudo('chef-solo -l %s -j /etc/chef/node.json' % env.loglevel)
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('chef-solo -l %s -j /etc/chef/node.json' % env.loglevel)#
+            if "ERROR:" in output:
+                print "\nERROR: A problem occurred while executing chef-solo"
+            else:
+                print "\nSUCCESS: Node correctly configured"
 
-def _update_cookbooks():
+def _update_cookbooks(configfile):
+    # Clean up node
+    sudo('rm -rf /tmp/chef-solo/cookbooks')
+    sudo('rm -rf /tmp/chef-solo/roles')
+    
     print "Uploading cookbooks..."
-    _upload_and_unpack('cookbooks')
+    cookbooks = []
+    with open(configfile, 'r') as f:
+        node = json.loads(f.read())
+    
+    # Fetch cookbooks needed for recipes
+    for recipe in _get_recipes_in_node(node):
+        recipe = recipe.split('::')[0]
+        if recipe not in cookbooks:
+            cookbooks.append(recipe)
+    
+    # Fetch cookbooks needed for role recipes
+    for role in _get_roles_in_node(node):
+        with open('roles/' + role + '.json', 'r') as f:
+            roles = json.loads(f.read())
+            # Check that name is correct
+            if roles.get("name") != role:
+                print "Warning: role '%s' has an incorrect name defined" % role
+            # Reuse _get_recipes_in_node to extract recipes in a role
+            for recipe in _get_recipes_in_node(roles):
+                recipe = recipe.split('::')[0]
+                if recipe not in cookbooks:
+                    cookbooks.append(recipe)
+    
+    # Fetch dependencies
+    for cookbook in cookbooks:
+        for recipe in _get_recipes_in_cookbook(cookbook):
+            # Only care about base recipe
+            if len(recipe['name'].split('::')) > 1: continue
+            for dep in recipe['dependencies']:
+                if dep not in cookbooks:
+                    if not os.path.exists('cookbooks/' + dep):
+                        print "Warning: Possible error because of missing dependency"
+                        print "         Cookbook '%s' not found" % dep
+                    else:
+                        cookbooks.append(dep)
+    
+    _upload_and_unpack(['cookbooks/' + f for f in cookbooks])
+    
     print "Uploading roles..."
-    _upload_and_unpack('roles')
+    _upload_and_unpack(['roles'])
 
 def _upload_and_unpack(source):
-    target = '/tmp/chef-solo/'
     with hide('running'):
-        local('tar czf temp.tar.gz %s' % source)
+        local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
+        sudo('mv temp.tar.gz /tmp/chef-solo/')
         local('rm temp.tar.gz')
-        sudo('rm -rf %s/%s' % (target, source))
-        run('tar -xzf temp.tar.gz')
-        run('rm temp.tar.gz')
-        sudo('mv %s %s' % (source, target))
+        with cd('/tmp/chef-solo/'):
+            sudo('tar -xzf temp.tar.gz')
+            sudo('rm temp.tar.gz')

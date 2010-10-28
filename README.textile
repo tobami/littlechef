@@ -74,7 +74,7 @@ h3. Cook
 Note: Don't cook outside of a kitchen!
 
 * @cook -l@: Show a list of all available orders
-* @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP
+* @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP. @nginx::source@ "subrecipes" are supported.
 Note that the first time this is run for a node, a configuration file will be created at @nodes/myhostname.json@. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
 You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=True@
 * @cook node:MYNODE role:MYROLE@: The same as above but role-based
@@ -87,6 +87,6 @@ h3. Consulting the inventory
 * @cook list_nodes@: Lists all configured nodes, showing its associated recipes, roles and attributes
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
-* @cook list_recipes@: Lists all recipes, with associated information
+* @cook list_recipes@: Lists all available recipes, with associated information
 
 Happy cooking!
