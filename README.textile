@@ -38,6 +38,7 @@ h3. Installation
 You can install LittleChef directly from the PyPI:
 @easy_install littlechef@
 
+Note: as of version 0.2.1, there may be some problems installing inside a virtualenv
 Note: your distribution may have a package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
 
 h2. Usage
