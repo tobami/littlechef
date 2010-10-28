@@ -115,7 +115,7 @@ def recipe(recipe, save=False):
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     configfile = hostname + ".json"
-    if not os.path.exists('cookbooks/' + recipe):
+    if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
         abort("Recipe '%s' not found" % recipe)
     data = {
         APPNAME: {'nodename': hostname, 'nodeid': env.host_string},

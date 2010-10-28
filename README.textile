@@ -11,12 +11,12 @@ Installing LittleChef to your work computer is all you need to get you started.
 h3. How it all works
 
 In a working deployment directory, the kitchen, there is:
-@auth.cfg@: Authentication information is defined here
-@nodes/@: after recipes are run on nodes, their configuration is stored here
+@auth.cfg@: Authentication information is neede to be able to connect to the nodes
+@nodes/@: After recipes are run on nodes, their configuration is stored here
 @cookbooks/@: This will be your cookbooks repository. You should put this under version control. Note that it is not recommended to clone the whole opscode cookbooks repository because its 7 MB compressed would make syncing cookbooks at the nodes a bit slow
 @roles/@: Where roles are defined
 
-Whenever you apply a recipe to a node, your cookbook dir is gzipped and uploaded to that node. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration. Cookbooks and roles are configured to be found at @/tmp/chef-solo/@.
+Whenever you apply a recipe to a node, your cookbook and roles dirs are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directoy. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @cookbooks/@ directory to your repository. LittleChef brings back sanity to cookbook development.
 
@@ -38,7 +38,7 @@ h3. Installation
 You can install LittleChef directly from the PyPI:
 @easy_install littlechef@
 
-Note: your distribution may have a package that also provides a @cook@ executable. To avoid collisions with LittleChef's executable, you need to remove it.
+Note: your distribution may have a package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
 
 h2. Usage
 
@@ -53,11 +53,11 @@ h3. Setup
 
 @cook new_deployment@ will create inside the current directory a few files and directories for LittleChef to be able to cook. You can create and have as many deployment directories (kitchens) as you like on your computer.
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_deployment@ will have created a file named @auth.cfg@. You should edit it and enter a username and password that has sudo access to your nodes
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_deployment@ will have created a file named @auth.cfg@. You can edit it to enter a username and password.
 
 h3. Deploy
 
-For convenience, there is a command that allows you to deploy chef-client/-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
+For convenience, there is a command that allows you to deploy chef-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
 @cook node:MYNODE deploy_chef:MYDISTRO@
 
 MYDISTRO can have one of the following values for debian based distributions:
@@ -67,7 +67,7 @@ and for RHEL based distros:
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
 
-The CentOS and RHEL installation method has not been tested. Feedback is welcome.
+Note: The CentOS and RHEL installation method has not been tested. Feedback is welcome.
 
 h3. Cook
 
@@ -75,7 +75,7 @@ Note: Don't cook outside of a kitchen!
 
 * @cook -l@: Show a list of all available orders
 * @cook node:MYNODE recipe:MYRECIPE@: Cook a recipe on a particular node by giving its hostname or IP
-Note that the first time this is run for a node, a configuration file will be created at @nodes/hostname.json@. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
+Note that the first time this is run for a node, a configuration file will be created at @nodes/myhostname.json@. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
 You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=True@
 * @cook node:MYNODE role:MYROLE@: The same as above but role-based
 * @cook node:all configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @nodes/@
