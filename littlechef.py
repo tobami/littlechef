@@ -32,8 +32,8 @@ def _readconfig():
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
         if not os.path.exists(dirname):
             msg = "You are executing 'cook' outside of a deployment directory\n"
-            msg += "To create a new deployment in the current directory you can"
-            msg += " type 'cook new_deployment'"
+            msg += "To create a new deployment in the current directory"
+            msg += "type 'cook new_deployment'"
             abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")

@@ -4,10 +4,13 @@ from subprocess import call
 from distutils.sysconfig import get_python_lib
 
 fabfile = get_python_lib() + "/littlechef.py"
+
 if not os.path.exists(fabfile):
-    fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef.py'
+    fabfile = fabfile.replace('/usr/lib/', '/usr/local/lib/')
     if not os.path.exists(fabfile):
-        sys.exit("There was an installation error. Couldn't find littlechef.py, try reinstalling again")
+        fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef.py'
+        if not os.path.exists(fabfile):
+            sys.exit("There was an installation error. Couldn't find littlechef.py, try reinstalling again")
 
 args = ['fab', '-f', fabfile]
 

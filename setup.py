@@ -2,7 +2,7 @@
 from distutils.core import setup
 setup(
     name = "littlechef",
-    version = "0.2.1",
+    version = "0.2.2",
     description = "Cook with Chef without a Chef Server",
     author = "Miquel Torres",
     author_email = "tobami@googlemail.com",
@@ -12,6 +12,7 @@ setup(
     install_requires=['fabric>=0.9.1', 'simplejson'],
     py_modules = ['littlechef'],
     scripts = ['cook'],
+    zip_safe=False,
     classifiers = [
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
