@@ -89,4 +89,8 @@ h3. Consulting the inventory
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 * @cook list_recipes@: Lists all available recipes, with associated information
 
+h3. Getting help
+
+For help regarding the use of Little Chef, or to share any ideas or suggestions you may have, please post on "Little Chef's discussion group'":http://groups.google.com/group/littlechef
+
 Happy cooking!

@@ -56,14 +56,14 @@ fabric.state.output['running'] = False
 def new_deployment():
     '''Create LittleChef directory structure (Kitchen)'''
     local('mkdir -p nodes')
-    print "Created nodes/ directory"
+    print "nodes/ directory created..."
     local('mkdir -p cookbooks')
-    print "Created cookbooks/ directory"
+    print "cookbooks/ directory created..."
     local('mkdir -p roles')
-    print "Created roles/ directory"
+    print "roles/ directory created..."
     local('touch auth.cfg')
-    print "Created auth.cfg"
     local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
+    print "auth.cfg created..."
 
 @hosts('setup')
 def debug():
@@ -83,6 +83,7 @@ def node(host):
 
 def deploy_chef(distro):
     '''Install Chef-solo on a node'''
+    # Do some checks
     if not len(env.hosts):
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
     
@@ -111,13 +112,17 @@ def deploy_chef(distro):
 
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
+    # Do some checks
     if not len(env.hosts):
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
+    
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     configfile = hostname + ".json"
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
         abort("Recipe '%s' not found" % recipe)
+    
+    # Now create configuration and sync node
     data = {
         APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
         "run_list": [ "recipe[%s]" % recipe ],
@@ -127,12 +132,16 @@ def recipe(recipe, save=False):
 
 def role(role, save=False):
     '''Execute the given role, ignores existing config'''
+    # Do some checks
     if not len(env.hosts):
         abort('no node specified\nUsage: cook node:MYNODE role:MYRECIPE')
+    
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
     if not os.path.exists('roles/' + role + '.json'):
         abort("Role '%s' not found" % role)
+    
+    # Now create configuration and sync node
     data = {
         APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
         "run_list": [ "role[%s]" % role ],
@@ -142,17 +151,22 @@ def role(role, save=False):
 
 def configure():
     '''Configure node using existing config file'''
+    # Do some checks
     if not len(env.hosts):
         msg = 'no node specified\n'
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
+    
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Configuring %s ==" % hostname
+    
     configfile = hostname + ".json"
     if not os.path.exists(NODEPATH + configfile):
         print "Warning: No config file found for %s" % hostname
         print "Warning: Chef run aborted"
         return
+    
+    # Configure node
     _sync_node(NODEPATH + configfile)
 
 @hosts('api')
