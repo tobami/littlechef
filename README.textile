@@ -91,6 +91,6 @@ h3. Consulting the inventory
 
 h3. Getting help
 
-For help regarding the use of Little Chef, or to share any ideas or suggestions you may have, please post on "Little Chef's discussion group'":http://groups.google.com/group/littlechef
+For help regarding the use of Little Chef, or to share any ideas or suggestions you may have, please post on Little Chef's "discussion group":http://groups.google.com/group/littlechef
 
 Happy cooking!
