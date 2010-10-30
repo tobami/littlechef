@@ -15,7 +15,7 @@
 # LittleChef: Configuration management using Chef Solo in a push based system
 import fabric
 from fabric.api import *
-from fabric.contrib.files import upload_template, append
+from fabric.contrib.files import upload_template, append, exists
 from fabric.contrib.console import confirm
 import ConfigParser, os
 import simplejson as json
@@ -108,9 +108,6 @@ def deploy_chef(distro):
     append('role_path "/tmp/chef-solo/roles"',
         '/etc/chef/solo.rb', use_sudo=True)
     sudo('mkdir -p /tmp/chef-solo/roles')
-    
-    # Copy cookbooks
-    _update_cookbooks()
 
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
@@ -232,7 +229,9 @@ def _print_recipe(recipe):
     print "  attributes:", ", ".join(recipe['attributes'])
 
 def _apt_install(distro):
-    sudo('rm /etc/apt/sources.list.d/opscode.list')
+    if exists('/etc/apt/sources.list.d/opscode.list'):
+        sudo('rm /etc/apt/sources.list.d/opscode.list')
+    sudo('touch /etc/apt/sources.list.d/opscode.list')
     append('deb http://apt.opscode.com/ %s main' % distro,
         '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
     sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
