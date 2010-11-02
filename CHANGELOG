@@ -2,9 +2,11 @@
 Little Chef Change Log
 ======================
 
-Version 0.2.1 and 0.2.2, October 29, 2010
+
+Version 0.2.1, 0.2.2 and 0.2.3, October 29-20, 2010
 -----------------------------------------
-* FIXED PyPI installation
+* FIXED different PyPI installation issues
+* Improved README, code comments and error messages
 
 
 Version 0.2.0, October 28, 2010
