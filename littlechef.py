@@ -88,8 +88,6 @@ def deploy_chef(distro):
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
     
     distro_type = _check_supported_distro(distro)
-    if not distro_type:
-        abort('%s is not a supported distro' % distro)
     message = 'Are you sure you want to install Chef at the '
     message += 'nodes %s, using "%s" packages?' % (", ".join(env.hosts), distro)
     if not confirm(message):
@@ -99,7 +97,7 @@ def deploy_chef(distro):
     elif distro_type == "rpm": _rpm_install(distro)
     else: abort('wrong distro type: %s' % distro_type)
     
-    # Setup
+    # Chef Solo Setup
     sudo('touch /etc/chef/solo.rb')
     sudo('rm /etc/chef/solo.rb')
     append('file_cache_path "/tmp/chef-solo"',
@@ -243,9 +241,6 @@ def _print_recipe(recipe):
     print "  attributes:", ", ".join(recipe['attributes'])
 
 def _apt_install(distro):
-    if exists('/etc/apt/sources.list.d/opscode.list'):
-        sudo('rm /etc/apt/sources.list.d/opscode.list')
-    sudo('touch /etc/apt/sources.list.d/opscode.list')
     append('deb http://apt.opscode.com/ %s main' % distro,
         '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
     sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
@@ -268,14 +263,17 @@ def _rpm_install(distro):
 def _check_supported_distro(distro):
     debianbased_distros = [
         'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny']
-    rmpbased_distros = [
+    rpmbased_distros = [
         'centos', 'rhel']
     if distro in debianbased_distros:
         return 'debian'
-    elif distro in rmpbased_distros:
+    elif distro in rpmbased_distros:
         return 'rpm'
     else:
-        return False
+        debianbased_distros.extend(rpmbased_distros)
+        print "Currently supported distros are:"
+        print ", ".join(debianbased_distros)
+        abort("Unsupported distro %s" % distro)
 
 def _save_config(save, data):
     filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
