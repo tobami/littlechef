@@ -202,6 +202,12 @@ def list_recipes():
     for recipe in _get_recipes():
         _print_recipe(recipe)
 
+@hosts('api')
+def list_roles():
+    '''Show all roles'''
+    for role in _get_roles():
+        _print_role(role)
+
 #########################
 ### Private functions ###
 #########################
@@ -220,7 +226,7 @@ def _get_recipes_in_cookbook(name):
                     }
                 )
     except IOError:
-        print "Warning: invalid cookbook '%s'" % name
+        abort("Could not find cookbook '%s'" % name)
     return recipes
 
 def _get_recipes():
@@ -277,7 +283,7 @@ def _save_config(save, data):
     if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
     with open(filepath, 'w') as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data, indent=4))
         f.write('\n')
     return filepath
 
@@ -305,9 +311,30 @@ def _get_recipes_in_node(node):
     for a in node.get('run_list'):
         if a.startswith("recipe"):
             recipe = a.split('[')[1].split(']')[0]
-            recipe = a.lstrip('recipe[').rstrip(']')
             recipes.append(recipe)
     return recipes
+
+def _get_role(rolename):
+    path = os.path.join('roles',rolename + '.json')
+    if not os.path.exists(path): abort("Couldn't read role file %s" % path)
+    with open(path, 'r') as f:
+        try:
+            role = json.loads(f.read())
+        except json.decoder.JSONDecodeError, e:
+            msg = "Little Chef found the following error in your"
+            msg += " %s file:\n  %s" % (rolename, str(e))
+            abort(msg)
+        role['filename'] = rolename
+        return role
+
+def _get_roles():
+    roles = []
+    for root, subFolders, files in os.walk('roles/'):
+        for file in files:
+            if file.endswith(".json"):
+                path = os.path.join(root[len('roles/'):] + '/'+ file[:-len('.json')])
+                roles.append(_get_role(path))
+    return roles
 
 def _get_roles_in_node(node):
     roles = []
@@ -317,15 +344,19 @@ def _get_roles_in_node(node):
             roles.append(role)
     return roles
 
+def _print_role(role):
+    print "  Role: %s (%s)" % (role.get('name'), role.get('filename'))
+    print "    default_attributes: " + str(role.get('default_attributes'))
+    print "    override_attributes: " + str(role.get('override_attributes'))
+
 def _print_node(node):
     print "\n" + node[APPNAME]['nodename']
     for recipe in _get_recipes_in_node(node):
         print "  Recipe:", recipe
         print "    attributes: " + str(node.get(recipe))
     for role in _get_roles_in_node(node):
-        print "  Role:", role
-        print "    default_attributes: " + str(node.get('default_attributes'))
-        print "    override_attributes: " + str(node.get('override_attributes'))
+        _print_role(_get_role(role))
+    
     print "  Node attributes:"
     for attribute in node.keys():
         if attribute == "run_list" or attribute == "littlechef": continue
@@ -340,7 +371,7 @@ def _configure_node(configfile):
             context={},
             use_sudo=True
         )
-        print "Cooking..."
+        print "\n== Cooking... ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo('chef-solo -l %s -j /etc/chef/node.json' % env.loglevel)#
             if "ERROR:" in output:
@@ -387,7 +418,8 @@ def _update_cookbooks(configfile):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     if not os.path.exists('cookbooks/' + dep):
-                        print "Warning: Possible error because of missing dependency"
+                        print "Warning: Possible error because of missing dependency",
+                        print "for cookbook %s" % recipe['name']
                         print "         Cookbook '%s' not found" % dep
                         import time;time.sleep(1)
                     else:
