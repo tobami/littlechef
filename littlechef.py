@@ -68,7 +68,7 @@ def new_deployment():
 @hosts('setup')
 def debug():
     '''Sets logging level to debug'''
-    print "Setting logging level to 'debug'..."
+    print "Setting Chef Solo log level to 'debug'..."
     env.loglevel = 'debug'
 
 @hosts('setup')
@@ -183,9 +183,6 @@ def list_nodes_with_recipe(recipe):
             for role in _get_roles_in_node(node):
                 with open('roles/' + role + '.json', 'r') as f:
                     roles = json.loads(f.read())
-                    # Check that name is correct
-                    if roles.get("name") != role:
-                        print "Warning: role '%s' has an incorrect name defined" % role
                     # Reuse _get_recipes_in_node to extract recipes in a role
                     if recipe in _get_recipes_in_node(roles):
                         _print_node(node)
@@ -291,9 +288,12 @@ def _get_nodes():
         [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
         with open(NODEPATH + filename, 'r') as f:
             try:
-                nodes.append(json.loads(f.read()))
-            except json.decoder.JSONDecodeError:
-                print "Warning: file %s contains no JSON" % filename
+                node = json.loads(f.read())
+            except json.decoder.JSONDecodeError, e:
+                msg = "Little Chef found the following error in your"
+                msg += " %s file:\n  %s" % (filename, str(e))
+                abort(msg)
+            nodes.append(node)
     return nodes
 
 def _sync_node(filepath):
@@ -324,7 +324,12 @@ def _print_node(node):
         print "    attributes: " + str(node.get(recipe))
     for role in _get_roles_in_node(node):
         print "  Role:", role
-        print "    attributes: " + str(node.get(role))
+        print "    default_attributes: " + str(node.get('default_attributes'))
+        print "    override_attributes: " + str(node.get('override_attributes'))
+    print "  Node attributes:"
+    for attribute in node.keys():
+        if attribute == "run_list" or attribute == "littlechef": continue
+        print "    %s: %s" % (attribute, node[attribute])
 
 def _configure_node(configfile):
     print "Uploading node.json..."
@@ -362,10 +367,12 @@ def _update_cookbooks(configfile):
     # Fetch cookbooks needed for role recipes
     for role in _get_roles_in_node(node):
         with open('roles/' + role + '.json', 'r') as f:
-            roles = json.loads(f.read())
-            # Check that name is correct
-            if roles.get("name") != role:
-                print "Warning: role '%s' has an incorrect name defined" % role
+            try:
+                roles = json.loads(f.read())
+            except json.decoder.JSONDecodeError, e:
+                msg = "Little Chef found the following error in your role file:\n  "
+                msg += str(e)
+                abort(msg)
             # Reuse _get_recipes_in_node to extract recipes in a role
             for recipe in _get_recipes_in_node(roles):
                 recipe = recipe.split('::')[0]
@@ -382,6 +389,7 @@ def _update_cookbooks(configfile):
                     if not os.path.exists('cookbooks/' + dep):
                         print "Warning: Possible error because of missing dependency"
                         print "         Cookbook '%s' not found" % dep
+                        import time;time.sleep(1)
                     else:
                         cookbooks.append(dep)
     
