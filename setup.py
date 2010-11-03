@@ -2,7 +2,7 @@
 from distutils.core import setup
 setup(
     name = "littlechef",
-    version = "0.2.3",
+    version = "0.2.4",
     description = "Cook with Chef without a Chef Server",
     author = "Miquel Torres",
     author_email = "tobami@googlemail.com",

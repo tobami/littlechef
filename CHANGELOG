@@ -2,6 +2,13 @@
 Little Chef Change Log
 ======================
 
+Version 0.2.4 November 4, 2010
+-----------------------------------------
+* NEW: command "list_roles"
+* NEW: show node attributes in list_nodes
+* NEW: Indent node configuration files when saving
+* FIX: Add JSON syntax error handling
+
 
 Version 0.2.1, 0.2.2 and 0.2.3, October 29-20, 2010
 -----------------------------------------
@@ -11,11 +18,11 @@ Version 0.2.1, 0.2.2 and 0.2.3, October 29-20, 2010
 
 Version 0.2.0, October 28, 2010
 --------------------------------
-* New query: cook list_recipes
+* NEW query: cook list_recipes
 * OPTIMIZATION: only configured cookbooks and its dependencies are uploaded to nodes
 * Output and error checking improvements
-* FIXED: "subrecipes" are now supported
-* FIXED: roles now really work
+* FIX: "subrecipes" are now supported
+* FIX: roles now really work
 
 
 Version 0.1.0, October 27, 2010

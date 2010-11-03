@@ -88,6 +88,7 @@ h3. Consulting the inventory
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 * @cook list_recipes@: Lists all available recipes, with associated information
+* @cook list_roles@: Lists all available roles, with associated information
 
 h3. Getting help
 
