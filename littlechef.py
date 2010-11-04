@@ -12,7 +12,8 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-# LittleChef: Configuration management using Chef Solo in a push based system
+'''LittleChef:
+   Configuration Management using Chef without a Chef Server'''
 import fabric
 from fabric.api import *
 from fabric.contrib.files import upload_template, append, exists
@@ -40,7 +41,8 @@ def _readconfig():
     try:
         try:
             env.user = config.get('userinfo', 'user')
-            if not env.user: raise ValueError
+            if not env.user:
+                raise ValueError
         except (ConfigParser.NoOptionError, ValueError):
             abort('You need to define a valid user in auth.cfg')
         env.password = config.get('userinfo', 'password')
@@ -51,6 +53,12 @@ def _readconfig():
 _readconfig()
 
 fabric.state.output['running'] = False
+
+@hosts('setup')
+def debug():
+    '''Sets logging level to debug'''
+    print "Setting Chef Solo log level to 'debug'..."
+    env.loglevel = 'debug'
 
 @hosts('setup')
 def new_deployment():
@@ -64,12 +72,6 @@ def new_deployment():
     local('touch auth.cfg')
     local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
     print "auth.cfg created..."
-
-@hosts('setup')
-def debug():
-    '''Sets logging level to debug'''
-    print "Setting Chef Solo log level to 'debug'..."
-    env.loglevel = 'debug'
 
 @hosts('setup')
 def node(host):
@@ -93,9 +95,12 @@ def deploy_chef(distro):
     if not confirm(message):
         abort('Aborted by user')
     
-    if distro_type == "debian": _apt_install(distro)
-    elif distro_type == "rpm": _rpm_install(distro)
-    else: abort('wrong distro type: %s' % distro_type)
+    if distro_type == "debian":
+        _apt_install(distro)
+    elif distro_type == "rpm":
+        _rpm_install(distro)
+    else:
+        abort('wrong distro type: %s' % distro_type)
     
     # Chef Solo Setup
     sudo('touch /etc/chef/solo.rb')
@@ -116,7 +121,7 @@ def recipe(recipe, save=False):
     
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
-    configfile = hostname + ".json"
+    
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
         abort("Recipe '%s' not found" % recipe)
     
@@ -211,39 +216,10 @@ def list_roles():
 #########################
 ### Private functions ###
 #########################
-def _get_recipes_in_cookbook(name):
-    recipes = []
-    try:
-        with open('cookbooks/' + name + '/metadata.json', 'r') as f:
-            cookbook = json.loads(f.read())
-            for recipe in cookbook.get('recipes', []):
-                recipes.append(
-                    {
-                        'name': recipe,
-                        'description': cookbook['recipes'][recipe],
-                        'dependencies': cookbook.get('dependencies').keys(),
-                        'attributes': cookbook.get('attributes').keys(),
-                    }
-                )
-    except IOError:
-        abort("Could not find cookbook '%s'" % name)
-    return recipes
 
-def _get_recipes():
-    recipes = []
-    for dirname in sorted(
-        [d for d in os.listdir('cookbooks') if not d.startswith('.')]):
-        recipes.extend(_get_recipes_in_cookbook(dirname))
-    return recipes
-
-def _print_recipe(recipe):
-    '''Prety print a recipe'''
-    print "\nRecipe: " + recipe['name']
-    print "  description:", recipe['description']
-    print "  dependencies:", ", ".join(recipe['dependencies'])
-    print "  attributes:", ", ".join(recipe['attributes'])
-
+## Chef Solo deployment functions ##
 def _apt_install(distro):
+    '''Install chef for debian based distros'''
     append('deb http://apt.opscode.com/ %s main' % distro,
         '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
     sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
@@ -253,9 +229,11 @@ def _apt_install(distro):
     
     # We only want chef-solo
     sudo('update-rc.d -f chef-client remove')
-    with settings(hide('warnings'), warn_only=True): sudo('pkill chef-client')
+    with settings(hide('warnings'), warn_only=True):
+        sudo('pkill chef-client')
 
 def _rpm_install(distro):
+    '''Install chef for rpm based distros'''
     # Install the EPEL Yum Repository.
     sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
     # Install the ELFF Yum Repository.
@@ -264,6 +242,7 @@ def _rpm_install(distro):
     sudo('yum install chef')
 
 def _check_supported_distro(distro):
+    '''Check that the given distro is supported and return the distro type'''
     debianbased_distros = [
         'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny']
     rpmbased_distros = [
@@ -278,7 +257,9 @@ def _check_supported_distro(distro):
         print ", ".join(debianbased_distros)
         abort("Unsupported distro %s" % distro)
 
+## Node configuration and syncing functions ##
 def _save_config(save, data):
+    '''Saves node configuration either to tmp_node.json or to hostname.json'''
     filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
     if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
@@ -287,82 +268,13 @@ def _save_config(save, data):
         f.write('\n')
     return filepath
 
-def _get_nodes():
-    if not os.path.exists(NODEPATH): return []
-    nodes = []
-    for filename in sorted(
-        [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
-        with open(NODEPATH + filename, 'r') as f:
-            try:
-                node = json.loads(f.read())
-            except json.decoder.JSONDecodeError, e:
-                msg = "Little Chef found the following error in your"
-                msg += " %s file:\n  %s" % (filename, str(e))
-                abort(msg)
-            nodes.append(node)
-    return nodes
-
 def _sync_node(filepath):
+    '''Uploads cookbooks and configures a node'''
     _update_cookbooks(filepath)
     _configure_node(filepath)
 
-def _get_recipes_in_node(node):
-    recipes = []
-    for a in node.get('run_list'):
-        if a.startswith("recipe"):
-            recipe = a.split('[')[1].split(']')[0]
-            recipes.append(recipe)
-    return recipes
-
-def _get_role(rolename):
-    path = os.path.join('roles',rolename + '.json')
-    if not os.path.exists(path): abort("Couldn't read role file %s" % path)
-    with open(path, 'r') as f:
-        try:
-            role = json.loads(f.read())
-        except json.decoder.JSONDecodeError, e:
-            msg = "Little Chef found the following error in your"
-            msg += " %s file:\n  %s" % (rolename, str(e))
-            abort(msg)
-        role['filename'] = rolename
-        return role
-
-def _get_roles():
-    roles = []
-    for root, subFolders, files in os.walk('roles/'):
-        for file in files:
-            if file.endswith(".json"):
-                path = os.path.join(root[len('roles/'):] + '/'+ file[:-len('.json')])
-                roles.append(_get_role(path))
-    return roles
-
-def _get_roles_in_node(node):
-    roles = []
-    for a in node.get('run_list'):
-        if a.startswith("role"):
-            role = a.split('[')[1].split(']')[0]
-            roles.append(role)
-    return roles
-
-def _print_role(role):
-    print "  Role: %s (%s)" % (role.get('name'), role.get('filename'))
-    print "    default_attributes: " + str(role.get('default_attributes'))
-    print "    override_attributes: " + str(role.get('override_attributes'))
-
-def _print_node(node):
-    print "\n" + node[APPNAME]['nodename']
-    for recipe in _get_recipes_in_node(node):
-        print "  Recipe:", recipe
-        print "    attributes: " + str(node.get(recipe))
-    for role in _get_roles_in_node(node):
-        _print_role(_get_role(role))
-    
-    print "  Node attributes:"
-    for attribute in node.keys():
-        if attribute == "run_list" or attribute == "littlechef": continue
-        print "    %s: %s" % (attribute, node[attribute])
-
 def _configure_node(configfile):
+    '''Exectutes chef-solo to apply roles and recipes to a node'''
     print "Uploading node.json..."
     with hide('running'):
         upload_template(
@@ -380,6 +292,7 @@ def _configure_node(configfile):
                 print "\nSUCCESS: Node correctly configured"
 
 def _update_cookbooks(configfile):
+    '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
     sudo('rm -rf /tmp/chef-solo/cookbooks')
     sudo('rm -rf /tmp/chef-solo/roles')
@@ -414,14 +327,16 @@ def _update_cookbooks(configfile):
     for cookbook in cookbooks:
         for recipe in _get_recipes_in_cookbook(cookbook):
             # Only care about base recipe
-            if len(recipe['name'].split('::')) > 1: continue
+            if len(recipe['name'].split('::')) > 1:
+                continue
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     if not os.path.exists('cookbooks/' + dep):
                         print "Warning: Possible error because of missing dependency",
                         print "for cookbook %s" % recipe['name']
                         print "         Cookbook '%s' not found" % dep
-                        import time;time.sleep(1)
+                        import time
+                        time.sleep(1)
                     else:
                         cookbooks.append(dep)
     
@@ -431,6 +346,9 @@ def _update_cookbooks(configfile):
     _upload_and_unpack(['roles'])
 
 def _upload_and_unpack(source):
+    '''Packs the given directory,
+    uploads it to the node
+    and unpacks it in the /tmp/chef-solo/ directory'''
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
@@ -439,3 +357,119 @@ def _upload_and_unpack(source):
         with cd('/tmp/chef-solo/'):
             sudo('tar -xzf temp.tar.gz')
             sudo('rm temp.tar.gz')
+
+## API functions ##
+def _get_nodes():
+    '''Gets all nodes found in the nodes/ directory'''
+    if not os.path.exists(NODEPATH):
+        return []
+    nodes = []
+    for filename in sorted(
+        [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
+        with open(NODEPATH + filename, 'r') as f:
+            try:
+                node = json.loads(f.read())
+            except json.decoder.JSONDecodeError, e:
+                msg = "Little Chef found the following error in your"
+                msg += " %s file:\n  %s" % (filename, str(e))
+                abort(msg)
+            nodes.append(node)
+    return nodes
+
+def _print_node(node):
+    '''Pretty prints the given node'''
+    print "\n" + node[APPNAME]['nodename']
+    for recipe in _get_recipes_in_node(node):
+        print "  Recipe:", recipe
+        print "    attributes: " + str(node.get(recipe))
+    for role in _get_roles_in_node(node):
+        _print_role(_get_role(role))
+    
+    print "  Node attributes:"
+    for attribute in node.keys():
+        if attribute == "run_list" or attribute == "littlechef":
+            continue
+        print "    %s: %s" % (attribute, node[attribute])
+
+def _get_recipes_in_cookbook(name):
+    '''Gets the name of all recipes present in a cookbook'''
+    recipes = []
+    try:
+        with open('cookbooks/' + name + '/metadata.json', 'r') as f:
+            cookbook = json.loads(f.read())
+            for recipe in cookbook.get('recipes', []):
+                recipes.append(
+                    {
+                        'name': recipe,
+                        'description': cookbook['recipes'][recipe],
+                        'dependencies': cookbook.get('dependencies').keys(),
+                        'attributes': cookbook.get('attributes').keys(),
+                    }
+                )
+    except IOError:
+        abort("Could not find cookbook '%s'" % name)
+    return recipes
+
+def _get_recipes_in_node(node):
+    '''Gets the name of all recipes present in the run_list of a node'''
+    recipes = []
+    for a in node.get('run_list'):
+        if a.startswith("recipe"):
+            recipe = a.split('[')[1].split(']')[0]
+            recipes.append(recipe)
+    return recipes
+
+def _get_recipes():
+    '''Gets all recipes found in the cookbooks/ directory'''
+    recipes = []
+    for dirname in sorted(
+        [d for d in os.listdir('cookbooks') if not d.startswith('.')]):
+        recipes.extend(_get_recipes_in_cookbook(dirname))
+    return recipes
+
+def _print_recipe(recipe):
+    '''Pretty prints the given recipe'''
+    print "\nRecipe: " + recipe['name']
+    print "  description:", recipe['description']
+    print "  dependencies:", ", ".join(recipe['dependencies'])
+    print "  attributes:", ", ".join(recipe['attributes'])
+
+def _get_roles_in_node(node):
+    '''Gets the name of all roles found in the run_list of a node'''
+    roles = []
+    for a in node.get('run_list'):
+        if a.startswith("role"):
+            role = a.split('[')[1].split(']')[0]
+            roles.append(role)
+    return roles
+
+def _get_role(rolename):
+    '''Reads and parses a file containing a role'''
+    path = os.path.join('roles',rolename + '.json')
+    if not os.path.exists(path): abort("Couldn't read role file %s" % path)
+    with open(path, 'r') as f:
+        try:
+            role = json.loads(f.read())
+        except json.decoder.JSONDecodeError, e:
+            msg = "Little Chef found the following error in your"
+            msg += " %s file:\n  %s" % (rolename, str(e))
+            abort(msg)
+        role['filename'] = rolename
+        return role
+
+def _get_roles():
+    '''Gets all roles found in the roles/ directory'''
+    roles = []
+    for root, subfolders, files in os.walk('roles/'):
+        for filename in files:
+            if filename.endswith(".json"):
+                path = os.path.join(
+                    root[len('roles/'):] + '/'+ filename[:-len('.json')])
+                roles.append(_get_role(path))
+    return roles
+
+def _print_role(role):
+    '''Pretty prints the given role'''
+    print "  Role: %s (%s)" % (role.get('name'), role.get('filename'))
+    print "    default_attributes: " + str(role.get('default_attributes'))
+    print "    override_attributes: " + str(role.get('override_attributes'))
