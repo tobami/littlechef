@@ -91,7 +91,7 @@ def deploy_chef(distro):
     
     distro_type = _check_supported_distro(distro)
     message = 'Are you sure you want to install Chef at the '
-    message += 'nodes %s, using "%s" packages?' % (", ".join(env.hosts), distro)
+    message += 'node %s, using "%s" packages?' % (", ".join(env.hosts), distro)
     if not confirm(message):
         abort('Aborted by user')
     
@@ -103,15 +103,12 @@ def deploy_chef(distro):
         abort('wrong distro type: %s' % distro_type)
     
     # Chef Solo Setup
-    sudo('touch /etc/chef/solo.rb')
-    sudo('rm /etc/chef/solo.rb')
-    append('file_cache_path "/tmp/chef-solo"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    append('cookbook_path "/tmp/chef-solo/cookbooks"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    append('role_path "/tmp/chef-solo/roles"',
-        '/etc/chef/solo.rb', use_sudo=True)
-    sudo('mkdir -p /tmp/chef-solo/roles')
+    run('touch solo.rb')
+    append('file_cache_path "/tmp/chef-solo"', 'solo.rb')
+    append('cookbook_path "/tmp/chef-solo/cookbooks"', 'solo.rb')
+    append('role_path "/tmp/chef-solo/roles"', 'solo.rb')
+    sudo('mv solo.rb /etc/chef/', pty=True)
+    sudo('mkdir -p /tmp/chef-solo', pty=True)
 
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
@@ -222,24 +219,32 @@ def _apt_install(distro):
     '''Install chef for debian based distros'''
     append('deb http://apt.opscode.com/ %s main' % distro,
         '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
-    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -')
-    sudo('apt-get update')
+    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -', pty=True)
     with hide('stdout'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+        sudo('apt-get update', pty=True)
+    with show('running'):
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
     
     # We only want chef-solo
-    sudo('update-rc.d -f chef-client remove')
+    sudo('update-rc.d -f chef-client remove', pty=True)
     with settings(hide('warnings'), warn_only=True):
-        sudo('pkill chef-client')
+        sudo('pkill chef-client', pty=True)
 
 def _rpm_install(distro):
     '''Install chef for rpm based distros'''
-    # Install the EPEL Yum Repository.
-    sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
-    # Install the ELFF Yum Repository.
-    sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
-    # Install Chef Solo
-    sudo('yum install chef')
+    with show('running'):
+        # Install the EPEL Yum Repository.
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm', pty=True)
+            if "package epel-release-5-4.noarch is already installed" not in output:
+                abort(output)
+        # Install the ELFF Yum Repository.
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm', pty=True)
+            if "package elff-release-5-3.noarch is already installed" not in output:
+                abort(output)
+        # Install Chef Solo
+        sudo('yum -y install chef', pty=True)
 
 def _check_supported_distro(distro):
     '''Check that the given distro is supported and return the distro type'''
@@ -263,6 +268,7 @@ def _save_config(save, data):
     filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
     if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
+    
     with open(filepath, 'w') as f:
         f.write(json.dumps(data, indent=4))
         f.write('\n')
@@ -277,15 +283,13 @@ def _configure_node(configfile):
     '''Exectutes chef-solo to apply roles and recipes to a node'''
     print "Uploading node.json..."
     with hide('running'):
-        upload_template(
-            configfile,
-            '/etc/chef/node.json',
-            context={},
-            use_sudo=True
-        )
+        put(configfile, configfile.split("/")[-1])
+        sudo('mv %s /etc/chef/node.json' % configfile.split("/")[-1], pty=True),
+        
         print "\n== Cooking... ==\n"
         with settings(hide('warnings'), warn_only=True):
-            output = sudo('chef-solo -l %s -j /etc/chef/node.json' % env.loglevel)#
+            output = sudo(
+                'chef-solo -l %s -j /etc/chef/node.json' % env.loglevel, pty=True)
             if "ERROR:" in output:
                 print "\nERROR: A problem occurred while executing chef-solo"
             else:
@@ -294,8 +298,8 @@ def _configure_node(configfile):
 def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
-    sudo('rm -rf /tmp/chef-solo/cookbooks')
-    sudo('rm -rf /tmp/chef-solo/roles')
+    sudo('rm -rf /tmp/chef-solo/cookbooks', pty=True)
+    sudo('rm -rf /tmp/chef-solo/roles', pty=True)
     
     print "Uploading cookbooks..."
     cookbooks = []
@@ -352,11 +356,11 @@ def _upload_and_unpack(source):
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
-        sudo('mv temp.tar.gz /tmp/chef-solo/')
+        sudo('mv temp.tar.gz /tmp/chef-solo/', pty=True)
         local('rm temp.tar.gz')
         with cd('/tmp/chef-solo/'):
-            sudo('tar -xzf temp.tar.gz')
-            sudo('rm temp.tar.gz')
+            sudo('tar -xzf temp.tar.gz', pty=True)
+            sudo('rm temp.tar.gz', pty=True)
 
 ## API functions ##
 def _get_nodes():
