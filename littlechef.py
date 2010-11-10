@@ -236,12 +236,15 @@ def _rpm_install(distro):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings'), warn_only=True):
             output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm', pty=True)
-            if "package epel-release-5-4.noarch is already installed" not in output:
+            installed = "package epel-release-5-4.noarch is already installed"
+            if output.failed and installed not in output:
                 abort(output)
         # Install the ELFF Yum Repository.
         with settings(hide('warnings'), warn_only=True):
             output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm', pty=True)
-            if "package elff-release-5-3.noarch is already installed" not in output:
+            
+            installed = "package elff-release-5-3.noarch is already installed"
+            if output.failed and installed not in output:
                 abort(output)
         # Install Chef Solo
         sudo('yum -y install chef', pty=True)
