@@ -83,13 +83,13 @@ def node(host):
     else:
         env.hosts = [host]
 
-def deploy_chef(distro):
+def deploy_chef():
     '''Install Chef-solo on a node'''
     # Do some checks
     if not len(env.hosts):
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
     
-    distro_type = _check_supported_distro(distro)
+    distro_type, distro = _check_distro()
     message = 'Are you sure you want to install Chef at the '
     message += 'node %s, using "%s" packages?' % (", ".join(env.hosts), distro)
     if not confirm(message):
@@ -98,12 +98,12 @@ def deploy_chef(distro):
     if distro_type == "debian":
         _apt_install(distro)
     elif distro_type == "rpm":
-        _rpm_install(distro)
+        _rpm_install()
     else:
         abort('wrong distro type: %s' % distro_type)
     
     # Chef Solo Setup
-    run('touch solo.rb')
+    run('touch solo.rb', pty=True)
     append('file_cache_path "/tmp/chef-solo"', 'solo.rb')
     append('cookbook_path "/tmp/chef-solo/cookbooks"', 'solo.rb')
     append('role_path "/tmp/chef-solo/roles"', 'solo.rb')
@@ -218,7 +218,8 @@ def list_roles():
 def _apt_install(distro):
     '''Install chef for debian based distros'''
     append('deb http://apt.opscode.com/ %s main' % distro,
-        '/etc/apt/sources.list.d/opscode.list', use_sudo=True)
+        'opscode.list')
+    sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
     sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -', pty=True)
     with hide('stdout'):
         sudo('apt-get update', pty=True)
@@ -230,7 +231,7 @@ def _apt_install(distro):
     with settings(hide('warnings'), warn_only=True):
         sudo('pkill chef-client', pty=True)
 
-def _rpm_install(distro):
+def _rpm_install():
     '''Install chef for rpm based distros'''
     with show('running'):
         # Install the EPEL Yum Repository.
@@ -249,21 +250,40 @@ def _rpm_install(distro):
         # Install Chef Solo
         sudo('yum -y install chef', pty=True)
 
-def _check_supported_distro(distro):
+def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
-    debianbased_distros = [
-        'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny']
-    rpmbased_distros = [
-        'centos', 'rhel']
-    if distro in debianbased_distros:
-        return 'debian'
-    elif distro in rpmbased_distros:
-        return 'rpm'
-    else:
-        debianbased_distros.extend(rpmbased_distros)
-        print "Currently supported distros are:"
-        print ", ".join(debianbased_distros)
-        abort("Unsupported distro %s" % distro)
+    debian_distros = ['sid', 'squeeze', 'lenny']
+    ubuntu_distros = ['maverik', 'lucid', 'karmic', 'jaunty', 'hardy']
+    rpm_distros = ['centos', 'rhel']
+    
+    with settings(
+        hide('warnings', 'running', 'stdout', 'stderr'),
+        warn_only=True
+        ):
+        
+        output = sudo('cat /etc/issue', pty=True)
+        if 'Debian GNU/Linux 5.0' in output:
+            distro = "lenny"
+            distro_type = 'debian'
+        elif 'Debian GNU/Linux 6.0' in output:
+            distro = "squeeze"
+            distro_type = 'debian'
+        elif 'Ubuntu' in output:
+            distro = sudo('lsb_release -c', pty=True).split('\t')[-1]
+            distro_type = 'debian'
+        elif 'CentOS' in output:
+            distro = "CentOS"
+            distro_type = 'rpm'
+        elif 'Red Hat Enterprise Linux' in output:
+            distro = "Red Hat"
+            distro_type = 'rpm'
+        else:
+            print "Currently supported distros are:"
+            print "  Debian: " + ", ".join(debian_distros)
+            print "  Ubuntu: " + ", ".join(ubuntu_distros)
+            print "  RHEL: " + ", ".join(rpm_distros)
+            abort("Unsupported distro " + run('cat /etc/issue'))
+    return distro_type, distro
 
 ## Node configuration and syncing functions ##
 def _save_config(save, data):
