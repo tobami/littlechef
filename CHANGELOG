@@ -2,6 +2,12 @@
 Little Chef Change Log
 ======================
 
+Next version
+-----------------------------------------
+* NEW: Automatic distro detection for deploy_chef
+* FIX: CentOS installation
+
+
 Version 0.2.4 November 4, 2010
 -----------------------------------------
 * NEW: command "list_roles"

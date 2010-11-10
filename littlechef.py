@@ -405,7 +405,10 @@ def _get_nodes():
 
 def _print_node(node):
     '''Pretty prints the given node'''
-    print "\n" + node[APPNAME]['nodename']
+    nodename = node[APPNAME]['nodename']
+    if nodename != node[APPNAME]['nodeid']:
+        nodename += " (" + node[APPNAME]['nodeid'] + ")"
+    print "\n" + nodename
     for recipe in _get_recipes_in_node(node):
         print "  Recipe:", recipe
         print "    attributes: " + str(node.get(recipe))

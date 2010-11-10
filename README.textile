@@ -58,12 +58,11 @@ To be able to issue commands to remote nodes, you need to enter a user and a pas
 h3. Deploy
 
 For convenience, there is a command that allows you to deploy chef-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
-@cook node:MYNODE deploy_chef:MYDISTRO@
+@cook node:MYNODE deploy_chef@
 
-MYDISTRO can have one of the following values for debian based distributions:
-'lucid', 'karmic', 'jaunty', 'hardy', 'sid', 'squeeze', 'lenny'
-and for RHEL based distros:
-'centos', 'rhel'
+Little Chef will try to autodetect the distro type and version of that node, and will use the appropiate installation method and packages.
+
+Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS and RHEL.
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
 
@@ -81,6 +80,8 @@ You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=
 * @cook node:all configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @nodes/@
 * @cook node:MYNODE configure@: Configures a particular pre-configured node
 * @cook debug node:MYNODE configure@: You can start all your commands with @cook debug@ to see all Chef Solo debbuging information
+
+Once a node has a configfile, the command you will be using most often is @cook node:MYNODE configure@, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
 h3. Consulting the inventory
 
