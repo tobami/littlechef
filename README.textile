@@ -95,13 +95,15 @@ h3. Using Little Chef as a library
 
 You can import littlechef.py into your own project. The following script is equivalent to using the @cook@ orders:
 
-@import littlechef
+```python
+import littlechef
 
 littlechef.env.user = 'MyUsername'
 littlechef.env.password = 'MyPassword'
 littlechef.env.host_string = 'MyHostnameOrIP'
 littlechef.recipe('MYRECIPE')
-littlechef.configure()@
+littlechef.configure()
+  ```
 
 h3. Getting help
 
