@@ -91,6 +91,18 @@ h3. Consulting the inventory
 * @cook list_recipes@: Lists all available recipes, with associated information
 * @cook list_roles@: Lists all available roles, with associated information
 
+h3. Using Little Chef as a library
+
+You can import littlechef.py into your own project. The following script is equivalent to using the @cook@ orders:
+
+@import littlechef
+
+littlechef.env.user = 'MyUsername'
+littlechef.env.password = 'MyPassword'
+littlechef.env.host_string = 'MyHostnameOrIP'
+littlechef.recipe('MYRECIPE')
+littlechef.configure()@
+
 h3. Getting help
 
 For help regarding the use of Little Chef, or to share any ideas or suggestions you may have, please post on Little Chef's "discussion group":http://groups.google.com/group/littlechef

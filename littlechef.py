@@ -25,33 +25,7 @@ import simplejson as json
 NODEPATH = "nodes/"
 APPNAME  = "littlechef"
 
-def _readconfig():
-    '''Read main fabric configuration'''
-    import sys
-    if sys.argv[3] == "new_deployment": return
-    
-    for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
-        if not os.path.exists(dirname):
-            msg = "You are executing 'cook' outside of a deployment directory\n"
-            msg += "To create a new deployment in the current directory"
-            msg += "type 'cook new_deployment'"
-            abort(msg)
-    config = ConfigParser.ConfigParser()
-    config.read("auth.cfg")
-    try:
-        try:
-            env.user = config.get('userinfo', 'user')
-            if not env.user:
-                raise ValueError
-        except (ConfigParser.NoOptionError, ValueError):
-            abort('You need to define a valid user in auth.cfg')
-        env.password = config.get('userinfo', 'password')
-    except ConfigParser.NoSectionError:
-        abort('You need to define a user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
-    env.loglevel = "info"
-
-_readconfig()
-
+env.loglevel = "info"
 fabric.state.output['running'] = False
 
 @hosts('setup')
@@ -86,12 +60,13 @@ def node(host):
 def deploy_chef():
     '''Install Chef-solo on a node'''
     # Do some checks
-    if not len(env.hosts):
+    if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
     
     distro_type, distro = _check_distro()
+    print
     message = 'Are you sure you want to install Chef at the '
-    message += 'node %s, using "%s" packages?' % (", ".join(env.hosts), distro)
+    message += 'node %s, using "%s" packages?' % (env.host_string, distro)
     if not confirm(message):
         abort('Aborted by user')
     
@@ -113,7 +88,7 @@ def deploy_chef():
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
     # Do some checks
-    if not len(env.hosts):
+    if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     
     with hide('stdout', 'running'): hostname = run('hostname')
@@ -133,8 +108,8 @@ def recipe(recipe, save=False):
 def role(role, save=False):
     '''Execute the given role, ignores existing config'''
     # Do some checks
-    if not len(env.hosts):
-        abort('no node specified\nUsage: cook node:MYNODE role:MYRECIPE')
+    if not env.host_string:
+        abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
     
     with hide('stdout', 'running'): hostname = run('hostname')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
@@ -152,7 +127,7 @@ def role(role, save=False):
 def configure():
     '''Configure node using existing config file'''
     # Do some checks
-    if not len(env.hosts):
+    if not env.host_string:
         msg = 'no node specified\n'
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
@@ -210,46 +185,43 @@ def list_roles():
     for role in _get_roles():
         _print_role(role)
 
+# Check that user is cooking inside a kitchen and configure authentication #
+def _readconfig():
+    '''Configure environment'''
+    # When creating a new deployment we don't need to configure authentication
+    import sys
+    if sys.argv[3] == "new_deployment": return
+    
+    # Check that all dirs and files are present
+    for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
+        if not os.path.exists(dirname):
+            msg = "You are executing 'cook' outside of a deployment directory\n"
+            msg += "To create a new deployment in the current directory"
+            msg += " type 'cook new_deployment'"
+            abort(msg)
+    config = ConfigParser.ConfigParser()
+    config.read("auth.cfg")
+    try:
+        try:
+            env.user = config.get('userinfo', 'user')
+            if not env.user:
+                raise ValueError
+        except (ConfigParser.NoOptionError, ValueError):
+            abort('You need to define a valid user in auth.cfg')
+        env.password = config.get('userinfo', 'password')
+    except ConfigParser.NoSectionError:
+        abort('You need to define a user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
+
+# If littlechef.py has been called by fabric, check configuration
+import sys
+if len(sys.argv) > 2:
+    _readconfig()
+
 #########################
 ### Private functions ###
 #########################
 
 ## Chef Solo deployment functions ##
-def _apt_install(distro):
-    '''Install chef for debian based distros'''
-    append('deb http://apt.opscode.com/ %s main' % distro,
-        'opscode.list')
-    sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
-    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -', pty=True)
-    with hide('stdout'):
-        sudo('apt-get update', pty=True)
-    with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
-    
-    # We only want chef-solo
-    sudo('update-rc.d -f chef-client remove', pty=True)
-    with settings(hide('warnings'), warn_only=True):
-        sudo('pkill chef-client', pty=True)
-
-def _rpm_install():
-    '''Install chef for rpm based distros'''
-    with show('running'):
-        # Install the EPEL Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm', pty=True)
-            installed = "package epel-release-5-4.noarch is already installed"
-            if output.failed and installed not in output:
-                abort(output)
-        # Install the ELFF Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm', pty=True)
-            
-            installed = "package elff-release-5-3.noarch is already installed"
-            if output.failed and installed not in output:
-                abort(output)
-        # Install Chef Solo
-        sudo('yum -y install chef', pty=True)
-
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
@@ -284,6 +256,41 @@ def _check_distro():
             print "  RHEL: " + ", ".join(rpm_distros)
             abort("Unsupported distro " + run('cat /etc/issue'))
     return distro_type, distro
+
+def _apt_install(distro):
+    '''Install chef for debian based distros'''
+    append('deb http://apt.opscode.com/ %s main' % distro,
+        'opscode.list')
+    sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
+    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -', pty=True)
+    with hide('stdout'):
+        sudo('apt-get update', pty=True)
+    with show('running'):
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
+    
+    # We only want chef-solo
+    sudo('update-rc.d -f chef-client remove', pty=True)
+    with settings(hide('warnings'), warn_only=True):
+        sudo('pkill chef-client', pty=True)
+
+def _rpm_install():
+    '''Install chef for rpm based distros'''
+    with show('running'):
+        # Install the EPEL Yum Repository.
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm', pty=True)
+            installed = "package epel-release-5-4.noarch is already installed"
+            if output.failed and installed not in output:
+                abort(output)
+        # Install the ELFF Yum Repository.
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm', pty=True)
+            
+            installed = "package elff-release-5-3.noarch is already installed"
+            if output.failed and installed not in output:
+                abort(output)
+        # Install Chef Solo
+        sudo('yum -y install chef', pty=True)
 
 ## Node configuration and syncing functions ##
 def _save_config(save, data):
@@ -424,9 +431,15 @@ def _print_node(node):
 def _get_recipes_in_cookbook(name):
     '''Gets the name of all recipes present in a cookbook'''
     recipes = []
+    path = 'cookbooks/' + name + '/metadata.json'
     try:
-        with open('cookbooks/' + name + '/metadata.json', 'r') as f:
-            cookbook = json.loads(f.read())
+        with open(path, 'r') as f:
+            try:
+                cookbook = json.loads(f.read())
+            except json.decoder.JSONDecodeError, e:
+                msg = "Little Chef found the following error in your"
+                msg += " %s file:\n  %s" % (path, str(e))
+                abort(msg)
             for recipe in cookbook.get('recipes', []):
                 recipes.append(
                     {

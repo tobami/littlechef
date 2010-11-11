@@ -5,6 +5,7 @@ Little Chef Change Log
 Next version
 -----------------------------------------
 * NEW: Automatic distro detection for deploy_chef
+* NEW: littlechef.py can now be used as a library
 * FIX: CentOS installation
 
 
