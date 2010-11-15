@@ -57,16 +57,19 @@ To be able to issue commands to remote nodes, you need to enter a user and a pas
 
 h3. Deploy
 
-For convenience, there is a command that allows you to deploy chef-solo to a node using the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
+For convenience, there is a command that allows you to deploy chef-solo to a node.
+
+The best way is to use the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
 @cook node:MYNODE deploy_chef@
+
+You can also install Chef Solo with gems:
+@cook node:MYNODE deploy_chef:gems@
 
 Little Chef will try to autodetect the distro type and version of that node, and will use the appropiate installation method and packages.
 
 Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS and RHEL.
 
-Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't try this! Installing Opscode's packages on top of it will be a mess.
-
-Note: The CentOS and RHEL installation method has not been tested. Feedback is welcome.
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method! Installing Opscode's packages on top of it will be a mess.
 
 h3. Cook
 
