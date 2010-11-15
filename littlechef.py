@@ -57,7 +57,7 @@ def node(host):
     else:
         env.hosts = [host]
 
-def deploy_chef():
+def deploy_chef(gem=False):
     '''Install Chef-solo on a node'''
     # Do some checks
     if not env.host_string:
@@ -65,15 +65,24 @@ def deploy_chef():
     
     distro_type, distro = _check_distro()
     print
-    message = 'Are you sure you want to install Chef at the '
-    message += 'node %s, using "%s" packages?' % (env.host_string, distro)
+    message = 'Are you sure you want to install Chef at the node %s' % env.host_string
+    if gem:
+        message += ', using gems and "%s"packages?' % distro
+    else:
+        message += ', using "%s" packages?' % distro
     if not confirm(message):
         abort('Aborted by user')
     
     if distro_type == "debian":
-        _apt_install(distro)
+        if gem:
+            _apt_gem_install()
+        else:
+            _gem_install(distro)
     elif distro_type == "rpm":
-        _rpm_install()
+        if gem:
+            _rmp_gem_install()
+        else:
+            _rpm_install()
     else:
         abort('wrong distro type: %s' % distro_type)
     
@@ -257,6 +266,23 @@ def _check_distro():
             abort("Unsupported distro " + run('cat /etc/issue'))
     return distro_type, distro
 
+def _gem_install():
+    '''Install Chef from gems'''
+    run(
+        'wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz',
+        pty=True
+    )
+    run('tar zxf rubygems-1.3.7.tgz', pty=True)
+    with cd("rubygems-1.3.7"):
+        sudo('ruby setup.rb --no-format-executable', pty=True)
+    sudo('rm -rf rubygems-1.3.7')
+    sudo('gem install chef', pty=True)
+
+def _apt_gem_install():
+    '''Install Chef from gems for apt based distros'''
+    sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential wget ssl-cert", pty=True)
+    _gem_install()
+
 def _apt_install(distro):
     '''Install chef for debian based distros'''
     append('deb http://apt.opscode.com/ %s main' % distro,
@@ -273,8 +299,8 @@ def _apt_install(distro):
     with settings(hide('warnings'), warn_only=True):
         sudo('pkill chef-client', pty=True)
 
-def _rpm_install():
-    '''Install chef for rpm based distros'''
+def _add_rpm_repos():
+    '''Add EPEL and ELFF'''
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings'), warn_only=True):
@@ -289,6 +315,18 @@ def _rpm_install():
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
+
+def _gem_rpm_install():
+    '''Install chef from gems for rpm based distros'''
+    _add_rpm_repos()
+    with show('running'):
+        sudo('yum -y install ruby ruby-shadow ruby-ri ruby-rdoc gcc gcc-c++ ruby-devel')
+    _gem_install()
+
+def _rpm_install():
+    '''Install chef for rpm based distros'''
+    _add_rpm_repos()
+    with show('running'):
         # Install Chef Solo
         sudo('yum -y install chef', pty=True)
 

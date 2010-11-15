@@ -2,9 +2,10 @@
 Little Chef Change Log
 ======================
 
-Next version
+Version 0.3.0
 -----------------------------------------
 * NEW: Automatic distro detection for deploy_chef
+* NEW: Option to install Chef Solo with gems
 * NEW: littlechef.py can now be used as a library
 * FIX: CentOS installation
 
