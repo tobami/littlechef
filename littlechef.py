@@ -16,9 +16,9 @@
    Configuration Management using Chef without a Chef Server'''
 import fabric
 from fabric.api import *
-from fabric.contrib.files import upload_template, append, exists
+from fabric.contrib.files import append
 from fabric.contrib.console import confirm
-import ConfigParser, os
+import ConfigParser, os, sys
 import simplejson as json
 
 
@@ -75,12 +75,12 @@ def deploy_chef(gem=False):
     
     if distro_type == "debian":
         if gem:
-            _apt_gem_install()
+            _gem_apt_install()
         else:
-            _gem_install(distro)
+            _apt_install(distro)
     elif distro_type == "rpm":
         if gem:
-            _rmp_gem_install()
+            _gem_rpm_install()
         else:
             _rpm_install()
     else:
@@ -91,6 +91,7 @@ def deploy_chef(gem=False):
     append('file_cache_path "/tmp/chef-solo"', 'solo.rb')
     append('cookbook_path "/tmp/chef-solo/cookbooks"', 'solo.rb')
     append('role_path "/tmp/chef-solo/roles"', 'solo.rb')
+    sudo('mkdir -p /etc/chef', pty=True)
     sudo('mv solo.rb /etc/chef/', pty=True)
     sudo('mkdir -p /tmp/chef-solo', pty=True)
 
@@ -100,7 +101,8 @@ def recipe(recipe, save=False):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     
-    with hide('stdout', 'running'): hostname = run('hostname')
+    with hide('stdout', 'running'):
+        hostname = run('hostname')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
@@ -198,7 +200,6 @@ def list_roles():
 def _readconfig():
     '''Configure environment'''
     # When creating a new deployment we don't need to configure authentication
-    import sys
     if sys.argv[3] == "new_deployment": return
     
     # Check that all dirs and files are present
@@ -219,10 +220,12 @@ def _readconfig():
             abort('You need to define a valid user in auth.cfg')
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoSectionError:
-        abort('You need to define a user and password in the "userinfo" section of auth.cfg. Refer to the README for help (http://github.com/tobami/littlechef)')
+        msg = 'You need to define a user and password in the "userinfo" section'
+        msg += ' of auth.cfg. Refer to the README for help'
+        msg += ' (http://github.com/tobami/littlechef)'
+        abort(msg)
 
 # If littlechef.py has been called by fabric, check configuration
-import sys
 if len(sys.argv) > 2:
     _readconfig()
 
@@ -278,7 +281,7 @@ def _gem_install():
     sudo('rm -rf rubygems-1.3.7')
     sudo('gem install chef', pty=True)
 
-def _apt_gem_install():
+def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
     sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential wget ssl-cert", pty=True)
     _gem_install()
@@ -404,8 +407,8 @@ def _update_cookbooks(configfile):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     if not os.path.exists('cookbooks/' + dep):
-                        print "Warning: Possible error because of missing dependency",
-                        print "for cookbook %s" % recipe['name']
+                        print "Warning: Possible error because of missing",
+                        print " dependency for cookbook %s" % recipe['name']
                         print "         Cookbook '%s' not found" % dep
                         import time
                         time.sleep(1)
@@ -526,7 +529,7 @@ def _get_roles_in_node(node):
 
 def _get_role(rolename):
     '''Reads and parses a file containing a role'''
-    path = os.path.join('roles',rolename + '.json')
+    path = os.path.join('roles', rolename + '.json')
     if not os.path.exists(path): abort("Couldn't read role file %s" % path)
     with open(path, 'r') as f:
         try:

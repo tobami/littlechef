@@ -2,7 +2,13 @@
 Little Chef Change Log
 ======================
 
-Version 0.3.0
+Version 0.3.1 November 16, 2010
+-----------------------------------------
+* HOTFIX: fixed a deploy_chef error when calling the gem+rpm installation method
+* Some Pylint compliance fixes
+
+
+Version 0.3.0 November 16, 2010
 -----------------------------------------
 * NEW: Automatic distro detection for deploy_chef
 * NEW: Option to install Chef Solo with gems

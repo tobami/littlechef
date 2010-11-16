@@ -109,4 +109,8 @@ h3. Getting help
 
 For help regarding the use of Little Chef, or to share any ideas or suggestions you may have, please post on Little Chef's "discussion group":http://groups.google.com/group/littlechef
 
+h3. Reporting bugs
+
+If you find any bug in Little Chef please report it on https://github.com/tobami/littlechef/issues
+
 Happy cooking!
