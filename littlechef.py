@@ -16,7 +16,7 @@
    Configuration Management using Chef without a Chef Server'''
 import fabric
 from fabric.api import *
-from fabric.contrib.files import append
+from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 import ConfigParser, os, sys
 import simplejson as json
@@ -427,6 +427,10 @@ def _upload_and_unpack(source):
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
+        if not exists('/tmp/chef-solo/'):
+            msg = "the /tmp/chef-solo/ directory was not found at the node."
+            msg += " Is Chef correctly installed?"
+            abort(msg)
         sudo('mv temp.tar.gz /tmp/chef-solo/', pty=True)
         local('rm temp.tar.gz')
         with cd('/tmp/chef-solo/'):
