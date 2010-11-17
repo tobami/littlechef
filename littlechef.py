@@ -278,12 +278,19 @@ def _gem_install():
     run('tar zxf rubygems-1.3.7.tgz', pty=True)
     with cd("rubygems-1.3.7"):
         sudo('ruby setup.rb --no-format-executable', pty=True)
-    sudo('rm -rf rubygems-1.3.7')
+    sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
     sudo('gem install chef', pty=True)
 
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
     sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential wget ssl-cert", pty=True)
+    _gem_install()
+
+def _gem_rpm_install():
+    '''Install chef from gems for rpm based distros'''
+    _add_rpm_repos()
+    with show('running'):
+        sudo('yum -y install ruby ruby-shadow ruby-ri ruby-rdoc gcc gcc-c++ ruby-devel')
     _gem_install()
 
 def _apt_install(distro):
@@ -318,13 +325,6 @@ def _add_rpm_repos():
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
-
-def _gem_rpm_install():
-    '''Install chef from gems for rpm based distros'''
-    _add_rpm_repos()
-    with show('running'):
-        sudo('yum -y install ruby ruby-shadow ruby-ri ruby-rdoc gcc gcc-c++ ruby-devel')
-    _gem_install()
 
 def _rpm_install():
     '''Install chef for rpm based distros'''
