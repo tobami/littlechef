@@ -372,7 +372,6 @@ def _update_cookbooks(configfile):
     sudo('rm -rf /tmp/chef-solo/cookbooks', pty=True)
     sudo('rm -rf /tmp/chef-solo/roles', pty=True)
     
-    print "Uploading cookbooks..."
     cookbooks = []
     with open(configfile, 'r') as f:
         node = json.loads(f.read())
@@ -399,30 +398,30 @@ def _update_cookbooks(configfile):
                     cookbooks.append(recipe)
     
     # Fetch dependencies
+    warnings = []
     for cookbook in cookbooks:
         for recipe in _get_recipes_in_cookbook(cookbook):
-            # Only care about base recipe
-            if len(recipe['name'].split('::')) > 1:
-                continue
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
-                    if not os.path.exists('cookbooks/' + dep):
-                        print "Warning: Possible error because of missing",
-                        print " dependency for cookbook %s" % recipe['name']
-                        print "         Cookbook '%s' not found" % dep
-                        import time
-                        time.sleep(1)
-                    else:
+                    if os.path.exists('cookbooks/' + dep):
                         cookbooks.append(dep)
+                    else:
+                        if dep not in warnings:
+                            warnings.append(dep)
+                            print "Warning: Possible error because of missing",
+                            print " dependency for cookbook %s" % recipe['name']
+                            print "         Cookbook '%s' not found" % dep
+                            import time
+                            time.sleep(1)
     
+    print "Uploading cookbooks... (%s)" % ", ".join(cookbooks)
     _upload_and_unpack(['cookbooks/' + f for f in cookbooks])
     
     print "Uploading roles..."
     _upload_and_unpack(['roles'])
 
 def _upload_and_unpack(source):
-    '''Packs the given directory,
-    uploads it to the node
+    '''Packs the given directory, uploads it to the node
     and unpacks it in the /tmp/chef-solo/ directory'''
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
