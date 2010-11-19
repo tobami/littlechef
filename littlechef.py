@@ -56,7 +56,7 @@ def node(host):
     else:
         env.hosts = [host]
 
-def deploy_chef(gem=False):
+def deploy_chef(gems="no", ask="yes"):
     '''Install Chef-solo on a node'''
     # Do some checks
     if not env.host_string:
@@ -65,20 +65,20 @@ def deploy_chef(gem=False):
     distro_type, distro = _check_distro()
     print
     message = 'Are you sure you want to install Chef at the node %s' % env.host_string
-    if gem:
+    if gems == "yes":
         message += ', using gems and "%s"packages?' % distro
     else:
         message += ', using "%s" packages?' % distro
-    if not confirm(message):
+    if ask != "no" and not confirm(message):
         abort('Aborted by user')
     
     if distro_type == "debian":
-        if gem:
+        if gems == "yes":
             _gem_apt_install()
         else:
             _apt_install(distro)
     elif distro_type == "rpm":
-        if gem:
+        if gems == "yes":
             _gem_rpm_install()
         else:
             _rpm_install()
@@ -224,7 +224,7 @@ def _readconfig():
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
 
-if len(sys.argv) == 4:
+if len(sys.argv) > 3:
     # If littlechef.py has been called from the cook script, check configuration
     _readconfig()
 else:

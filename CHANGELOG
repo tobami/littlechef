@@ -5,7 +5,8 @@ Little Chef Change Log
 Next Version
 -----------------------------------------
 * NEW: Show what cookbooks are being uploaded to a node
-
+* NEW: deploy_chef now accepts two arguments: "gems" and "ask".
+       They can be set to "yes" or "no". Default is "no" and "yes", respectively.
 
 Version 0.3.1 November 16, 2010
 -----------------------------------------
