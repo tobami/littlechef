@@ -12,8 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
-'''LittleChef:
-   Configuration Management using Chef without a Chef Server'''
+'''LittleChef: Configuration Management using Chef without a Chef Server'''
 import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
@@ -225,9 +224,12 @@ def _readconfig():
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
 
-# If littlechef.py has been called by fabric, check configuration
-if len(sys.argv) > 2:
+if len(sys.argv) == 4:
+    # If littlechef.py has been called from the cook script, check configuration
     _readconfig()
+else:
+    # If it has been imported (usually len(sys.argv) < 4) don't read auth.cfg
+    pass
 
 #########################
 ### Private functions ###
@@ -266,7 +268,7 @@ def _check_distro():
             print "  Debian: " + ", ".join(debian_distros)
             print "  Ubuntu: " + ", ".join(ubuntu_distros)
             print "  RHEL: " + ", ".join(rpm_distros)
-            abort("Unsupported distro " + run('cat /etc/issue'))
+            abort("Unsupported distro " + run('cat /etc/issue', pty=True))
     return distro_type, distro
 
 def _gem_install():

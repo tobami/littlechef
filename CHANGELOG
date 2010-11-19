@@ -2,6 +2,11 @@
 Little Chef Change Log
 ======================
 
+Next Version
+-----------------------------------------
+* NEW: Show what cookbooks are being uploaded to a node
+
+
 Version 0.3.1 November 16, 2010
 -----------------------------------------
 * HOTFIX: fixed a deploy_chef error when calling the gem+rpm installation method
