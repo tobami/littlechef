@@ -112,6 +112,6 @@ For help regarding the use of Little Chef, or to share any ideas or suggestions 
 
 h3. Reporting bugs
 
-If you find any bug in Little Chef please report it on https://github.com/tobami/littlechef/issues
+If you find any bug in Little Chef please report it on "https://github.com/tobami/littlechef/issues":https://github.com/tobami/littlechef/issues
 
 Happy cooking!

@@ -224,7 +224,7 @@ def _readconfig():
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
 
-if len(sys.argv) > 3:
+if len(sys.argv) > 3 and sys.argv[1] == "-f":
     # If littlechef.py has been called from the cook script, check configuration
     _readconfig()
 else:
