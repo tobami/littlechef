@@ -50,7 +50,11 @@ def new_deployment():
 def node(host):
     '''Select a node'''
     if host == 'all':
-        env.hosts = [node[APPNAME]['nodeid'] for node in _get_nodes()]
+        for node in _get_nodes():
+            if node[APPNAME].get('nodeid') is not None:
+                env.hosts.append(node[APPNAME]['nodeid'])
+            else:
+                env.hosts.append(node[APPNAME]['nodename'])
         if not len(env.hosts):
             abort('No nodes found')
     else:
@@ -101,18 +105,19 @@ def recipe(recipe, save=False):
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     
     with hide('stdout', 'running'):
-        hostname = run('hostname')
+        hostname = run('hostname -f')
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
         abort("Recipe '%s' not found" % recipe)
     
     # Now create configuration and sync node
-    data = {
-        APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
-        "run_list": [ "recipe[%s]" % recipe ],
-    }
-    filepath = _save_config(save, data)
+    data = { "run_list": [ "recipe[%s]" % recipe ] }
+    if hostname != env.host_string:
+        # In this case host_string will probably be an IP
+        # We need to keep this information for later
+        data[APPNAME] = {'nodename': hostname, 'nodeid': env.host_string}
+    filepath = _save_config(save, data, hostname)
     _sync_node(filepath)
 
 def role(role, save=False):
@@ -121,17 +126,18 @@ def role(role, save=False):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
     
-    with hide('stdout', 'running'): hostname = run('hostname')
+    with hide('stdout', 'running'): hostname = run('hostname -f')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
     if not os.path.exists('roles/' + role + '.json'):
         abort("Role '%s' not found" % role)
     
     # Now create configuration and sync node
-    data = {
-        APPNAME: {'nodename': hostname, 'nodeid': env.host_string},
-        "run_list": [ "role[%s]" % role ],
-    }
-    filepath = _save_config(save, data)
+    data = { "run_list": [ "role[%s]" % role ] }
+    if hostname != env.host_string:
+        # In this case host_string will probably be an IP
+        # We need to keep this information for later
+        data[APPNAME] = {'nodename': hostname, 'nodeid': env.host_string}
+    filepath = _save_config(save, data, hostname)
     _sync_node(filepath)
 
 def configure():
@@ -142,7 +148,7 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
     
-    with hide('stdout', 'running'): hostname = run('hostname')
+    with hide('stdout', 'running'): hostname = run('hostname -f')
     print "\n== Configuring %s ==" % hostname
     
     configfile = hostname + ".json"
@@ -336,9 +342,9 @@ def _rpm_install():
         sudo('yum -y install chef', pty=True)
 
 ## Node configuration and syncing functions ##
-def _save_config(save, data):
+def _save_config(save, data, hostname):
     '''Saves node configuration either to tmp_node.json or to hostname.json'''
-    filepath = NODEPATH + data[APPNAME]['nodename'] + ".json"
+    filepath = NODEPATH + hostname + ".json"
     if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
     
@@ -364,7 +370,7 @@ def _configure_node(configfile):
             output = sudo(
                 'chef-solo -l %s -j /etc/chef/node.json' % env.loglevel, pty=True)
             if "ERROR:" in output:
-                print "\nERROR: A problem occurred while executing chef-solo"
+                abort("A problem occurred while executing chef-solo")
             else:
                 print "\nSUCCESS: Node correctly configured"
 
@@ -390,8 +396,8 @@ def _update_cookbooks(configfile):
             try:
                 roles = json.loads(f.read())
             except json.decoder.JSONDecodeError, e:
-                msg = "Little Chef found the following error in your role file:\n  "
-                msg += str(e)
+                msg = 'Little Chef found the following error in your'
+                msg += ' "%s" role file:\n                %s' % (role, str(e))
                 abort(msg)
             # Reuse _get_recipes_in_node to extract recipes in a role
             for recipe in _get_recipes_in_node(roles):
@@ -411,7 +417,7 @@ def _update_cookbooks(configfile):
                         if dep not in warnings:
                             warnings.append(dep)
                             print "Warning: Possible error because of missing",
-                            print " dependency for cookbook %s" % recipe['name']
+                            print "dependency for cookbook %s" % recipe['name']
                             print "         Cookbook '%s' not found" % dep
                             import time
                             time.sleep(1)
@@ -453,18 +459,20 @@ def _get_nodes():
                 msg = "Little Chef found the following error in your"
                 msg += " %s file:\n  %s" % (filename, str(e))
                 abort(msg)
+            if node.get(APPNAME) is None:
+                node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
             nodes.append(node)
     return nodes
 
 def _print_node(node):
     '''Pretty prints the given node'''
     nodename = node[APPNAME]['nodename']
-    if nodename != node[APPNAME]['nodeid']:
+    if node[APPNAME].get('nodeid') is not None:
         nodename += " (" + node[APPNAME]['nodeid'] + ")"
     print "\n" + nodename
     for recipe in _get_recipes_in_node(node):
         print "  Recipe:", recipe
-        print "    attributes: " + str(node.get(recipe))
+        print "    attributes: " + str(node.get(recipe, ""))
     for role in _get_roles_in_node(node):
         _print_role(_get_role(role))
     
