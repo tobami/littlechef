@@ -205,7 +205,8 @@ def list_roles():
 def _readconfig():
     '''Configure environment'''
     # When creating a new deployment we don't need to configure authentication
-    if sys.argv[3] == "new_deployment": return
+    if sys.argv[3] == "new_deployment":
+        return
     
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
@@ -310,7 +311,8 @@ def _apt_install(distro):
     with hide('stdout'):
         sudo('apt-get update', pty=True)
     with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef',
+            pty=True)
     
     # We only want chef-solo
     sudo('update-rc.d -f chef-client remove', pty=True)
@@ -368,7 +370,9 @@ def _configure_node(configfile):
         print "\n== Cooking... ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo(
-                'chef-solo -l %s -j /etc/chef/node.json' % env.loglevel, pty=True)
+                'chef-solo -l %s -j /etc/chef/node.json' % env.loglevel,
+                pty=True
+            )
             if "ERROR:" in output:
                 abort("A problem occurred while executing chef-solo")
             else:
@@ -455,13 +459,15 @@ def _get_nodes():
         with open(NODEPATH + filename, 'r') as f:
             try:
                 node = json.loads(f.read())
+                if node.get(APPNAME) is None:
+                    node[APPNAME] = {
+                        'nodename': ".".join(filename.split('.')[:-1])
+                    }
+                nodes.append(node)
             except json.decoder.JSONDecodeError, e:
                 msg = "Little Chef found the following error in your"
                 msg += " %s file:\n  %s" % (filename, str(e))
                 abort(msg)
-            if node.get(APPNAME) is None:
-                node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
-            nodes.append(node)
     return nodes
 
 def _print_node(node):
@@ -490,19 +496,19 @@ def _get_recipes_in_cookbook(name):
         with open(path, 'r') as f:
             try:
                 cookbook = json.loads(f.read())
+                for recipe in cookbook.get('recipes', []):
+                    recipes.append(
+                        {
+                            'name': recipe,
+                            'description': cookbook['recipes'][recipe],
+                            'dependencies': cookbook.get('dependencies').keys(),
+                            'attributes': cookbook.get('attributes').keys(),
+                        }
+                    )
             except json.decoder.JSONDecodeError, e:
                 msg = "Little Chef found the following error in your"
                 msg += " %s file:\n  %s" % (path, str(e))
                 abort(msg)
-            for recipe in cookbook.get('recipes', []):
-                recipes.append(
-                    {
-                        'name': recipe,
-                        'description': cookbook['recipes'][recipe],
-                        'dependencies': cookbook.get('dependencies').keys(),
-                        'attributes': cookbook.get('attributes').keys(),
-                    }
-                )
     except IOError:
         abort("Could not find cookbook '%s'" % name)
     return recipes
@@ -510,9 +516,9 @@ def _get_recipes_in_cookbook(name):
 def _get_recipes_in_node(node):
     '''Gets the name of all recipes present in the run_list of a node'''
     recipes = []
-    for a in node.get('run_list'):
-        if a.startswith("recipe"):
-            recipe = a.split('[')[1].split(']')[0]
+    for elem in node.get('run_list'):
+        if elem.startswith("recipe"):
+            recipe = elem.split('[')[1].split(']')[0]
             recipes.append(recipe)
     return recipes
 
@@ -534,9 +540,9 @@ def _print_recipe(recipe):
 def _get_roles_in_node(node):
     '''Gets the name of all roles found in the run_list of a node'''
     roles = []
-    for a in node.get('run_list'):
-        if a.startswith("role"):
-            role = a.split('[')[1].split(']')[0]
+    for elem in node.get('run_list'):
+        if elem.startswith("role"):
+            role = elem.split('[')[1].split(']')[0]
             roles.append(role)
     return roles
 
@@ -574,5 +580,6 @@ def _print_role(role):
     _pprint(role.get('override_attributes'))
 
 def _pprint(dic):
+    '''Prints a dictionary with one indentation level'''
     for key, value in dic.items():
         print "      %s: %s" % (key, value)
