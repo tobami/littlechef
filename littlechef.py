@@ -568,5 +568,11 @@ def _get_roles():
 def _print_role(role):
     '''Pretty prints the given role'''
     print "  Role: %s (%s)" % (role.get('name'), role.get('filename'))
-    print "    default_attributes: " + str(role.get('default_attributes'))
-    print "    override_attributes: " + str(role.get('override_attributes'))
+    print "    default_attributes:"
+    _pprint(role.get('default_attributes'))
+    print "    override_attributes:"
+    _pprint(role.get('override_attributes'))
+
+def _pprint(dic):
+    for key, value in dic.items():
+        print "      %s: %s" % (key, value)
