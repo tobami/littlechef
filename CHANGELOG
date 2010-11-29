@@ -2,6 +2,13 @@
 Little Chef Change Log
 ======================
 
+Version 0.3.3 November 29, 2010
+-----------------------------------------
+* NEW: mynode.json won't contain littlechef fields anymore if you don't use an IP
+* NEW: When configuring all nodes, if node configuration fails abort
+* FIX: Importing littlechef.py was failing for one particular case
+
+
 Version 0.3.2 November 19, 2010
 -----------------------------------------
 * NEW: Show what cookbooks are being uploaded to a node
