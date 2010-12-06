@@ -109,7 +109,7 @@ def recipe(recipe, save=False):
     print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
     
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
-        abort("Recipe '%s' not found" % recipe)
+        abort('Cookbook "%s" not found' % recipe)
     
     # Now create configuration and sync node
     data = { "run_list": [ "recipe[%s]" % recipe ] }
@@ -510,7 +510,7 @@ def _get_recipes_in_cookbook(name):
                 msg += " %s file:\n  %s" % (path, str(e))
                 abort(msg)
     except IOError:
-        abort("Could not find cookbook '%s'" % name)
+        abort('The cookbook "%s" contains no metadata.json' % name)
     return recipes
 
 def _get_recipes_in_node(node):
