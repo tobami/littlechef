@@ -129,7 +129,10 @@ def role(role, save=False):
     with hide('stdout', 'running'): hostname = run('hostname -f')
     print "\n== Applying role %s to node %s ==" % (role, hostname)
     if not os.path.exists('roles/' + role + '.json'):
-        abort("Role '%s' not found" % role)
+        if os.path.exists('roles/' + role + '.rb'):
+            abort("Role '%s' only found as '%s.rb'. It should be in json format." % (role, role))
+        else:
+            abort("Role '%s' not found" % role)
     
     # Now create configuration and sync node
     data = { "run_list": [ "role[%s]" % role ] }
