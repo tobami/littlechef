@@ -551,7 +551,7 @@ def _get_roles_in_node(node):
 
 def _get_role(rolename):
     '''Reads and parses a file containing a role'''
-    path = os.path.join('roles', rolename + '.json')
+    path = 'roles/' + rolename + '.json'
     if not os.path.exists(path): abort("Couldn't read role file %s" % path)
     with open(path, 'r') as f:
         try:
