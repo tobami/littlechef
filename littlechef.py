@@ -51,10 +51,7 @@ def node(host):
     '''Select a node'''
     if host == 'all':
         for node in _get_nodes():
-            if node[APPNAME].get('nodeid') is not None:
-                env.hosts.append(node[APPNAME]['nodeid'])
-            else:
-                env.hosts.append(node[APPNAME]['nodename'])
+            env.hosts.append(node[APPNAME]['nodename'])
         if not len(env.hosts):
             abort('No nodes found')
     else:
@@ -104,20 +101,14 @@ def recipe(recipe, save=False):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     
-    with hide('stdout', 'running'):
-        hostname = run('hostname -f')
-    print "\n== Executing recipe %s on node %s ==" % (recipe, hostname)
+    print "\n== Executing recipe %s on node %s ==" % (recipe, env.host_string)
     
     if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
         abort('Cookbook "%s" not found' % recipe)
     
     # Now create configuration and sync node
     data = { "run_list": [ "recipe[%s]" % recipe ] }
-    if hostname != env.host_string:
-        # In this case host_string will probably be an IP
-        # We need to keep this information for later
-        data[APPNAME] = {'nodename': hostname, 'nodeid': env.host_string}
-    filepath = _save_config(save, data, hostname)
+    filepath = _save_config(save, data, env.host_string)
     _sync_node(filepath)
 
 def role(role, save=False):
@@ -126,8 +117,7 @@ def role(role, save=False):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
     
-    with hide('stdout', 'running'): hostname = run('hostname -f')
-    print "\n== Applying role %s to node %s ==" % (role, hostname)
+    print "\n== Applying role %s to node %s ==" % (role, env.host_string)
     if not os.path.exists('roles/' + role + '.json'):
         if os.path.exists('roles/' + role + '.rb'):
             abort("Role '%s' only found as '%s.rb'. It should be in json format." % (role, role))
@@ -136,11 +126,7 @@ def role(role, save=False):
     
     # Now create configuration and sync node
     data = { "run_list": [ "role[%s]" % role ] }
-    if hostname != env.host_string:
-        # In this case host_string will probably be an IP
-        # We need to keep this information for later
-        data[APPNAME] = {'nodename': hostname, 'nodeid': env.host_string}
-    filepath = _save_config(save, data, hostname)
+    filepath = _save_config(save, data, env.host_string)
     _sync_node(filepath)
 
 def configure():
@@ -151,12 +137,11 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
     
-    with hide('stdout', 'running'): hostname = run('hostname -f')
-    print "\n== Configuring %s ==" % hostname
+    print "\n== Configuring %s ==" % env.host_string
     
-    configfile = hostname + ".json"
+    configfile = env.host_string + ".json"
     if not os.path.exists(NODEPATH + configfile):
-        print "Warning: No config file found for %s" % hostname
+        print "Warning: No config file found for %s" % env.host_string
         print "Warning: Chef run aborted"
         return
     
@@ -245,7 +230,7 @@ else:
 ### Private functions ###
 #########################
 
-## Chef Solo deployment functions ##
+## Chef Solo deployment ##
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
@@ -346,7 +331,7 @@ def _rpm_install():
         # Install Chef Solo
         sudo('yum -y install chef', pty=True)
 
-## Node configuration and syncing functions ##
+## Node configuration and syncing ##
 def _save_config(save, data, hostname):
     '''Saves node configuration either to tmp_node.json or to hostname.json'''
     filepath = NODEPATH + hostname + ".json"
@@ -451,7 +436,7 @@ def _upload_and_unpack(source):
             sudo('tar -xzf temp.tar.gz', pty=True)
             sudo('rm temp.tar.gz', pty=True)
 
-## API functions ##
+## API ##
 def _get_nodes():
     '''Gets all nodes found in the nodes/ directory'''
     if not os.path.exists(NODEPATH):
@@ -462,10 +447,7 @@ def _get_nodes():
         with open(NODEPATH + filename, 'r') as f:
             try:
                 node = json.loads(f.read())
-                if node.get(APPNAME) is None:
-                    node[APPNAME] = {
-                        'nodename': ".".join(filename.split('.')[:-1])
-                    }
+                node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
                 nodes.append(node)
             except json.decoder.JSONDecodeError, e:
                 msg = "Little Chef found the following error in your"
@@ -476,8 +458,6 @@ def _get_nodes():
 def _print_node(node):
     '''Pretty prints the given node'''
     nodename = node[APPNAME]['nodename']
-    if node[APPNAME].get('nodeid') is not None:
-        nodename += " (" + node[APPNAME]['nodeid'] + ")"
     print "\n" + nodename
     for recipe in _get_recipes_in_node(node):
         print "  Recipe:", recipe
@@ -552,7 +532,8 @@ def _get_roles_in_node(node):
 def _get_role(rolename):
     '''Reads and parses a file containing a role'''
     path = 'roles/' + rolename + '.json'
-    if not os.path.exists(path): abort("Couldn't read role file %s" % path)
+    if not os.path.exists(path):
+        abort("Couldn't read role file %s" % path)
     with open(path, 'r') as f:
         try:
             role = json.loads(f.read())
@@ -560,7 +541,7 @@ def _get_role(rolename):
             msg = "Little Chef found the following error in your"
             msg += " %s file:\n  %s" % (rolename, str(e))
             abort(msg)
-        role['filename'] = rolename
+        role['fullname'] = rolename
         return role
 
 def _get_roles():
@@ -570,13 +551,13 @@ def _get_roles():
         for filename in files:
             if filename.endswith(".json"):
                 path = os.path.join(
-                    root[len('roles/'):] + '/'+ filename[:-len('.json')])
+                    root[len('roles/'):], filename[:-len('.json')])
                 roles.append(_get_role(path))
     return roles
 
 def _print_role(role):
     '''Pretty prints the given role'''
-    print "  Role: %s" % role.get('filename')
+    print "  Role: %s" % role.get('fullname')
     print "    default_attributes:"
     _pprint(role.get('default_attributes'))
     print "    override_attributes:"
