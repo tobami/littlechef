@@ -576,10 +576,7 @@ def _get_roles():
 
 def _print_role(role):
     '''Pretty prints the given role'''
-    if role.get('name') != role.get('filename'):
-        print "  Role: %s (%s)" % (role.get('name'), role.get('filename'))
-    else:
-        print "  Role: %s" % role.get('name')
+    print "  Role: %s" % role.get('filename')
     print "    default_attributes:"
     _pprint(role.get('default_attributes'))
     print "    override_attributes:"
