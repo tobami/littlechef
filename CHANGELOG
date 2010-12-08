@@ -2,6 +2,15 @@
 Little Chef Change Log
 ======================
 
+
+Version 0.4.0 December 9, 2010
+-----------------------------------------
+* NEW: mynode.json doesn't have any custom littlechef fields anymore
+       Migration: You need to call your nodes by their DNS hostname or public IP
+* FIX: Improvments to error messages when only .rb files are present (no .json)
+* FIX: Various improvements to role and node printing
+
+
 Version 0.3.3 November 29, 2010
 -----------------------------------------
 * NEW: mynode.json won't contain littlechef fields anymore if you don't use an IP
