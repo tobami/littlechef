@@ -3,6 +3,12 @@ Little Chef Change Log
 ======================
 
 
+Version NEXT
+-----------------------------------------
+* NEW: "list_recipes" now shows only a simple name list.
+       The old, detailed list_recipes has now become "list_recipes_detailed"
+
+
 Version 0.4.0 December 9, 2010
 -----------------------------------------
 * NEW: mynode.json doesn't have any custom littlechef fields anymore

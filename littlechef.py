@@ -179,7 +179,13 @@ def list_nodes_with_role(role):
 
 @hosts('api')
 def list_recipes():
-    '''Show all available recipes'''
+    '''Show a list of all available recipes'''
+    for recipe in _get_recipes():
+        print(recipe['name'])
+
+@hosts('api')
+def list_recipes_detailed():
+    '''Show a detailed list of available recipes'''
     for recipe in _get_recipes():
         _print_recipe(recipe)
 
