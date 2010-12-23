@@ -96,7 +96,7 @@ h3. Consulting the inventory
 
 h3. Using Little Chef as a library
 
-You can import littlechef.py into your own project. The following script is equivalent to using the @cook@ orders:
+You can import littlechef.py into your own Python project. The following script is equivalent to using the @cook@ orders:
 
 bc. import littlechef
 littlechef.env.user = 'MyUsername'

@@ -67,7 +67,7 @@ def deploy_chef(gems="no", ask="yes"):
     print
     message = 'Are you sure you want to install Chef at the node %s' % env.host_string
     if gems == "yes":
-        message += ', using gems and "%s"packages?' % distro
+        message += ', using gems for "%s"?' % distro
     else:
         message += ', using "%s" packages?' % distro
     if ask != "no" and not confirm(message):
@@ -232,11 +232,13 @@ else:
     # If it has been imported (usually len(sys.argv) < 4) don't read auth.cfg
     pass
 
-#########################
-### Private functions ###
-#########################
+################################################################################
+### Private functions                                                        ###
+################################################################################
 
-## Chef Solo deployment ##
+############################
+### Chef Solo deployment ###
+############################
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
@@ -337,7 +339,9 @@ def _rpm_install():
         # Install Chef Solo
         sudo('yum -y install chef', pty=True)
 
-## Node configuration and syncing ##
+######################################
+### Node configuration and syncing ###
+######################################
 def _save_config(save, data, hostname):
     '''Saves node configuration either to tmp_node.json or to hostname.json'''
     filepath = NODEPATH + hostname + ".json"
@@ -380,8 +384,12 @@ def _update_cookbooks(configfile):
     
     cookbooks = []
     with open(configfile, 'r') as f:
-        node = json.loads(f.read())
-    
+        try:
+            node = json.loads(f.read())
+        except json.decoder.JSONDecodeError, e:
+            msg = 'Little Chef found the following error in'
+            msg += ' "%s":\n                %s' % (configfile, str(e))
+            abort(msg)
     # Fetch cookbooks needed for recipes
     for recipe in _get_recipes_in_node(node):
         recipe = recipe.split('::')[0]
@@ -442,7 +450,9 @@ def _upload_and_unpack(source):
             sudo('tar -xzf temp.tar.gz', pty=True)
             sudo('rm temp.tar.gz', pty=True)
 
-## API ##
+###########
+### API ###
+###########
 def _get_nodes():
     '''Gets all nodes found in the nodes/ directory'''
     if not os.path.exists(NODEPATH):
@@ -453,6 +463,8 @@ def _get_nodes():
         with open(NODEPATH + filename, 'r') as f:
             try:
                 node = json.loads(f.read())
+                # Don't append "nodename" to the root namespace
+                # because it could colide with some cookbook's attribute
                 node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
                 nodes.append(node)
             except json.decoder.JSONDecodeError, e:
