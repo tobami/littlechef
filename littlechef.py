@@ -243,7 +243,7 @@ def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
     ubuntu_distros = ['maverik', 'lucid', 'karmic', 'jaunty', 'hardy']
-    rpm_distros = ['centos', 'rhel']
+    rpm_distros = ['centos', 'rhel', 'sl']
     
     with settings(
         hide('warnings', 'running', 'stdout', 'stderr'),
@@ -265,6 +265,9 @@ def _check_distro():
             distro_type = 'rpm'
         elif 'Red Hat Enterprise Linux' in output:
             distro = "Red Hat"
+            distro_type = 'rpm'
+        elif 'Scientific Linux SL' in output:
+            distro = "Scientific Linux"
             distro_type = 'rpm'
         else:
             print "Currently supported distros are:"
