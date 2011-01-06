@@ -7,6 +7,7 @@ Version NEXT
 -----------------------------------------
 * NEW: "list_recipes" now shows only a simple name list.
        The old, detailed list_recipes has now become "list_recipes_detailed"
+* NEW: oldpatricka added support for Scientific Linux in deploy_chef
 
 
 Version 0.4.0 December 9, 2010

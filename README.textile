@@ -67,7 +67,7 @@ Little Chef will try to autodetect the distro type and version of that node, and
 You can also install Chef Solo with gems and/or without asking for confirmation:
 @cook node:MYNODE deploy_chef:gems=yes,ask=no@
 
-Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS and RHEL.
+Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS, RHEL and Scientific Linux.
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method. Installing Opscode's packages on top of it could be a mess.
 
