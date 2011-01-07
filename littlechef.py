@@ -296,7 +296,7 @@ def _configure_chef_solo():
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
-    ubuntu_distros = ['maverik', 'lucid', 'karmic', 'jaunty', 'hardy']
+    ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
     
     with settings(
