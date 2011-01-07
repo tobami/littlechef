@@ -57,7 +57,7 @@ def node(host):
     else:
         env.hosts = [host]
 
-def deploy_chef(gems="no", ask="yes"):
+def deploy_chef(gems="no", ask="yes", ruby_191="no"):
     '''Install Chef-solo on a node'''
     # Do some checks
     if not env.host_string:
@@ -68,6 +68,8 @@ def deploy_chef(gems="no", ask="yes"):
     message = 'Are you sure you want to install Chef at the node %s' % env.host_string
     if gems == "yes":
         message += ', using gems for "%s"?' % distro
+    elif ruby_191 == "yes":
+        message += ', using ruby 1.9.1 (including gems) for "%s"?' % distro
     else:
         message += ', using "%s" packages?' % distro
     if ask != "no" and not confirm(message):
@@ -76,6 +78,8 @@ def deploy_chef(gems="no", ask="yes"):
     if distro_type == "debian":
         if gems == "yes":
             _gem_apt_install()
+        elif ruby_191 == "yes":
+            _gem_apt_ruby_191_install()
         else:
             _apt_install(distro)
     elif distro_type == "rpm":
@@ -300,6 +304,14 @@ def _gem_rpm_install():
     with show('running'):
         sudo('yum -y install ruby ruby-shadow ruby-ri ruby-rdoc gcc gcc-c++ ruby-devel')
     _gem_install()
+
+def _gem_apt_ruby_191_install():
+    '''Install chef as gem using ruby 1.9.1 installed through apt'''
+    sudo("apt-get --yes install ruby1.9.1 ruby1.9.1-dev libopenssl-ruby1.9.1 rdoc ri1.9.1 irb1.9.1 build-essential wget ssl-cert", pty=True)
+    sudo('gem1.9.1 install chef', pty=True)
+    gems191_dir = sudo('echo $(gem1.9.1 env gemdir)', pty=True)
+    sudo('ln -s %s/bin/chef-solo /usr/bin/')
+    sudo('ln -s %s/bin/chef-client /usr/bin/')
 
 def _apt_install(distro):
     '''Install chef for debian based distros'''
