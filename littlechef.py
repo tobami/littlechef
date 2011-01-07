@@ -175,7 +175,7 @@ def list_nodes_with_recipe(recipe):
 
 @hosts('api')
 def list_nodes_with_role(role):
-    '''Show all nodes which have asigned a given recipe'''
+    '''Show all nodes which have asigned a given role'''
     for node in _get_nodes():
         recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
