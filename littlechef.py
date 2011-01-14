@@ -287,7 +287,7 @@ def _gem_install():
     with cd("rubygems-1.3.7"):
         sudo('ruby setup.rb --no-format-executable', pty=True)
     sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
-    sudo('gem install chef', pty=True)
+    sudo('gem install --no-rdoc --no-ri chef', pty=True)
 
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
