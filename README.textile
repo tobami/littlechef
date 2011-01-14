@@ -1,6 +1,6 @@
 h1. LitteChef
 
-With LittleChef you will be able to get started more quickly cooking with "Chef":http://www.opscode.com/chef, the excelent Configuration Management System.
+With LittleChef you will be able to get started more quickly cooking with "Chef":http://www.opscode.com/chef, the excellent Configuration Management System.
 
 h2. Overview
 
@@ -11,12 +11,12 @@ Installing LittleChef to your work computer is all you need to get you started.
 h3. How it all works
 
 In a working deployment directory, the kitchen, there is:
-@auth.cfg@: Authentication information is neede to be able to connect to the nodes
+@auth.cfg@: Authentication information needed to be able to connect to the nodes
 @nodes/@: After recipes are run on nodes, their configuration is stored here
 @cookbooks/@: This will be your cookbooks repository. You should put this under version control.
 @roles/@: Where roles are defined
 
-Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directoy. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @cookbooks/@ directory to your repository. LittleChef brings back sanity to cookbook development.
 
@@ -62,7 +62,7 @@ For convenience, there is a command that allows you to deploy chef-solo to a nod
 The best way is to use the packages from the "Opscode repository":http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
 @cook node:MYNODE deploy_chef@
 
-Little Chef will try to autodetect the distro type and version of that node, and will use the appropiate installation method and packages.
+Little Chef will try to autodetect the distro type and version of that node, and will use the appropriate installation method and packages.
 
 You can also install Chef Solo with gems and/or without asking for confirmation:
 @cook node:MYNODE deploy_chef:gems=yes,ask=no@
@@ -82,7 +82,7 @@ You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=
 * @cook node:MYNODE role:MYROLE@: The same as above but role-based
 * @cook node:all configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @nodes/@
 * @cook node:MYNODE configure@: Configures a particular pre-configured node
-* @cook debug node:MYNODE configure@: You can start all your commands with @cook debug@ to see all Chef Solo debbuging information
+* @cook debug node:MYNODE configure@: You can start all your commands with @cook debug@ to see all Chef Solo debugging information
 
 Once a node has a configfile, the command you will be using most often is @cook node:MYNODE configure@, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
