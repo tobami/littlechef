@@ -298,11 +298,12 @@ def _gem_rpm_install():
     '''Install chef from gems for rpm based distros'''
     _add_rpm_repos()
     with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel')
+        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget', pty=True)
     _gem_install()
 
 def _apt_install(distro):
     '''Install chef for debian based distros'''
+    sudo('apt-get --yes install wget', pty=True)
     append('deb http://apt.opscode.com/ %s main' % distro,
         'opscode.list')
     sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
