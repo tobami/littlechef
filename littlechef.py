@@ -226,7 +226,7 @@ def _readconfig():
         abort(msg)
 
 if len(sys.argv) > 3 and sys.argv[1] == "-f":
-    # If littlechef.py has been called from the cook script, check configuration
+    # If littlechef.py has been called from the cook script, read configuration
     _readconfig()
 else:
     # If it has been imported (usually len(sys.argv) < 4) don't read auth.cfg
@@ -291,14 +291,14 @@ def _gem_install():
 
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
-    sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential wget ssl-cert", pty=True)
+    sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert", pty=True)
     _gem_install()
 
 def _gem_rpm_install():
     '''Install chef from gems for rpm based distros'''
     _add_rpm_repos()
     with show('running'):
-        sudo('yum -y install ruby ruby-shadow ruby-ri ruby-rdoc gcc gcc-c++ ruby-devel')
+        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel')
     _gem_install()
 
 def _apt_install(distro):
