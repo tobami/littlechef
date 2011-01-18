@@ -36,14 +36,24 @@ def debug():
 @hosts('setup')
 def new_deployment():
     '''Create LittleChef directory structure (Kitchen)'''
-    local('mkdir -p nodes')
-    print "nodes/ directory created..."
-    local('mkdir -p cookbooks')
-    print "cookbooks/ directory created..."
-    local('mkdir -p roles')
-    print "roles/ directory created..."
-    local('touch auth.cfg')
-    local('echo "[userinfo]\\nuser     = \\npassword = " > auth.cfg')
+    import errno
+    def _mkdir(d):
+        try:
+            os.mkdir(d)
+            print "%s/ directory created..." % d
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+            if not os.path.isdir(d):
+                raise
+    _mkdir("nodes")
+    _mkdir("cookbooks")
+    _mkdir("roles")
+    authfh = open("auth.cfg", "w")
+    print >>authfh, "[userinfo]"
+    print >>authfh, "user = "
+    print >>authfh, "password = "
+    authfh.close()
     print "auth.cfg created..."
 
 @hosts('setup')
