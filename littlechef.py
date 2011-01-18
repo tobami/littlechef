@@ -203,10 +203,6 @@ def list_roles():
 # Check that user is cooking inside a kitchen and configure authentication #
 def _readconfig():
     '''Configure environment'''
-    # When creating a new deployment we don't need to configure authentication
-    if sys.argv[3] == "new_deployment":
-        return
-    
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
         if not os.path.exists(dirname):
@@ -230,7 +226,7 @@ def _readconfig():
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
 
-if len(sys.argv) > 3 and sys.argv[1] == "-f":
+if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_deployment":
     # If littlechef.py has been called from the cook script, read configuration
     _readconfig()
 else:
@@ -309,17 +305,16 @@ def _gem_rpm_install():
 def _apt_install(distro):
     '''Install chef for debian based distros'''
     sudo('apt-get --yes install wget', pty=True)
-    append('deb http://apt.opscode.com/ %s main' % distro,
-        'opscode.list')
+    append('deb http://apt.opscode.com/ %s main' % distro, 'opscode.list')
     sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
-    sudo('wget -qO - http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -', pty=True)
+    gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
+    sudo('wget -qO - %s | sudo apt-key add -' % gpg_key, pty=True)
     with hide('stdout'):
         sudo('apt-get update', pty=True)
     with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef',
-            pty=True)
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
     
-    # We only want chef-solo
+    # We only want chef-solo, kill chef-client and remove it from init process
     sudo('update-rc.d -f chef-client remove', pty=True)
     with settings(hide('warnings'), warn_only=True):
         sudo('pkill chef-client', pty=True)
