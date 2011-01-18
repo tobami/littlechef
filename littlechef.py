@@ -36,25 +36,20 @@ def debug():
 @hosts('setup')
 def new_deployment():
     '''Create LittleChef directory structure (Kitchen)'''
-    import errno
     def _mkdir(d):
-        try:
+        if not os.path.exists(d):
             os.mkdir(d)
             print "%s/ directory created..." % d
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-            if not os.path.isdir(d):
-                raise
+    
     _mkdir("nodes")
     _mkdir("cookbooks")
     _mkdir("roles")
-    authfh = open("auth.cfg", "w")
-    print >>authfh, "[userinfo]"
-    print >>authfh, "user = "
-    print >>authfh, "password = "
-    authfh.close()
-    print "auth.cfg created..."
+    if not os.path.exists("auth.cfg"):
+        with open("auth.cfg", "w") as authfh:
+            print >>authfh, "[userinfo]"
+            print >>authfh, "user = "
+            print >>authfh, "password = "
+            print "auth.cfg file created..."
 
 @hosts('setup')
 def node(host):
