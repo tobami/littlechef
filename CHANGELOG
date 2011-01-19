@@ -3,24 +3,30 @@ Little Chef Change Log
 ======================
 
 
-Version NEXT
+Version 0.4.1 January 19, 2011
 -----------------------------------------
 * NEW: "list_recipes" now shows only a simple name list.
        The old, detailed list_recipes has now become "list_recipes_detailed"
 * NEW: oldpatricka added support for Scientific Linux in deploy_chef
-
+* NEW: emilsit made gem install much faster by not installing rdoc and ri
+* NEW: new_deployment doesn't overwrite auth.cfg if already present
+* NEW: Improve node.json and metadata.json error reporting
+* FIX: wget is now installed for "apt package" and "rpm gem installation"
+* FIX: emilsit refactored new_deployment so that it doesn't use fabric
+       but directly python instead. Fixes auth.cfg creation for some OSs
 
 Version 0.4.0 December 9, 2010
 -----------------------------------------
-* NEW: mynode.json doesn't have any custom littlechef fields anymore
+* NEW: The saved node.json doesn't have any custom littlechef fields anymore
        Migration: You need to call your nodes by their DNS hostname or public IP
-* FIX: Improvments to error messages when only .rb files are present (no .json)
+* FIX: Improvements to error messages when metadata.json is not present in 
+       a cookbook (only metadata.rb)
 * FIX: Various improvements to role and node printing
 
 
 Version 0.3.3 November 29, 2010
 -----------------------------------------
-* NEW: mynode.json won't contain littlechef fields anymore if you don't use an IP
+* NEW: The saved node.json won't contain littlechef fields anymore if you don't use an IP
 * NEW: When configuring all nodes, if node configuration fails abort
 * FIX: Importing littlechef.py was failing for one particular case
 
