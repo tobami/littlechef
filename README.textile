@@ -53,7 +53,7 @@ h3. Setup
 
 @cook new_deployment@ will create inside the current directory a few files and directories for LittleChef to be able to cook. You can create and have as many deployment directories (kitchens) as you like on your computer.
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_deployment@ will have created a file named @auth.cfg@. You can edit it to enter a username and password.
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_deployment@ will have created a file named @auth.cfg@. You can edit it now to enter a username and password or a keypair-file.
 
 h3. Deploying
 

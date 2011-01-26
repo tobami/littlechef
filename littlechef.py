@@ -49,6 +49,7 @@ def new_deployment():
             print >>authfh, "[userinfo]"
             print >>authfh, "user = "
             print >>authfh, "password = "
+            print >>authfh, "keypair-file = "
             print "auth.cfg file created..."
 
 @hosts('setup')
@@ -213,18 +214,28 @@ def _readconfig():
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
     try:
-        try:
-            env.user = config.get('userinfo', 'user')
-            if not env.user:
-                raise ValueError
-        except (ConfigParser.NoOptionError, ValueError):
-            abort('You need to define a valid user in auth.cfg')
-        env.password = config.get('userinfo', 'password')
-    except ConfigParser.NoSectionError:
-        msg = 'You need to define a user and password in the "userinfo" section'
+        env.user = config.get('userinfo', 'user')
+        if not env.user:
+            raise ValueError('user variable is empty')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError, ValueError):
+        msg = 'You need to define a user in the "userinfo" section'
         msg += ' of auth.cfg. Refer to the README for help'
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
+    
+    # Allow password OR keypair-file not to be present
+    try:
+        env.password = config.get('userinfo', 'password')
+    except ConfigParser.NoOptionError:
+        pass
+    try:
+        env.key_filename = config.get('userinfo','keypair-file')
+    except ConfigParser.NoOptionError:
+        pass
+    
+    # Both cannot be empty
+    if not env.password and not env.key_filename:
+        abort('You need to define a password or a keypair-file in auth.cfg.')
 
 if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_deployment":
     # If littlechef.py has been called from the cook script, read configuration
