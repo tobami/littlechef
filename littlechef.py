@@ -20,6 +20,8 @@ from fabric.contrib.console import confirm
 import ConfigParser, os, sys
 import simplejson as json
 
+VERSION = (0, 5, '0alpha')
+version = ".".join([str(x) for x in VERSION])
 
 NODEPATH = "nodes/"
 APPNAME  = "littlechef"
