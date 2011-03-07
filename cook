@@ -16,12 +16,19 @@ except ImportError:
             fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef.py'
             if not os.path.exists(fabfile):
                 sys.exit("There was an installation error. Couldn't find littlechef.py, try reinstalling again")
+    sys.path.insert(0, os.path.dirname(fabfile))
+    import littlechef
 
+# Act on some arguments and pass others to fabric
 args = ['fab', '-f', fabfile]
-
 if len(sys.argv) > 1:
-    # Pass on arguments to fabric
-    args.extend(sys.argv[1:])
+    for arg in sys.argv[1:]:
+        if arg == '-v' or arg == '-V' or arg == '--version':
+            print('littlechef %s' % littlechef.version)
+            sys.argv.remove(arg)
+            sys.exit(0)
+        else:
+            args.append(arg)
 else:
     sys.exit("No order given. Type 'cook -l' for a list of orders\n")
 
