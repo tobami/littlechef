@@ -98,17 +98,17 @@ def deploy_chef(gems="no", ask="yes"):
     
 def deploy_solo():
     '''Deploy chef-solo specific files.'''
+    sudo('mkdir -p %s' % _node_work_path, pty=True)
+    sudo('mkdir -p %s/cache' % _node_work_path, pty=True)
     sudo('touch solo.rb', pty=True)
-    append('solo.rb', 'file_cache_path "/tmp/chef-solo/cache"', use_sudo=True)
+    append('solo.rb', 'file_cache_path "%s/cache"' % _node_work_path, use_sudo=True)
     reversed_cookbook_paths = _cookbook_paths[:]
     reversed_cookbook_paths.reverse()
-    cookbook_paths_line = 'cookbook_path [%s]' % ', '.join(['''"/tmp/chef-solo/%s"''' % x for x in reversed_cookbook_paths])
+    cookbook_paths_line = 'cookbook_path [%s]' % ', '.join(['''"%s/%s"''' % (_node_work_path, x) for x in reversed_cookbook_paths])
     append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "/tmp/chef-solo/roles"', use_sudo=True)
+    append('solo.rb', 'role_path "%s/roles"' % _node_work_path, use_sudo=True)
     sudo('mkdir -p /etc/chef', pty=True)
     sudo('mv solo.rb /etc/chef/', pty=True)
-    sudo('mkdir -p /tmp/chef-solo', pty=True)
-    sudo('mkdir -p /tmp/chef-solo/cache', pty=True)
 
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
@@ -409,9 +409,8 @@ def _configure_node(configfile):
 def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
-    for cookbook_path in _cookbook_paths:
-        sudo('rm -rf /tmp/chef-solo/%s' % cookbook_path, pty=True)
-    sudo('rm -rf /tmp/chef-solo/roles', pty=True)
+    for path in ['roles', 'cache'] + _cookbook_paths:
+        sudo('rm -rf %s/%s' % (_node_work_path, path), pty=True)
     
     cookbooks = []
     with open(configfile, 'r') as f:
@@ -477,17 +476,17 @@ def _update_cookbooks(configfile):
 
 def _upload_and_unpack(source):
     '''Packs the given directory, uploads it to the node
-    and unpacks it in the /tmp/chef-solo/ directory'''
+    and unpacks it in the "_node_work_path" (typically '/var/littlechef') directory'''
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
-        if not exists('/tmp/chef-solo/'):
-            msg = "the /tmp/chef-solo/ directory was not found at the node."
+        if not exists(_node_work_path):
+            msg = "the %s directory was not found at the node." % _node_work_path
             msg += " Is Chef correctly installed?"
             abort(msg)
-        sudo('mv temp.tar.gz /tmp/chef-solo/', pty=True)
+        sudo('mv temp.tar.gz %s' % _node_work_path, pty=True)
         local('rm temp.tar.gz')
-        with cd('/tmp/chef-solo/'):
+        with cd(_node_work_path):
             sudo('tar -xzf temp.tar.gz', pty=True)
             sudo('rm temp.tar.gz', pty=True)
 
@@ -638,6 +637,8 @@ def _get_cookbook_path(cookbook_name):
         if os.path.exists(path):
             return path
     raise IOError('''Can't find cookbook with name "%s"''' % cookbook_name)
+
+_node_work_path = '/var/littlechef'
 
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
