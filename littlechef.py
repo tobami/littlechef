@@ -64,7 +64,7 @@ def node(host):
         env.hosts = [host]
 
 def deploy_chef(gems="no", ask="yes"):
-    '''Install Chef-solo on a node'''
+    '''Install chef-solo on a node'''
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
@@ -102,7 +102,7 @@ def deploy_chef(gems="no", ask="yes"):
     sudo('mkdir -p /tmp/chef-solo', pty=True)
 
 def recipe(recipe, save=False):
-    '''Execute the given recipe,ignores existing config'''
+    '''Execute the given recipe, ignores existing config unless save=True'''
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
@@ -118,7 +118,7 @@ def recipe(recipe, save=False):
     _sync_node(filepath)
 
 def role(role, save=False):
-    '''Execute the given role, ignores existing config'''
+    '''Execute the given role, ignores existing config unless save=True'''
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
@@ -401,7 +401,7 @@ def _update_cookbooks(configfile):
     with open(configfile, 'r') as f:
         try:
             node = json.loads(f.read())
-        except json.decoder.JSONDecodeError, e:
+        except json.decoder.JSONDecodeError as e:
             msg = 'Little Chef found the following error in'
             msg += ' "%s":\n                %s' % (configfile, str(e))
             abort(msg)
@@ -416,7 +416,7 @@ def _update_cookbooks(configfile):
         with open('roles/' + role + '.json', 'r') as f:
             try:
                 roles = json.loads(f.read())
-            except json.decoder.JSONDecodeError, e:
+            except json.decoder.JSONDecodeError as e:
                 msg = 'Little Chef found the following error in your'
                 msg += ' "%s" role file:\n                %s' % (role, str(e))
                 abort(msg)
@@ -482,7 +482,7 @@ def _get_nodes():
                 # because it could colide with some cookbook's attribute
                 node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
                 nodes.append(node)
-            except json.decoder.JSONDecodeError, e:
+            except json.decoder.JSONDecodeError as e:
                 msg = "Little Chef found the following error in your"
                 msg += " %s file:\n  %s" % (filename, str(e))
                 abort(msg)
@@ -523,7 +523,7 @@ def _get_recipes_in_cookbook(name):
                             'attributes': cookbook.get('attributes').keys(),
                         }
                     )
-            except json.decoder.JSONDecodeError, e:
+            except json.decoder.JSONDecodeError as e:
                 msg = "Little Chef found the following error in your"
                 msg += " %s file:\n  %s" % (path, str(e))
                 abort(msg)
@@ -572,7 +572,7 @@ def _get_role(rolename):
     with open(path, 'r') as f:
         try:
             role = json.loads(f.read())
-        except json.decoder.JSONDecodeError, e:
+        except json.decoder.JSONDecodeError as e:
             msg = "Little Chef found the following error in your"
             msg += " %s file:\n  %s" % (rolename, str(e))
             abort(msg)

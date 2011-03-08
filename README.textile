@@ -10,10 +10,10 @@ Installing LittleChef to your work computer is all you need to get you started.
 
 h3. How it all works
 
-In a working deployment directory, the kitchen, there is:
+It all starts in the kitchen, your deployment directory, which you should keep under version control:
 @auth.cfg@: Authentication information needed to be able to connect to the nodes
 @nodes/@: After recipes are run on nodes, their configuration is stored here
-@cookbooks/@: This will be your cookbooks repository. You should put this under version control.
+@cookbooks/@: This will be your cookbooks repository
 @roles/@: Where roles are defined
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
@@ -26,19 +26,20 @@ h3. Requirements
 
 * Python 2.6+
 * Setuptools
-* Fabric 0.9.1
+* Fabric 0.9.1+
 
 All needed packages are installed by typing
-@sudo apt-get install python-pip python-fabric@ for Debian and Ubuntu
+@sudo apt-get install python-fabric@ for Debian and Ubuntu
 or
-@yum install python-pip fabric@ for RHEL and CentOS
+@yum install fabric@ for RHEL and CentOS
 
 h3. Installation
 
 You can install Little Chef directly from the PyPI:
-@pip install littlechef@
+@easy_install littlechef@
+(or pip install littlechef)
 
-Note: your distribution may have a package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
+Note: your distribution may have a @cook@ package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
 
 h2. Usage
 
@@ -80,8 +81,8 @@ Note: Don't cook outside of a kitchen!
 Note that the first time this is run for a node, a configuration file will be created at @nodes/myhostname.json@. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
 You can force the saving of the run with @cook node:MYNODE recipe:MYRECIPE,save=True@
 * @cook node:MYNODE role:MYROLE@: The same as above but role-based
-* @cook node:all configure@: It will apply all roles, recipes and attributes defined in @nodes/MYNODE.json@ to ALL nodes present in @nodes/@
 * @cook node:MYNODE configure@: Configures a particular pre-configured node
+* @cook node:all configure@: It will apply all roles, recipes and attributes defined for each and every node in @nodes/@
 * @cook debug node:MYNODE configure@: You can start all your commands with @cook debug@ to see all Chef Solo debugging information
 
 Once a node has a configfile, the command you will be using most often is @cook node:MYNODE configure@, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
@@ -92,7 +93,7 @@ h3. Consulting the inventory
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 * @cook list_recipes@: Lists all available recipes
-* @cook list_recipes_detailed@: Lists all available recipes, with associated information
+* @cook list_recipes_detailed@: Same as above, but shows description, dependencies and attributes
 * @cook list_roles@: Lists all available roles, with associated information
 
 h3. Using Little Chef as a library
@@ -104,8 +105,12 @@ littlechef.env.user = 'MyUsername'
 littlechef.env.password = 'MyPassword'
 littlechef.env.host_string = 'MyHostnameOrIP'
 littlechef.deploy_chef(gems='yes', ask='no')
-littlechef.recipe('MYRECIPE')
-littlechef.configure()
+littlechef.recipe('MYRECIPE')#Applies <MYRECIPE> to <MyHostnameOrIP>
+littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configuration
+
+h3. Other tutorial material
+
+"Automated Deployments with LittleChef"http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
 
 h3. Getting help
 
