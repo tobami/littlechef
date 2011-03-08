@@ -487,7 +487,7 @@ def _upload_and_unpack(source):
         sudo('mv temp.tar.gz %s' % _node_work_path, pty=True)
         local('rm temp.tar.gz')
         with cd(_node_work_path):
-            sudo('tar -xzf temp.tar.gz', pty=True)
+            sudo('tar xzf temp.tar.gz', pty=True)
             sudo('rm temp.tar.gz', pty=True)
 
 ###########
