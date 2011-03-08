@@ -17,7 +17,7 @@ import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-import ConfigParser, os, sys
+import ConfigParser, os, sys, re
 import simplejson as json
 
 VERSION = (0, 5, '0alpha')
@@ -44,8 +44,9 @@ def new_deployment():
             print "%s/ directory created..." % d
     
     _mkdir("nodes")
-    _mkdir("cookbooks")
     _mkdir("roles")
+    for cookbook_path in _cookbook_paths:
+        _mkdir(cookbook_path)
     if not os.path.exists("auth.cfg"):
         with open("auth.cfg", "w") as authfh:
             print >>authfh, "[userinfo]"
@@ -93,15 +94,21 @@ def deploy_chef(gems="no", ask="yes"):
             _rpm_install()
     else:
         abort('wrong distro type: %s' % distro_type)
+    deploy_solo()
     
-    # Chef Solo Setup
-    run('touch solo.rb', pty=True)
-    append('file_cache_path "/tmp/chef-solo"', 'solo.rb')
-    append('cookbook_path "/tmp/chef-solo/cookbooks"', 'solo.rb')
-    append('role_path "/tmp/chef-solo/roles"', 'solo.rb')
+def deploy_solo():
+    '''Deploy chef-solo specific files.'''
+    sudo('touch solo.rb', pty=True)
+    append('solo.rb', 'file_cache_path "/tmp/chef-solo/cache"', use_sudo=True)
+    reversed_cookbook_paths = _cookbook_paths[:]
+    reversed_cookbook_paths.reverse()
+    cookbook_paths_line = 'cookbook_path [%s]' % ', '.join(['''"/tmp/chef-solo/%s"''' % x for x in reversed_cookbook_paths])
+    append('solo.rb', cookbook_paths_line, use_sudo=True)
+    append('solo.rb', 'role_path "/tmp/chef-solo/roles"', use_sudo=True)
     sudo('mkdir -p /etc/chef', pty=True)
     sudo('mv solo.rb /etc/chef/', pty=True)
     sudo('mkdir -p /tmp/chef-solo', pty=True)
+    sudo('mkdir -p /tmp/chef-solo/cache', pty=True)
 
 def recipe(recipe, save=False):
     '''Execute the given recipe,ignores existing config'''
@@ -111,7 +118,12 @@ def recipe(recipe, save=False):
     
     print "\n== Executing recipe %s on node %s ==" % (recipe, env.host_string)
     
-    if not os.path.exists('cookbooks/' + recipe.split('::')[0]):
+    recipe_found = False
+    for cookbook_path in _cookbook_paths:
+        if os.path.exists(os.path.join(cookbook_path, recipe.split('::')[0])):
+            recipe_found = True
+            break
+    if not recipe_found:
         abort('Cookbook "%s" not found' % recipe)
     
     # Now create configuration and sync node
@@ -318,7 +330,7 @@ def _gem_rpm_install():
 def _apt_install(distro):
     '''Install chef for debian based distros'''
     sudo('apt-get --yes install wget', pty=True)
-    append('deb http://apt.opscode.com/ %s main' % distro, 'opscode.list')
+    append('opscode.list', 'deb http://apt.opscode.com/ %s main' % distro, use_sudo=True)
     sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
     gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
     sudo('wget -qO - %s | sudo apt-key add -' % gpg_key, pty=True)
@@ -372,6 +384,7 @@ def _save_config(save, data, hostname):
 
 def _sync_node(filepath):
     '''Uploads cookbooks and configures a node'''
+    deploy_solo()
     _update_cookbooks(filepath)
     _configure_node(filepath)
 
@@ -396,7 +409,8 @@ def _configure_node(configfile):
 def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
-    sudo('rm -rf /tmp/chef-solo/cookbooks', pty=True)
+    for cookbook_path in _cookbook_paths:
+        sudo('rm -rf /tmp/chef-solo/%s' % cookbook_path, pty=True)
     sudo('rm -rf /tmp/chef-solo/roles', pty=True)
     
     cookbooks = []
@@ -434,9 +448,10 @@ def _update_cookbooks(configfile):
         for recipe in _get_recipes_in_cookbook(cookbook):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
-                    if os.path.exists('cookbooks/' + dep):
+                    try:
+                        _get_cookbook_path(dep)
                         cookbooks.append(dep)
-                    else:
+                    except IOError:
                         if dep not in warnings:
                             warnings.append(dep)
                             print "Warning: Possible error because of missing",
@@ -445,8 +460,17 @@ def _update_cookbooks(configfile):
                             import time
                             time.sleep(1)
     
-    print "Uploading cookbooks... (%s)" % ", ".join(cookbooks)
-    _upload_and_unpack(['cookbooks/' + f for f in cookbooks])
+    cookbooks_by_path = {}
+    for cookbook in cookbooks:
+        for cookbook_path in _cookbook_paths:
+            path = os.path.join(cookbook_path, cookbook)
+            if os.path.exists(path):
+                if not cookbooks_by_path.has_key(path):
+                    cookbooks_by_path[path] = []
+                cookbooks_by_path[path].append(path)
+    for path in cookbooks_by_path:
+        print "Uploading %s... (%s)" % (path, ", ".join(cookbooks_by_path[path]))
+        _upload_and_unpack(cookbooks_by_path[path])
     
     print "Uploading roles..."
     _upload_and_unpack(['roles'])
@@ -511,26 +535,31 @@ def _get_recipes_in_cookbook(name):
     recipes = []
     if not os.path.exists('cookbooks/' + name):
         abort('Cookbook "%s" not found' % name)
-    path = 'cookbooks/' + name + '/metadata.json'
-    try:
-        with open(path, 'r') as f:
-            try:
-                cookbook = json.loads(f.read())
-                for recipe in cookbook.get('recipes', []):
-                    recipes.append(
-                        {
-                            'name': recipe,
-                            'description': cookbook['recipes'][recipe],
-                            'dependencies': cookbook.get('dependencies').keys(),
-                            'attributes': cookbook.get('attributes').keys(),
-                        }
-                    )
-            except json.decoder.JSONDecodeError, e:
-                msg = "Little Chef found the following error in your"
-                msg += " %s file:\n  %s" % (path, str(e))
-                abort(msg)
-    except IOError:
-        abort('The cookbook "%s" contains no metadata.json' % name)
+    path = None
+    for cookbook_path in _cookbook_paths:
+        path = '%s/%s/metadata.json' % (cookbook_path, name)
+        try:
+            with open(path, 'r') as f:
+                try:
+                    cookbook = json.loads(f.read())
+                    for recipe in cookbook.get('recipes', []):
+                        recipes.append(
+                            {
+                                'name': recipe,
+                                'description': cookbook['recipes'][recipe],
+                                'dependencies': cookbook.get('dependencies').keys(),
+                                'attributes': cookbook.get('attributes').keys(),
+                            }
+                        )
+                except json.decoder.JSONDecodeError, e:
+                    msg = "Little Chef found the following error in your"
+                    msg += " %s file:\n  %s" % (path, str(e))
+                    abort(msg)
+            break
+        except IOError:
+            None
+    if not recipes:
+        abort('Unable to find cookbook "%s" with metadata.json' % name)
     return recipes
 
 def _get_recipes_in_node(node):
@@ -599,6 +628,16 @@ def _print_role(role):
     _pprint(role.get('default_attributes'))
     print "    override_attributes:"
     _pprint(role.get('override_attributes'))
+
+_cookbook_paths = ['site-cookbooks', 'cookbooks']
+
+def _get_cookbook_path(cookbook_name):
+    '''Returns path to the cookbook for the given cookbook name'''
+    for cookbook_path in _cookbook_paths:
+        path = os.path.join(cookbook_path, cookbook_name)
+        if os.path.exists(path):
+            return path
+    raise IOError('''Can't find cookbook with name "%s"''' % cookbook_name)
 
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
