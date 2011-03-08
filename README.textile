@@ -14,7 +14,7 @@ It all starts in the kitchen, your deployment directory, which you should keep u
 @auth.cfg@: Authentication information needed to be able to connect to the nodes
 @nodes/@: After recipes are run on nodes, their configuration is stored here
 @cookbooks/@: This will be your cookbooks repository
-@roles/@: Where roles are defined
+@roles/@: Where Chef roles are defined
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
@@ -26,18 +26,17 @@ h3. Requirements
 
 * Python 2.6+
 * Setuptools
-* Fabric 0.9.1+
+* Fabric 0.9.3
 
 All needed packages are installed by typing
-@sudo apt-get install python-fabric@ for Debian and Ubuntu
+@sudo apt-get install python-pip python-fabric@ for Debian and Ubuntu
 or
-@yum install fabric@ for RHEL and CentOS
+@yum install python-pip fabric@ for RHEL and CentOS
 
 h3. Installation
 
 You can install Little Chef directly from the PyPI:
-@easy_install littlechef@
-(or pip install littlechef)
+@pip install littlechef@
 
 Note: your distribution may have a @cook@ package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
 
@@ -110,7 +109,7 @@ littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configu
 
 h3. Other tutorial material
 
-"Automated Deployments with LittleChef"http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
+"Automated Deployments with LittleChef":http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
 
 h3. Getting help
 
@@ -118,6 +117,6 @@ For help regarding the use of Little Chef, or to share any ideas or suggestions 
 
 h3. Reporting bugs
 
-If you find any bug in Little Chef please report it on "https://github.com/tobami/littlechef/issues":https://github.com/tobami/littlechef/issues
+If you find bugs please report it on "https://github.com/tobami/littlechef/issues":https://github.com/tobami/littlechef/issues
 
 Happy cooking!
