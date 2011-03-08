@@ -100,7 +100,7 @@ def deploy_solo():
     '''Deploy chef-solo specific files.'''
     sudo('mkdir -p %s' % _node_work_path, pty=True)
     sudo('mkdir -p %s/cache' % _node_work_path, pty=True)
-    sudo('touch solo.rb', pty=True)
+    sudo('umask 0377; touch solo.rb', pty=True)
     append('solo.rb', 'file_cache_path "%s/cache"' % _node_work_path, use_sudo=True)
     reversed_cookbook_paths = _cookbook_paths[:]
     reversed_cookbook_paths.reverse()
@@ -392,8 +392,10 @@ def _configure_node(configfile):
     '''Exectutes chef-solo to apply roles and recipes to a node'''
     print "Uploading node.json..."
     with hide('running'):
-        put(configfile, configfile.split("/")[-1])
-        sudo('mv %s /etc/chef/node.json' % configfile.split("/")[-1], pty=True),
+        remote_file = '/root/%s' % configfile.split("/")[-1]
+        put(configfile, remote_file, use_sudo=True, mode=_file_mode)
+        sudo('chown root:root %s' % remote_file, pty=True),
+        sudo('mv %s /etc/chef/node.json' % remote_file, pty=True),
         
         print "\n== Cooking... ==\n"
         with settings(hide('warnings'), warn_only=True):
@@ -478,17 +480,40 @@ def _upload_and_unpack(source):
     '''Packs the given directory, uploads it to the node
     and unpacks it in the "_node_work_path" (typically '/var/littlechef') directory'''
     with hide('running'):
-        local('tar czf temp.tar.gz %s' % " ".join(source))
-        put('temp.tar.gz', 'temp.tar.gz')
+        # Local archive relative path
+        local_archive = 'temp.tar.gz'
+        # Remote archive absolute path
+        remote_archive = '/root/%s' % local_archive
+        # Remove existing temporary directory
+        local('(chmod -R u+rwX tmp; rm -rf tmp) > /dev/null 2>&1')
+        # Create temporary directory
+        local('mkdir tmp')
+        # Copy selected sources into temporary directory
+        for item in source:
+            local('mkdir -p tmp/%s' % os.path.dirname(item))
+            local('cp -R %s tmp/%s' % (item, item))
+        # Set secure permissions on copied sources
+        local('chmod -R u=rX,go= tmp')
+        # Create archive locally
+        local('cd tmp && tar czf ../%s .' % local_archive)
+        # Upload archive to remote
+        put(local_archive, remote_archive, use_sudo=True, mode=_file_mode)
+        # Remove local copy of archive and directory
+        local('rm %s' % local_archive)
+        local('chmod -R u+w tmp')
+        local('rm -rf tmp')
         if not exists(_node_work_path):
+            # Report error with remote paths
             msg = "the %s directory was not found at the node." % _node_work_path
             msg += " Is Chef correctly installed?"
             abort(msg)
-        sudo('mv temp.tar.gz %s' % _node_work_path, pty=True)
-        local('rm temp.tar.gz')
         with cd(_node_work_path):
-            sudo('tar xzf temp.tar.gz', pty=True)
-            sudo('rm temp.tar.gz', pty=True)
+            # Install the remote copy of archive
+            sudo('tar xzf %s' % remote_archive, pty=True)
+            # Fix ownership
+            sudo('chown -R root:root %s' % _node_work_path, pty=True)
+            # Remove the remote copy of archive
+            sudo('rm %s' % remote_archive, pty=True)
 
 ###########
 ### API ###
@@ -628,8 +653,6 @@ def _print_role(role):
     print "    override_attributes:"
     _pprint(role.get('override_attributes'))
 
-_cookbook_paths = ['site-cookbooks', 'cookbooks']
-
 def _get_cookbook_path(cookbook_name):
     '''Returns path to the cookbook for the given cookbook name'''
     for cookbook_path in _cookbook_paths:
@@ -638,9 +661,20 @@ def _get_cookbook_path(cookbook_name):
             return path
     raise IOError('''Can't find cookbook with name "%s"''' % cookbook_name)
 
-_node_work_path = '/var/littlechef'
-
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
     for key, value in dic.items():
         print "      %s: %s" % (key, value)
+
+#################
+### Constants ###
+#################
+
+# Paths that may contain cookbooks
+_cookbook_paths = ['site-cookbooks', 'cookbooks']
+
+# Node's work directory for storing cookbooks, roles, etc.
+_node_work_path = '/var/littlechef'
+
+# Upload sensitive files with secure permissions
+_file_mode = 400
