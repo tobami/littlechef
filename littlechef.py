@@ -94,12 +94,12 @@ def deploy_chef(gems="no", ask="yes"):
     
     # Chef Solo Setup
     run('touch solo.rb', pty=True)
-    append('file_cache_path "/tmp/chef-solo"', 'solo.rb')
-    append('cookbook_path "/tmp/chef-solo/cookbooks"', 'solo.rb')
-    append('role_path "/tmp/chef-solo/roles"', 'solo.rb')
+    append('file_cache_path "/var/tmp/chef-solo"', 'solo.rb')
+    append('cookbook_path "/var/tmp/chef-solo/cookbooks"', 'solo.rb')
+    append('role_path "/var/tmp/chef-solo/roles"', 'solo.rb')
     sudo('mkdir -p /etc/chef', pty=True)
     sudo('mv solo.rb /etc/chef/', pty=True)
-    sudo('mkdir -p /tmp/chef-solo', pty=True)
+    sudo('mkdir -p /var/tmp/chef-solo', pty=True)
 
 def recipe(recipe, save=False):
     '''Execute the given recipe, ignores existing config unless save=True'''
@@ -394,8 +394,8 @@ def _configure_node(configfile):
 def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
-    sudo('rm -rf /tmp/chef-solo/cookbooks', pty=True)
-    sudo('rm -rf /tmp/chef-solo/roles', pty=True)
+    sudo('rm -rf /var/tmp/chef-solo/cookbooks', pty=True)
+    sudo('rm -rf /var/tmp/chef-solo/roles', pty=True)
     
     cookbooks = []
     with open(configfile, 'r') as f:
@@ -451,17 +451,17 @@ def _update_cookbooks(configfile):
 
 def _upload_and_unpack(source):
     '''Packs the given directory, uploads it to the node
-    and unpacks it in the /tmp/chef-solo/ directory'''
+    and unpacks it in the /var/tmp/chef-solo/ directory'''
     with hide('running'):
         local('tar czf temp.tar.gz %s' % " ".join(source))
         put('temp.tar.gz', 'temp.tar.gz')
-        if not exists('/tmp/chef-solo/'):
-            msg = "the /tmp/chef-solo/ directory was not found at the node."
+        if not exists('/var/tmp/chef-solo/'):
+            msg = "the /var/tmp/chef-solo/ directory was not found at the node."
             msg += " Is Chef correctly installed?"
             abort(msg)
-        sudo('mv temp.tar.gz /tmp/chef-solo/', pty=True)
+        sudo('mv temp.tar.gz /var/tmp/chef-solo/', pty=True)
         local('rm temp.tar.gz')
-        with cd('/tmp/chef-solo/'):
+        with cd('/var/tmp/chef-solo/'):
             sudo('tar -xzf temp.tar.gz', pty=True)
             sudo('rm temp.tar.gz', pty=True)
 
