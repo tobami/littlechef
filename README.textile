@@ -109,7 +109,7 @@ littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configu
 
 h3. Other tutorial material
 
-"Automated Deployments with LittleChef":http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
+* "Automated Deployments with LittleChef":http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html, nice introduction to Chef using LittleChef
 
 h3. Getting help
 
