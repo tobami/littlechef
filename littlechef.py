@@ -187,17 +187,27 @@ def list_nodes_with_role(role):
 def list_recipes():
     '''Show a list of all available recipes'''
     for recipe in _get_recipes():
-        print(recipe['name'])
+        margin_left = _get_margin(len(recipe['name']))
+        print("{0}:{1}{2}".format(
+            recipe['name'], margin_left, recipe['description']))
 
 @hosts('api')
 def list_recipes_detailed():
-    '''Show a detailed list of available recipes'''
+    '''Show a list of all available recipes'''
     for recipe in _get_recipes():
         _print_recipe(recipe)
 
 @hosts('api')
 def list_roles():
-    '''Show all roles'''
+    '''Show a list of all available roles'''
+    for role in _get_roles():
+        margin_left = _get_margin(len(role['fullname']))
+        print("{0}:{1}{2}".format(
+            role['fullname'], margin_left, role['description']))
+
+@hosts('api')
+def list_roles_detailed():
+    '''Show a list of all available roles'''
     for role in _get_roles():
         _print_role(role)
 
@@ -247,6 +257,16 @@ else:
 ################################################################################
 ### Private functions                                                        ###
 ################################################################################
+
+def _get_margin(length):
+    '''Add enough tabs to align in two columns'''
+    margin_left = "\t"
+    numtabs = 3 - (length + 1)/8
+    if numtabs < 0:
+        numtabs = 0
+    for i in range(numtabs):
+        margin_left += "\t"
+    return margin_left
 
 ############################
 ### Chef Solo deployment ###
@@ -303,7 +323,7 @@ def _gem_install():
 
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
-    sudo("apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert", pty=True)
+    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert", pty=True)
     _gem_install()
 
 def _gem_rpm_install():
@@ -592,13 +612,15 @@ def _get_roles():
 
 def _print_role(role):
     '''Pretty prints the given role'''
-    print "  Role: %s" % role.get('fullname')
+    print "Role: %s" % role.get('fullname')
+    print "    description: {0}".format(role.get('description'))
     print "    default_attributes:"
     _pprint(role.get('default_attributes'))
     print "    override_attributes:"
     _pprint(role.get('override_attributes'))
+    print ""
 
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
     for key, value in dic.items():
-        print "      %s: %s" % (key, value)
+        print "        %s: %s" % (key, value)
