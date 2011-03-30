@@ -148,7 +148,7 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
     
-    print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
+    print(colors.cyan("\n== Configuring {0} ==".format(env.host_string)))
     
     configfile = env.host_string + ".json"
     if not os.path.exists(NODEPATH + configfile):
@@ -412,7 +412,6 @@ def _save_config(save, data, hostname):
 
 def _sync_node(filepath):
     '''Uploads cookbooks and configures a node'''
-    _configure_chef_solo()
     _update_cookbooks(filepath)
     _configure_node(filepath)
 
@@ -425,7 +424,7 @@ def _configure_node(configfile):
         sudo('chown root:root {0}'.format(remote_file), pty=True),
         sudo('mv {0} /etc/chef/node.json'.format(remote_file), pty=True),
         
-        print "\n== Cooking... ==\n"
+        print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo(
                 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel),
@@ -505,14 +504,11 @@ def _update_cookbooks(configfile):
         for cookbook_path in _cookbook_paths:
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
-                if not cookbooks_by_path.has_key(path):
-                    cookbooks_by_path[path] = []
-                cookbooks_by_path[path].append(path)
+                cookbooks_by_path[path] = cookbook
     
-    for path in cookbooks_by_path:
-        print "Uploading {0}... ({1})".format(
-            path, ", ".join(cookbooks_by_path[path]))
-        _upload_and_unpack(cookbooks_by_path[path])
+    print "Uploading cookbooks... ({0})".format(
+            ", ".join(c for c in cookbooks))
+    _upload_and_unpack(p for p in cookbooks_by_path.keys())
     
     print "Uploading roles..."
     _upload_and_unpack(['roles'])
