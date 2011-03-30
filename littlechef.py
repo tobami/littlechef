@@ -279,9 +279,9 @@ def _get_margin(length):
 ############################
 def _configure_chef_solo():
     '''Deploy chef-solo specific files.'''
-    sudo('mkdir -p {0}'.format(_node_work_path), pty=True)
-    sudo('mkdir -p {0}/cache'.format(_node_work_path), pty=True)
-    sudo('umask 0377; touch solo.rb', pty=True)
+    sudo('mkdir -p {0}'.format(_node_work_path))
+    sudo('mkdir -p {0}/cache'.format(_node_work_path))
+    sudo('umask 0377; touch solo.rb')
     append('solo.rb', 'file_cache_path "{0}/cache"'.format(_node_work_path), use_sudo=True)
     reversed_cookbook_paths = _cookbook_paths[:]
     reversed_cookbook_paths.reverse()
@@ -290,8 +290,8 @@ def _configure_chef_solo():
             for x in reversed_cookbook_paths]))
     append('solo.rb', cookbook_paths_line, use_sudo=True)
     append('solo.rb', 'role_path "{0}/roles"'.format(_node_work_path), use_sudo=True)
-    sudo('mkdir -p /etc/chef', pty=True)
-    sudo('mv solo.rb /etc/chef/', pty=True)
+    sudo('mkdir -p /etc/chef')
+    sudo('mv solo.rb /etc/chef/')
 
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
@@ -304,7 +304,7 @@ def _check_distro():
         warn_only=True
         ):
         
-        output = sudo('cat /etc/issue', pty=True)
+        output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
             distro_type = 'debian'
@@ -312,7 +312,7 @@ def _check_distro():
             distro = "squeeze"
             distro_type = 'debian'
         elif 'Ubuntu' in output:
-            distro = sudo('lsb_release -c', pty=True).split('\t')[-1]
+            distro = sudo('lsb_release -c').split('\t')[-1]
             distro_type = 'debian'
         elif 'CentOS' in output:
             distro = "CentOS"
@@ -328,62 +328,59 @@ def _check_distro():
             print "  Debian: " + ", ".join(debian_distros)
             print "  Ubuntu: " + ", ".join(ubuntu_distros)
             print "  RHEL: " + ", ".join(rpm_distros)
-            abort("Unsupported distro " + run('cat /etc/issue', pty=True))
+            abort("Unsupported distro " + run('cat /etc/issue'))
     return distro_type, distro
 
 def _gem_install():
     '''Install Chef from gems'''
-    run(
-        'wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz',
-        pty=True
-    )
-    run('tar zxf rubygems-1.3.7.tgz', pty=True)
+    run('wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz')
+    run('tar zxf rubygems-1.3.7.tgz')
     with cd("rubygems-1.3.7"):
-        sudo('ruby setup.rb --no-format-executable', pty=True)
+        sudo('ruby setup.rb --no-format-executable')
     sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
-    sudo('gem install --no-rdoc --no-ri chef', pty=True)
+    sudo('gem install --no-rdoc --no-ri chef')
 
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
-    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert", pty=True)
+    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
 
 def _gem_rpm_install():
     '''Install chef from gems for rpm based distros'''
     _add_rpm_repos()
     with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget', pty=True)
+        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
     _gem_install()
 
 def _apt_install(distro):
     '''Install chef for debian based distros'''
-    sudo('apt-get --yes install wget', pty=True)
+    sudo('apt-get --yes install wget')
     append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
-    sudo('mv opscode.list /etc/apt/sources.list.d/', pty=True)
+    sudo('mv opscode.list /etc/apt/sources.list.d/')
     gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
-    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key), pty=True)
+    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
     with hide('stdout'):
-        sudo('apt-get update', pty=True)
+        sudo('apt-get update')
     with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef', pty=True)
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
     
     # We only want chef-solo, kill chef-client and remove it from init process
-    sudo('update-rc.d -f chef-client remove', pty=True)
+    sudo('update-rc.d -f chef-client remove')
     with settings(hide('warnings'), warn_only=True):
-        sudo('pkill chef-client', pty=True)
+        sudo('pkill chef-client')
 
 def _add_rpm_repos():
     '''Add EPEL and ELFF'''
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm', pty=True)
+            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
             installed = "package epel-release-5-4.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
         # Install the ELFF Yum Repository.
         with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm', pty=True)
+            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
             
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
@@ -394,7 +391,7 @@ def _rpm_install():
     _add_rpm_repos()
     with show('running'):
         # Install Chef Solo
-        sudo('yum -y install chef', pty=True)
+        sudo('yum -y install chef')
 
 ######################################
 ### Node configuration and syncing ###
@@ -421,15 +418,13 @@ def _configure_node(configfile):
         print "Uploading node.json..."
         remote_file = '/root/{0}'.format(configfile.split("/")[-1])
         put(configfile, remote_file, use_sudo=True, mode=_file_mode)
-        sudo('chown root:root {0}'.format(remote_file), pty=True),
-        sudo('mv {0} /etc/chef/node.json'.format(remote_file), pty=True),
+        sudo('chown root:root {0}'.format(remote_file)),
+        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
         
         print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo(
-                'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel),
-                pty=True
-            )
+                'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
             if output.failed:
                 if 'chef-solo: command not found' in output:
                     print(
@@ -450,7 +445,7 @@ def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
     for path in ['roles', 'cache'] + _cookbook_paths:
-        sudo('rm -rf {0}/{1}'.format(_node_work_path, path), pty=True)
+        sudo('rm -rf {0}/{1}'.format(_node_work_path, path))
     
     cookbooks = []
     with open(configfile, 'r') as f:
@@ -546,11 +541,11 @@ def _upload_and_unpack(source):
             abort(msg)
         with cd(_node_work_path):
             # Install the remote copy of archive
-            sudo('tar xzf {0}'.format(remote_archive), pty=True)
+            sudo('tar xzf {0}'.format(remote_archive))
             # Fix ownership
-            sudo('chown -R root:root {0}'.format(_node_work_path), pty=True)
+            sudo('chown -R root:root {0}'.format(_node_work_path))
             # Remove the remote copy of archive
-            sudo('rm {0}'.format(remote_archive), pty=True)
+            sudo('rm {0}'.format(remote_archive))
 
 ###########
 ### API ###
