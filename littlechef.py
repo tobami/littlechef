@@ -13,12 +13,15 @@
 #limitations under the License.
 #
 '''LittleChef: Configuration Management using Chef without a Chef Server'''
+import ConfigParser
+import os, sys
+import simplejson as json
+
 import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-import ConfigParser, os, sys, re
-import simplejson as json
+from fabric import colors
 
 VERSION = (0, 5, '0alpha')
 version = ".".join([str(x) for x in VERSION])
@@ -95,23 +98,7 @@ def deploy_chef(gems="no", ask="yes"):
             _rpm_install()
     else:
         abort('wrong distro type: {0}'.format(distro_type))
-    deploy_solo()
-    
-def deploy_solo():
-    '''Deploy chef-solo specific files.'''
-    sudo('mkdir -p {0}'.format(_node_work_path), pty=True)
-    sudo('mkdir -p {0}/cache'.format(_node_work_path), pty=True)
-    sudo('umask 0377; touch solo.rb', pty=True)
-    append('solo.rb', 'file_cache_path "{0}/cache"'.format(_node_work_path), use_sudo=True)
-    reversed_cookbook_paths = _cookbook_paths[:]
-    reversed_cookbook_paths.reverse()
-    cookbook_paths_line = 'cookbook_path [{0}]'.format(
-        ', '.join(['''"{0}/{1}"'''.format(_node_work_path, x))) \
-            for x in reversed_cookbook_paths])
-    append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "{0}/roles"'.format(_node_work_path), use_sudo=True)
-    sudo('mkdir -p /etc/chef', pty=True)
-    sudo('mv solo.rb /etc/chef/', pty=True)
+    _configure_chef_solo()
 
 def recipe(recipe, save=False):
     '''Execute the given recipe, ignores existing config unless save=True'''
@@ -161,7 +148,7 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
     
-    print "\n== Configuring {0} ==".format(env.host_string)
+    print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
     
     configfile = env.host_string + ".json"
     if not os.path.exists(NODEPATH + configfile):
@@ -272,10 +259,10 @@ else:
     # If it has been imported (usually len(sys.argv) < 4) don't read auth.cfg
     pass
 
+
 ################################################################################
 ### Private functions                                                        ###
 ################################################################################
-
 def _get_margin(length):
     '''Add enough tabs to align in two columns'''
     margin_left = "\t"
@@ -286,9 +273,26 @@ def _get_margin(length):
         margin_left += "\t"
     return margin_left
 
+
 ############################
 ### Chef Solo deployment ###
 ############################
+def _configure_chef_solo():
+    '''Deploy chef-solo specific files.'''
+    sudo('mkdir -p {0}'.format(_node_work_path), pty=True)
+    sudo('mkdir -p {0}/cache'.format(_node_work_path), pty=True)
+    sudo('umask 0377; touch solo.rb', pty=True)
+    append('solo.rb', 'file_cache_path "{0}/cache"'.format(_node_work_path), use_sudo=True)
+    reversed_cookbook_paths = _cookbook_paths[:]
+    reversed_cookbook_paths.reverse()
+    cookbook_paths_line = 'cookbook_path [{0}]'.format(
+        ', '.join(['''"{0}/{1}"'''.format(_node_work_path, x) \
+            for x in reversed_cookbook_paths]))
+    append('solo.rb', cookbook_paths_line, use_sudo=True)
+    append('solo.rb', 'role_path "{0}/roles"'.format(_node_work_path), use_sudo=True)
+    sudo('mkdir -p /etc/chef', pty=True)
+    sudo('mv solo.rb /etc/chef/', pty=True)
+
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
@@ -408,14 +412,14 @@ def _save_config(save, data, hostname):
 
 def _sync_node(filepath):
     '''Uploads cookbooks and configures a node'''
-    deploy_solo()
+    _configure_chef_solo()
     _update_cookbooks(filepath)
     _configure_node(filepath)
 
 def _configure_node(configfile):
     '''Exectutes chef-solo to apply roles and recipes to a node'''
-    print "Uploading node.json..."
     with hide('running'):
+        print "Uploading node.json..."
         remote_file = '/root/{0}'.format(configfile.split("/")[-1])
         put(configfile, remote_file, use_sudo=True, mode=_file_mode)
         sudo('chown root:root {0}'.format(remote_file), pty=True),
@@ -427,10 +431,21 @@ def _configure_node(configfile):
                 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel),
                 pty=True
             )
-            if "ERROR:" in output:
-                abort("A problem occurred while executing chef-solo")
+            if output.failed:
+                if 'chef-solo: command not found' in output:
+                    print(
+                        colors.red(
+                            "\nFAILED: Chef Solo is not installed on this node"))
+                    print(
+                        "Type 'cook nodes:{0} deploy_chef' to install it".format(
+                            env.host))
+                    abort("")
+                else:
+                    print(colors.red(
+                        "\nFAILED: A problem occurred while executing chef-solo"))
+                    abort("")
             else:
-                print "\nSUCCESS: Node correctly configured"
+                print(colors.green("\nSUCCESS: Node correctly configured"))
 
 def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
@@ -493,6 +508,7 @@ def _update_cookbooks(configfile):
                 if not cookbooks_by_path.has_key(path):
                     cookbooks_by_path[path] = []
                 cookbooks_by_path[path].append(path)
+    
     for path in cookbooks_by_path:
         print "Uploading {0}... ({1})".format(
             path, ", ".join(cookbooks_by_path[path]))
