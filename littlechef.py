@@ -23,7 +23,7 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from fabric import colors
 
-VERSION = (0, 5, '0alpha')
+VERSION = (0, 5, '0beta')
 version = ".".join([str(x) for x in VERSION])
 
 NODEPATH = "nodes/"
@@ -193,7 +193,7 @@ def list_recipes():
     '''Show a list of all available recipes'''
     for recipe in _get_recipes():
         margin_left = _get_margin(len(recipe['name']))
-        print("{0}:{1}{2}".format(
+        print("{0}{1}{2}".format(
             recipe['name'], margin_left, recipe['description']))
 
 @hosts('api')
@@ -573,12 +573,12 @@ def _get_nodes():
 def _print_node(node):
     '''Pretty prints the given node'''
     nodename = node[APPNAME]['nodename']
-    print "\n" + nodename
+    print(colors.yellow("\n" + nodename))
     for recipe in _get_recipes_in_node(node):
         print "  Recipe:", recipe
         print "    attributes: " + str(node.get(recipe, ""))
     for role in _get_roles_in_node(node):
-        _print_role(_get_role(role))
+        _print_role(_get_role(role), detailed=False)
     
     print "  Node attributes:"
     for attribute in node.keys():
@@ -603,6 +603,7 @@ def _get_recipes_in_cookbook(name):
                             {
                                 'name': recipe,
                                 'description': cookbook['recipes'][recipe],
+                                'version': cookbook.get('version'),
                                 'dependencies': cookbook.get('dependencies').keys(),
                                 'attributes': cookbook.get('attributes').keys(),
                             }
@@ -638,10 +639,11 @@ def _get_recipes():
 
 def _print_recipe(recipe):
     '''Pretty prints the given recipe'''
-    print "\nRecipe: " + recipe['name']
-    print "  description:", recipe['description']
-    print "  dependencies:", ", ".join(recipe['dependencies'])
-    print "  attributes:", ", ".join(recipe['attributes'])
+    print(colors.yellow("\n{0}".format(recipe['name'])))
+    print "  description:  {0}".format(recipe['description'])
+    print "  version:      {0}".format(recipe['version'])
+    print "  dependencies: {0}".format(", ".join(recipe['dependencies']))
+    print "  attributes:   {0}".format(", ".join(recipe['attributes']))
 
 def _get_roles_in_node(node):
     '''Gets the name of all roles found in the run_list of a node'''
@@ -678,10 +680,14 @@ def _get_roles():
                 roles.append(_get_role(path))
     return roles
 
-def _print_role(role):
+def _print_role(role, detailed=True):
     '''Pretty prints the given role'''
-    print "Role: {0}".format(role.get('fullname'))
-    print "    description: {0}".format(role.get('description'))
+    if detailed:
+        print(colors.yellow(role.get('fullname')))
+    else:
+        print("  Role: {0}".format(role.get('fullname')))
+    if detailed:
+        print "    description: {0}".format(role.get('description'))
     print "    default_attributes:"
     _pprint(role.get('default_attributes'))
     print "    override_attributes:"
