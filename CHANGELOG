@@ -2,11 +2,25 @@
 Little Chef Change Log
 ======================
 
+
+Version 0.5.0 March 30, 2011
+-----------------------------------------
+* NEW: Igal added site-cookbooks support
+* NEW: Igal made LittleChef run with the newest fabric. Fabric 1.0+ is now required
+* NEW: Special effects: colored output!
+* NEW: Nicer displaying of node, roles and cookbook information
+* FIX: Igal changed node's chef-solo directory to improve security,
+        together with other fixes
+* FIX: Added first unit tests!
+
+
+
 Version 0.4.2 March 10, 2011
 -----------------------------------------
 * NEW: cocoy added keypair support
 * HOTFIX: Require exactly fabric 0.9.3, as fabric 1.0 has been released with
           backwards incompatible changes that break LittleChef
+
 
 Version 0.4.1 January 19, 2011
 -----------------------------------------
@@ -19,6 +33,7 @@ Version 0.4.1 January 19, 2011
 * FIX: wget is now installed for "apt package" and "rpm gem installation"
 * FIX: emilsit refactored new_deployment so that it doesn't use fabric
        but directly python instead. Fixes auth.cfg creation for some OSs
+
 
 Version 0.4.0 December 9, 2010
 -----------------------------------------

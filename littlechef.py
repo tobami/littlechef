@@ -23,7 +23,7 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from fabric import colors
 
-VERSION = (0, 5, '0beta')
+VERSION = (0, 5, 0)
 version = ".".join([str(x) for x in VERSION])
 
 NODEPATH = "nodes/"
@@ -76,7 +76,7 @@ def deploy_chef(gems="no", ask="yes"):
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
     
     distro_type, distro = _check_distro()
-    print
+    print ""
     message = 'Are you sure you want to install Chef at the node {0}'.format(
         env.host_string)
     if gems == "yes":
@@ -101,7 +101,9 @@ def deploy_chef(gems="no", ask="yes"):
     _configure_chef_solo()
 
 def recipe(recipe, save=False):
-    '''Execute the given recipe, ignores existing config unless save=True'''
+    """Apply the given recipe to a node
+        ignores existing config unless save=True
+    """
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
@@ -123,7 +125,8 @@ def recipe(recipe, save=False):
     _sync_node(filepath)
 
 def role(role, save=False):
-    '''Execute the given role, ignores existing config unless save=True'''
+    """Apply the given role to a node
+        ignores existing config unless save=True"""
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
@@ -148,7 +151,7 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
     
-    print(colors.cyan("\n== Configuring {0} ==".format(env.host_string)))
+    print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
     
     configfile = env.host_string + ".json"
     if not os.path.exists(NODEPATH + configfile):
@@ -198,7 +201,7 @@ def list_recipes():
 
 @hosts('api')
 def list_recipes_detailed():
-    '''Show a list of all available recipes'''
+    '''Show information for all recipes'''
     for recipe in _get_recipes():
         _print_recipe(recipe)
 
@@ -212,7 +215,7 @@ def list_roles():
 
 @hosts('api')
 def list_roles_detailed():
-    '''Show a list of all available roles'''
+    '''Show information for all roles'''
     for role in _get_roles():
         _print_role(role)
 
@@ -300,9 +303,7 @@ def _check_distro():
     rpm_distros = ['centos', 'rhel', 'sl']
     
     with settings(
-        hide('warnings', 'running', 'stdout', 'stderr'),
-        warn_only=True
-        ):
+        hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
@@ -417,9 +418,10 @@ def _configure_node(configfile):
     with hide('running'):
         print "Uploading node.json..."
         remote_file = '/root/{0}'.format(configfile.split("/")[-1])
-        put(configfile, remote_file, use_sudo=True, mode=_file_mode)
-        sudo('chown root:root {0}'.format(remote_file)),
-        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
+        with hide('stdout'):# Some shells output 'sudo password'
+            put(configfile, remote_file, use_sudo=True, mode=_file_mode)
+            sudo('chown root:root {0}'.format(remote_file)),
+            sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
         
         print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):
@@ -445,7 +447,8 @@ def _update_cookbooks(configfile):
     '''Uploads needed cookbooks and all roles to a node'''
     # Clean up node
     for path in ['roles', 'cache'] + _cookbook_paths:
-        sudo('rm -rf {0}/{1}'.format(_node_work_path, path))
+        with hide('stdout'):
+            sudo('rm -rf {0}/{1}'.format(_node_work_path, path))
     
     cookbooks = []
     with open(configfile, 'r') as f:
@@ -463,18 +466,21 @@ def _update_cookbooks(configfile):
     
     # Fetch cookbooks needed for role recipes
     for role in _get_roles_in_node(node):
-        with open('roles/' + role + '.json', 'r') as f:
-            try:
-                roles = json.loads(f.read())
-            except json.decoder.JSONDecodeError as e:
-                msg = 'Little Chef found the following error in your'
-                msg += ' "{0}" role file:\n                {1}'.format(role, str(e))
-                abort(msg)
-            # Reuse _get_recipes_in_node to extract recipes in a role
-            for recipe in _get_recipes_in_node(roles):
-                recipe = recipe.split('::')[0]
-                if recipe not in cookbooks:
-                    cookbooks.append(recipe)
+        try:
+            with open('roles/' + role + '.json', 'r') as f:
+                try:
+                    roles = json.loads(f.read())
+                except json.decoder.JSONDecodeError as e:
+                    msg = 'Little Chef found the following error in your'
+                    msg += ' "{0}" role file:\n                {1}'.format(role, str(e))
+                    abort(msg)
+                # Reuse _get_recipes_in_node to extract recipes in a role
+                for recipe in _get_recipes_in_node(roles):
+                    recipe = recipe.split('::')[0]
+                    if recipe not in cookbooks:
+                        cookbooks.append(recipe)
+        except IOError:
+            abort(colors.red("Role '{0}' not found".format(role)))
     
     # Fetch dependencies
     warnings = []
@@ -511,7 +517,7 @@ def _update_cookbooks(configfile):
 def _upload_and_unpack(source):
     '''Packs the given directory, uploads it to the node
     and unpacks it in the "_node_work_path" (typically '/var/chef-solo') directory'''
-    with hide('running'):
+    with hide('running', 'stdout'):
         # Local archive relative path
         local_archive = 'temp.tar.gz'
         # Remote archive absolute path
@@ -538,6 +544,8 @@ def _upload_and_unpack(source):
             # Report error with remote paths
             msg = "the {0} directory was not found at ".format(_node_work_path)
             msg += "the node. Is Chef correctly installed?"
+            msg += "\nYou can deploy chef-solo by typing:\n"
+            msg += "  cook node:{0} deploy_chef".format(env.host)
             abort(msg)
         with cd(_node_work_path):
             # Install the remote copy of archive

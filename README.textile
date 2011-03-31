@@ -14,6 +14,7 @@ It all starts in the kitchen, your deployment directory, which you should keep u
 @auth.cfg@: Authentication information needed to be able to connect to the nodes
 @nodes/@: After recipes are run on nodes, their configuration is stored here
 @cookbooks/@: This will be your cookbooks repository
+@site-cookbooks/@: Here you can override upstream cookbooks (Opscode's, for example)
 @roles/@: Where Chef roles are defined
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
@@ -26,19 +27,21 @@ h3. Requirements
 
 * Python 2.6+
 * Setuptools
-* Fabric 0.9.3
+* Fabric 1.0.1+
 
-All needed packages are installed by typing
+All needed packages are installed by typing:
 @sudo apt-get install python-pip python-fabric@ for Debian and Ubuntu
 or
 @yum install python-pip fabric@ for RHEL and CentOS
+
+Note: If your distribution doesn't have an up-to-date version of Fabric, don't install the distribution package: the installation step will take care of that dependency.
 
 h3. Installation
 
 You can install Little Chef directly from the PyPI:
 @pip install littlechef@
 
-Note: your distribution may have a @cook@ package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
+Note: your distribution may have a @cook@ package that also provides a @cook@ executable. If you have installed it, you need to remove it to avoid collisions with Little Chef's executable.
 
 h2. Usage
 
@@ -92,8 +95,9 @@ h3. Consulting the inventory
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 * @cook list_recipes@: Lists all available recipes
-* @cook list_recipes_detailed@: Same as above, but shows description, dependencies and attributes
-* @cook list_roles@: Lists all available roles, with associated information
+* @cook list_recipes_detailed@: Same as above, but shows description, version, dependencies and attributes
+* @cook list_roles@: Lists all available roles
+* @cook list_roles@: Same as above, but shows description and attributes
 
 h3. Using Little Chef as a library
 
