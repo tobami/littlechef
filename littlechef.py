@@ -641,7 +641,7 @@ def _get_recipes():
     '''Gets all recipes found in the cookbooks/ directory'''
     recipes = []
     for dirname in sorted(
-        [d for d in os.listdir('cookbooks') if not d.startswith('.')]):
+        [d for d in os.listdir('cookbooks') if os.path.isdir(d) and not d.startswith('.')]):
         recipes.extend(_get_recipes_in_cookbook(dirname))
     return recipes
 
