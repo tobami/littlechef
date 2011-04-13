@@ -17,9 +17,10 @@ It all starts in the kitchen, your deployment directory, which you should keep u
 @site-cookbooks/@: Here you can override upstream cookbooks (Opscode's, for example)
 @roles/@: Where Chef roles are defined
 
-Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/tmp/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Nodes, cookbooks and roles are all "normal Chef files":http://wiki.opscode.com/display/chef/Home .
+Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/var/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
-The result is that you can play as often with your recipes and nodes as you want, without having to worry about repositories, central servers nor anything else. Once you are satisfied with a new feature in a cookbook, you can commit the @cookbooks/@ directory to your repository. LittleChef brings back sanity to cookbook development.
+The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings back sanity to cookbook development.
 
 h2. Installation
 
