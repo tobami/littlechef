@@ -696,10 +696,12 @@ def _print_role(role, detailed=True):
         print("  Role: {0}".format(role.get('fullname')))
     if detailed:
         print "    description: {0}".format(role.get('description'))
-    print "    default_attributes:"
-    _pprint(role.get('default_attributes'))
-    print "    override_attributes:"
-    _pprint(role.get('override_attributes'))
+    if role.has_key('default_attributes'):
+      print "    default_attributes:"
+      _pprint(role.get('default_attributes'))
+    if role.has_key('override_attributes'):
+      print "    override_attributes:"
+      _pprint(role.get('override_attributes'))
     print ""
 
 def _get_cookbook_path(cookbook_name):
