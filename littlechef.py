@@ -641,7 +641,8 @@ def _get_recipes():
     '''Gets all recipes found in the cookbooks/ directory'''
     recipes = []
     for dirname in sorted(
-        [d for d in os.listdir('cookbooks') if os.path.isdir('cookbooks/' + d) and not d.startswith('.')]):
+        [d for d in os.listdir('cookbooks') if os.path.isdir(
+            os.path.join('cookbooks', d)) and not d.startswith('.')]):
         recipes.extend(_get_recipes_in_cookbook(dirname))
     return recipes
 
@@ -696,12 +697,12 @@ def _print_role(role, detailed=True):
         print("  Role: {0}".format(role.get('fullname')))
     if detailed:
         print "    description: {0}".format(role.get('description'))
-    if role.has_key('default_attributes'):
+    if 'default_attributes' in role:
       print "    default_attributes:"
-      _pprint(role.get('default_attributes'))
-    if role.has_key('override_attributes'):
+      _pprint(role['default_attributes'])
+    if 'override_attributes' in role:
       print "    override_attributes:"
-      _pprint(role.get('override_attributes'))
+      _pprint(role['override_attributes'])
     print ""
 
 def _get_cookbook_path(cookbook_name):

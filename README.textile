@@ -97,7 +97,7 @@ h3. Consulting the inventory
 * @cook list_recipes@: Lists all available recipes
 * @cook list_recipes_detailed@: Same as above, but shows description, version, dependencies and attributes
 * @cook list_roles@: Lists all available roles
-* @cook list_roles@: Same as above, but shows description and attributes
+* @cook list_roles_detailed@: Same as above, but shows description and attributes
 
 h3. Using Little Chef as a library
 
