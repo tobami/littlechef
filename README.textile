@@ -12,12 +12,10 @@ h3. How it all works
 
 It all starts in the kitchen, your deployment directory, which you should keep under version control:
 @auth.cfg@: Authentication information needed to be able to connect to the nodes
-@nodes/@: After recipes are run on nodes, their configuration is stored here
-@cookbooks/@: This will be your cookbooks repository
+@nodes/@: After recipes are run on "Nodes":http://wiki.opscode.com/display/chef/Nodes, their configuration is stored here. You can manually edit them or even add new ones. Note that Little Chef will use the file name as the hostname or IP to connect to the node.
+@cookbooks/@: This will be your "Cookbooks":http://wiki.opscode.com/display/chef/Cookbooks repository
 @site-cookbooks/@: Here you can override upstream cookbooks (Opscode's, for example)
-@roles/@: Where Chef roles are defined
-
-"Nodes":http://wiki.opscode.com/display/chef/Nodes, "Roles":http://wiki.opscode.com/display/chef/Roles and "Cookbooks":http://wiki.opscode.com/display/chef/Cookbooks are all normal Chef files.
+@roles/@: Where Chef "Roles":http://wiki.opscode.com/display/chef/Roles are defined
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the @/var/chef-solo/@ directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
