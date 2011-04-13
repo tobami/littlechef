@@ -708,7 +708,7 @@ def _get_cookbook_path(cookbook_name):
         path = os.path.join(cookbook_path, cookbook_name)
         if os.path.exists(path):
             return path
-    raise IOError('Can\'t find cookbook with name "{0}"'.formatcookbook_name)
+    raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
 
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
