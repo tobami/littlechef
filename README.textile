@@ -30,11 +30,9 @@ h3. Requirements
 * Fabric 1.0.1+
 
 All needed packages are installed by typing:
-@sudo apt-get install python-pip python-fabric@ for Debian and Ubuntu
+@sudo apt-get install python-pip python2.6-dev@ for Debian and Ubuntu
 or
-@yum install python-pip fabric@ for RHEL and CentOS
-
-Note: If your distribution doesn't have an up-to-date version of Fabric, don't install the distribution package: the installation step will take care of that dependency.
+@yum install python-pip@ for RHEL and CentOS
 
 h3. Installation
 
