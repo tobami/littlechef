@@ -211,7 +211,7 @@ def list_roles():
     for role in _get_roles():
         margin_left = _get_margin(len(role['fullname']))
         print("{0}:{1}{2}".format(
-            role['fullname'], margin_left, role['description']))
+            role['fullname'], margin_left, role.get('description', '(no description)')))
 
 @hosts('api')
 def list_roles_detailed():
