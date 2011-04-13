@@ -3,6 +3,12 @@ Little Chef Change Log
 ======================
 
 
+Version 0.5.1 April 13, 2011
+-----------------------------------------
+* FIX: pushcx fixed errors when a non directory file was present in cookbooks/
+* FIX: pushcx fixed errors when a role doesn't have a description or attributes
+
+
 Version 0.5.0 March 30, 2011
 -----------------------------------------
 * NEW: Igal added site-cookbooks support
@@ -12,7 +18,6 @@ Version 0.5.0 March 30, 2011
 * FIX: Igal changed node's chef-solo directory to improve security,
         together with other fixes
 * FIX: Added first unit tests!
-
 
 
 Version 0.4.2 March 10, 2011
