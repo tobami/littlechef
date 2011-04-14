@@ -211,7 +211,8 @@ def list_roles():
     for role in _get_roles():
         margin_left = _get_margin(len(role['fullname']))
         print("{0}:{1}{2}".format(
-            role['fullname'], margin_left, role.get('description', '(no description)')))
+            role['fullname'], margin_left,
+            role.get('description', '(no description)')))
 
 @hosts('api')
 def list_roles_detailed():
@@ -697,12 +698,13 @@ def _print_role(role, detailed=True):
         print("  Role: {0}".format(role.get('fullname')))
     if detailed:
         print "    description: {0}".format(role.get('description'))
+    print detailed
     if 'default_attributes' in role:
-      print "    default_attributes:"
-      _pprint(role['default_attributes'])
+        print "    default_attributes:"
+        _pprint(role['default_attributes'])
     if 'override_attributes' in role:
-      print "    override_attributes:"
-      _pprint(role['override_attributes'])
+        print "    override_attributes:"
+        _pprint(role['override_attributes'])
     print ""
 
 def _get_cookbook_path(cookbook_name):

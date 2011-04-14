@@ -26,13 +26,14 @@ h2. Installation
 h3. Requirements
 
 * Python 2.6+
-* Setuptools
 * Fabric 1.0.1+
 
-All needed packages are installed by typing:
-@sudo apt-get install python-pip python2.6-dev@ for Debian and Ubuntu
+The best way to install LittleChef is using pip. Required packages are installed by typing:
+@sudo apt-get install python-pip python-dev@ for Debian and Ubuntu
 or
-@yum install python-pip@ for RHEL and CentOS
+@yum install python-pip python-devel@ for RHEL and CentOS
+
+pip will then take care of the extra Python dependencies
 
 h3. Installation
 
