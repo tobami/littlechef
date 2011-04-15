@@ -473,7 +473,8 @@ def _update_cookbooks(configfile):
                     roles = json.loads(f.read())
                 except json.decoder.JSONDecodeError as e:
                     msg = 'Little Chef found the following error in your'
-                    msg += ' "{0}" role file:\n                {1}'.format(role, str(e))
+                    msg += ' "{0}" role file:\n                {1}'.format(
+                        role, str(e))
                     abort(msg)
                 # Reuse _get_recipes_in_node to extract recipes in a role
                 for recipe in _get_recipes_in_node(roles):
@@ -575,7 +576,7 @@ def _get_nodes():
                 nodes.append(node)
             except json.decoder.JSONDecodeError as e:
                 msg = "Little Chef found the following error in your"
-                msg += " {0} file:\n  {1}".format(filename, str(e))
+                msg += " {0} file:\n  {1}".format(filename, e)
                 abort(msg)
     return nodes
 
@@ -618,8 +619,9 @@ def _get_recipes_in_cookbook(name):
                             }
                         )
                 except json.decoder.JSONDecodeError, e:
+                    print e
                     msg = "Little Chef found the following error in your"
-                    msg += " {0} file:\n  {0}".format(path, str(e))
+                    msg += " {0} file:\n  {1}".format(path, e)
                     abort(msg)
             break
         except IOError:
