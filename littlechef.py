@@ -599,8 +599,6 @@ def _print_node(node):
 def _get_recipes_in_cookbook(name):
     '''Gets the name of all recipes present in a cookbook'''
     recipes = []
-    if not os.path.exists('cookbooks/' + name):
-        abort('Cookbook "{0}" not found'.format(name))
     path = None
     for cookbook_path in _cookbook_paths:
         path = '{0}/{1}/metadata.json'.format(cookbook_path, name)
