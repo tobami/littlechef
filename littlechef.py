@@ -537,7 +537,7 @@ def _upload_and_unpack(source):
         # Set secure permissions on copied sources
         local('chmod -R u=rX,go= tmp')
         # Create archive locally
-        local('cd tmp && tar czf ../{0} .'.format(local_archive))
+        local('cd tmp && COPYFILE_DISABLE=true tar czf ../{0} .'.format(local_archive))
         # Upload archive to remote
         put(local_archive, remote_archive, use_sudo=True, mode=_file_mode)
         # Remove local copy of archive and directory
@@ -601,8 +601,6 @@ def _print_node(node):
 def _get_recipes_in_cookbook(name):
     '''Gets the name of all recipes present in a cookbook'''
     recipes = []
-    if not os.path.exists('cookbooks/' + name):
-        abort('Cookbook "{0}" not found'.format(name))
     path = None
     for cookbook_path in _cookbook_paths:
         path = '{0}/{1}/metadata.json'.format(cookbook_path, name)
