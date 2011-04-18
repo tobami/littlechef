@@ -519,8 +519,9 @@ def _update_cookbooks(configfile):
     _upload_and_unpack(['roles'])
 
 def _upload_and_unpack(source):
-    '''Packs the given directory, uploads it to the node
-    and unpacks it in the "_node_work_path" (typically '/var/chef-solo') directory'''
+    '''Packs the given directories, uploads the tar.gz to the node
+    and unpacks it in the _node_work_path (typically '/var/chef-solo') directory
+    '''
     with hide('running', 'stdout'):
         # Local archive relative path
         local_archive = 'temp.tar.gz'
@@ -537,7 +538,9 @@ def _upload_and_unpack(source):
         # Set secure permissions on copied sources
         local('chmod -R u=rX,go= tmp')
         # Create archive locally
-        local('cd tmp && COPYFILE_DISABLE=true tar czf ../{0} .'.format(local_archive))
+        local(
+            'cd tmp && COPYFILE_DISABLE=true tar czf ../{0} --exclude=".svn" .'.format(
+                local_archive))
         # Upload archive to remote
         put(local_archive, remote_archive, use_sudo=True, mode=_file_mode)
         # Remove local copy of archive and directory

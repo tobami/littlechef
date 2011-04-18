@@ -3,6 +3,13 @@ Little Chef Change Log
 ======================
 
 
+Next version
+-----------------------------------------
+* FIX: sirlantis fixed exception when a cookbook was only present in site-cookbooks
+* FIX: sirlantis improved OSX support by not packing files named ._{filename}
+* FIX: .svn directories are no longer packed and uploaded
+
+
 Version 0.5.1 April 13, 2011
 -----------------------------------------
 * FIX: pushcx fixed errors when a non directory file was present in cookbooks/
