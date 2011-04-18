@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 import re
-import sys, os
+import sys
 from subprocess import call
-from distutils.sysconfig import get_python_lib
+
 
 fabfile = None
 try:
     import littlechef
     fabfile = re.sub(r'\.pyc$', '.py', littlechef.__file__)
 except ImportError:
+    # Fallback
+    import os
+    from distutils.sysconfig import get_python_lib
     fabfile = get_python_lib() + "/littlechef.py"
     if not os.path.exists(fabfile):
         fabfile = fabfile.replace('/usr/lib/', '/usr/local/lib/')

@@ -368,6 +368,8 @@ def _apt_install(distro):
     
     # We only want chef-solo, kill chef-client and remove it from init process
     sudo('update-rc.d -f chef-client remove')
+    import time
+    time.sleep(0.5)
     with settings(hide('warnings'), warn_only=True):
         sudo('pkill chef-client')
 
