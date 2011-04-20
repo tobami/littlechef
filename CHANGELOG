@@ -3,11 +3,12 @@ Little Chef Change Log
 ======================
 
 
-Next version
+Version 0.5.2 April 20, 2011
 -----------------------------------------
 * FIX: sirlantis fixed exception when a cookbook was only present in site-cookbooks
-* FIX: sirlantis improved OSX support by not packing files named ._{filename}
-* FIX: .svn directories are no longer packed and uploaded
+* FIX: When configuring a node, the /var/chef-solo/cache directory won't be deleted any more. Solves issue #26
+* OPTIMIZATION: sirlantis improved OSX support by not packing files named ._{filename}
+* OPTIMIZATION: .svn directories are no longer packed and uploaded
 
 
 Version 0.5.1 April 13, 2011
