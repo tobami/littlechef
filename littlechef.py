@@ -14,7 +14,8 @@
 #
 '''LittleChef: Configuration Management using Chef without a Chef Server'''
 import ConfigParser
-import os, sys
+import os
+import sys
 import simplejson as json
 
 import fabric
@@ -27,16 +28,18 @@ VERSION = (0, 5, 2)
 version = ".".join([str(x) for x in VERSION])
 
 NODEPATH = "nodes/"
-APPNAME  = "littlechef"
+APPNAME = "littlechef"
 
 env.loglevel = "info"
 fabric.state.output['running'] = False
+
 
 @hosts('setup')
 def debug():
     '''Sets logging level to debug'''
     print "Setting Chef Solo log level to 'debug'..."
     env.loglevel = 'debug'
+
 
 @hosts('setup')
 def new_deployment():
@@ -45,18 +48,18 @@ def new_deployment():
         if not os.path.exists(d):
             os.mkdir(d)
             print "{0}/ directory created...".format(d)
-    
     _mkdir("nodes")
     _mkdir("roles")
     for cookbook_path in _cookbook_paths:
         _mkdir(cookbook_path)
     if not os.path.exists("auth.cfg"):
         with open("auth.cfg", "w") as authfh:
-            print >>authfh, "[userinfo]"
-            print >>authfh, "user = "
-            print >>authfh, "password = "
-            print >>authfh, "keypair-file = "
+            print >> authfh, "[userinfo]"
+            print >> authfh, "user = "
+            print >> authfh, "password = "
+            print >> authfh, "keypair-file = "
             print "auth.cfg file created..."
+
 
 @hosts('setup')
 def node(host):
@@ -69,12 +72,13 @@ def node(host):
     else:
         env.hosts = [host]
 
+
 def deploy_chef(gems="no", ask="yes"):
     '''Install chef-solo on a node'''
     # Do some checks
     if not env.host_string:
-        abort('no node specified\nUsage: cook node:MYNODE deploy_chef:MYDISTRO')
-    
+        abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
+
     distro_type, distro = _check_distro()
     print ""
     message = 'Are you sure you want to install Chef at the node {0}'.format(
@@ -85,7 +89,7 @@ def deploy_chef(gems="no", ask="yes"):
         message += ', using "{0}" packages?'.format(distro)
     if ask != "no" and not confirm(message):
         abort('Aborted by user')
-    
+
     if distro_type == "debian":
         if gems == "yes":
             _gem_apt_install()
@@ -100,6 +104,7 @@ def deploy_chef(gems="no", ask="yes"):
         abort('wrong distro type: {0}'.format(distro_type))
     _configure_chef_solo()
 
+
 def recipe(recipe, save=False):
     """Apply the given recipe to a node
         ignores existing config unless save=True
@@ -107,10 +112,10 @@ def recipe(recipe, save=False):
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
-    
+
     print "\n== Executing recipe {0} on node {1} ==".format(
         recipe, env.host_string)
-    
+
     recipe_found = False
     for cookbook_path in _cookbook_paths:
         if os.path.exists(os.path.join(cookbook_path, recipe.split('::')[0])):
@@ -118,11 +123,12 @@ def recipe(recipe, save=False):
             break
     if not recipe_found:
         abort('Cookbook "{0}" not found'.format(recipe))
-    
+
     # Now create configuration and sync node
-    data = { "run_list": [ "recipe[{0}]".format(recipe) ] }
+    data = {"run_list": ["recipe[{0}]".format(recipe)]}
     filepath = _save_config(save, data, env.host_string)
     _sync_node(filepath)
+
 
 def role(role, save=False):
     """Apply the given role to a node
@@ -130,47 +136,51 @@ def role(role, save=False):
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
-    
+
     print "\n== Applying role {0} to node {1} ==".format(role, env.host_string)
     if not os.path.exists('roles/' + role + '.json'):
         if os.path.exists('roles/' + role + '.rb'):
-            abort("Role '{0}' only found as '{1}.rb'. It should be in json format.".format(role, role))
+            msg = "Role '{0}' only found as '{1}.rb'.".format(role, role)
+            msg += " It should be in json format."
+            abort(msg)
         else:
             abort("Role '{0}' not found".format(role))
-    
+
     # Now create configuration and sync node
-    data = { "run_list": [ "role[{0}]".format(role) ] }
+    data = {"run_list": ["role[{0}]".format(role)]}
     filepath = _save_config(save, data, env.host_string)
     _sync_node(filepath)
 
+
 def configure():
-    '''Configure node using existing config file'''
+    """Configure node using existing config file"""
     # Do some checks
     if not env.host_string:
         msg = 'no node specified\n'
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
-    
+
     print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
-    
     configfile = env.host_string + ".json"
     if not os.path.exists(NODEPATH + configfile):
         print "Warning: No config file found for {0}".format(env.host_string)
         print "Warning: Chef run aborted"
         return
-    
+
     # Configure node
     _sync_node(NODEPATH + configfile)
 
+
 @hosts('api')
 def list_nodes():
-    '''List all nodes'''
+    """List all nodes"""
     for node in _get_nodes():
         _print_node(node)
 
+
 @hosts('api')
 def list_nodes_with_recipe(recipe):
-    '''Show all nodes which have asigned a given recipe'''
+    """Show all nodes which have asigned a given recipe"""
     for node in _get_nodes():
         if recipe in _get_recipes_in_node(node):
             _print_node(node)
@@ -183,6 +193,7 @@ def list_nodes_with_recipe(recipe):
                         _print_node(node)
                         break
 
+
 @hosts('api')
 def list_nodes_with_role(role):
     '''Show all nodes which have asigned a given role'''
@@ -190,6 +201,7 @@ def list_nodes_with_role(role):
         recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
             _print_node(node)
+
 
 @hosts('api')
 def list_recipes():
@@ -199,11 +211,13 @@ def list_recipes():
         print("{0}{1}{2}".format(
             recipe['name'], margin_left, recipe['description']))
 
+
 @hosts('api')
 def list_recipes_detailed():
     '''Show information for all recipes'''
     for recipe in _get_recipes():
         _print_recipe(recipe)
+
 
 @hosts('api')
 def list_roles():
@@ -214,15 +228,17 @@ def list_roles():
             role['fullname'], margin_left,
             role.get('description', '(no description)')))
 
+
 @hosts('api')
 def list_roles_detailed():
     '''Show information for all roles'''
     for role in _get_roles():
         _print_role(role)
 
+
 # Check that user is cooking inside a kitchen and configure authentication #
 def _readconfig():
-    '''Configure environment'''
+    """Configure environment"""
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
         if not os.path.exists(dirname):
@@ -241,20 +257,21 @@ def _readconfig():
         msg += ' of auth.cfg. Refer to the README for help'
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
-    
+
     # Allow password OR keypair-file not to be present
     try:
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoOptionError:
         pass
     try:
-        env.key_filename = config.get('userinfo','keypair-file')
+        env.key_filename = config.get('userinfo', 'keypair-file')
     except ConfigParser.NoOptionError:
         pass
-    
+
     # Both cannot be empty
     if not env.password and not env.key_filename:
         abort('You need to define a password or a keypair-file in auth.cfg.')
+
 
 if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_deployment":
     # If littlechef.py has been called from the cook script, read configuration
@@ -268,9 +285,9 @@ else:
 ### Private functions                                                        ###
 ################################################################################
 def _get_margin(length):
-    '''Add enough tabs to align in two columns'''
+    """Add enough tabs to align in two columns"""
     margin_left = "\t"
-    numtabs = 3 - (length + 1)/8
+    numtabs = 3 - (length + 1) / 8
     if numtabs < 0:
         numtabs = 0
     for i in range(numtabs):
@@ -297,15 +314,15 @@ def _configure_chef_solo():
     sudo('mkdir -p /etc/chef')
     sudo('mv solo.rb /etc/chef/')
 
+
 def _check_distro():
     '''Check that the given distro is supported and return the distro type'''
     debian_distros = ['sid', 'squeeze', 'lenny']
     ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
-    
+
     with settings(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
-        
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
@@ -333,6 +350,7 @@ def _check_distro():
             abort("Unsupported distro " + run('cat /etc/issue'))
     return distro_type, distro
 
+
 def _gem_install():
     '''Install Chef from gems'''
     run('wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz')
@@ -342,10 +360,12 @@ def _gem_install():
     sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
     sudo('gem install --no-rdoc --no-ri chef')
 
+
 def _gem_apt_install():
     '''Install Chef from gems for apt based distros'''
     sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
+
 
 def _gem_rpm_install():
     '''Install chef from gems for rpm based distros'''
@@ -353,6 +373,7 @@ def _gem_rpm_install():
     with show('running'):
         sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
     _gem_install()
+
 
 def _apt_install(distro):
     '''Install chef for debian based distros'''
@@ -365,13 +386,14 @@ def _apt_install(distro):
         sudo('apt-get update')
     with show('running'):
         sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
-    
+
     # We only want chef-solo, kill chef-client and remove it from init process
     sudo('update-rc.d -f chef-client remove')
     import time
     time.sleep(0.5)
     with settings(hide('warnings'), warn_only=True):
         sudo('pkill chef-client')
+
 
 def _add_rpm_repos():
     '''Add EPEL and ELFF'''
@@ -385,10 +407,10 @@ def _add_rpm_repos():
         # Install the ELFF Yum Repository.
         with settings(hide('warnings'), warn_only=True):
             output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
-            
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
+
 
 def _rpm_install():
     '''Install chef for rpm based distros'''
@@ -396,6 +418,7 @@ def _rpm_install():
     with show('running'):
         # Install Chef Solo
         sudo('yum -y install chef')
+
 
 ##################################################################
 ### Node configuration and syncing                             ###
@@ -407,16 +430,17 @@ def _save_config(save, data, hostname):
     filepath = NODEPATH + hostname + ".json"
     if os.path.exists(filepath) and not save:
         filepath = 'tmp_node.json'
-    
     with open(filepath, 'w') as f:
         f.write(json.dumps(data, indent=4))
         f.write('\n')
     return filepath
 
+
 def _sync_node(filepath):
     """Buils, synchronizes and configures a node"""
     _synchronize_node(filepath)
     _configure_node(filepath)
+
 
 def _synchronize_node(configfile):
     """Performs the Synchronize step of a Chef run:
@@ -426,7 +450,7 @@ def _synchronize_node(configfile):
     for path in ['roles'] + _cookbook_paths:
         with hide('stdout'):
             sudo('rm -rf {0}/{1}'.format(_node_work_path, path))
-    
+
     cookbooks = []
     with open(configfile, 'r') as f:
         try:
@@ -440,7 +464,7 @@ def _synchronize_node(configfile):
         recipe = recipe.split('::')[0]
         if recipe not in cookbooks:
             cookbooks.append(recipe)
-    
+
     # Fetch cookbooks needed for role recipes
     for role in _get_roles_in_node(node):
         try:
@@ -459,7 +483,7 @@ def _synchronize_node(configfile):
                         cookbooks.append(recipe)
         except IOError:
             abort(colors.red("Role '{0}' not found".format(role)))
-    
+
     # Fetch dependencies
     warnings = []
     for cookbook in cookbooks:
@@ -477,18 +501,18 @@ def _synchronize_node(configfile):
                             print "         Cookbook '{0}' not found".format(dep)
                             import time
                             time.sleep(1)
-    
+
     cookbooks_by_path = {}
     for cookbook in cookbooks:
         for cookbook_path in _cookbook_paths:
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
-    
+
     print "Uploading cookbooks... ({0})".format(
             ", ".join(c for c in cookbooks))
     _upload_and_unpack(p for p in cookbooks_by_path.keys())
-    
+
     print "Uploading roles..."
     _upload_and_unpack(['roles'])
 
@@ -498,11 +522,10 @@ def _configure_node(configfile):
     with hide('running'):
         print "Uploading node.json..."
         remote_file = '/root/{0}'.format(configfile.split("/")[-1])
-        with hide('stdout'):# Some shells output 'sudo password'
-            put(configfile, remote_file, use_sudo=True, mode=_file_mode)
-            sudo('chown root:root {0}'.format(remote_file)),
-            sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
-        
+        put(configfile, remote_file, use_sudo=True, mode=_file_mode)
+        sudo('chown root:root {0}'.format(remote_file)),
+        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
+
         print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo(
@@ -522,6 +545,7 @@ def _configure_node(configfile):
                     abort("")
             else:
                 print(colors.green("\nSUCCESS: Node correctly configured"))
+
 
 def _upload_and_unpack(source):
     """Packs the given directories, uploads the tar.gz to the node
@@ -591,6 +615,7 @@ def _get_nodes():
                 abort(msg)
     return nodes
 
+
 def _print_node(node):
     '''Pretty prints the given node'''
     nodename = node[APPNAME]['nodename']
@@ -600,12 +625,13 @@ def _print_node(node):
         print "    attributes: " + str(node.get(recipe, ""))
     for role in _get_roles_in_node(node):
         _print_role(_get_role(role), detailed=False)
-    
+
     print "  Node attributes:"
     for attribute in node.keys():
         if attribute == "run_list" or attribute == "littlechef":
             continue
         print "    {0}: {1}".format(attribute, node[attribute])
+
 
 def _get_recipes_in_cookbook(name):
     '''Gets the name of all recipes present in a cookbook'''
@@ -637,8 +663,8 @@ def _get_recipes_in_cookbook(name):
             None
     if not recipes:
         abort('Unable to find cookbook "{0}" with metadata.json'.format(name))
-    
     return recipes
+
 
 def _get_recipes_in_node(node):
     '''Gets the name of all recipes present in the run_list of a node'''
@@ -649,6 +675,7 @@ def _get_recipes_in_node(node):
             recipes.append(recipe)
     return recipes
 
+
 def _get_recipes():
     '''Gets all recipes found in the cookbooks/ directory'''
     recipes = []
@@ -658,6 +685,7 @@ def _get_recipes():
         recipes.extend(_get_recipes_in_cookbook(dirname))
     return recipes
 
+
 def _print_recipe(recipe):
     '''Pretty prints the given recipe'''
     print(colors.yellow("\n{0}".format(recipe['name'])))
@@ -665,6 +693,7 @@ def _print_recipe(recipe):
     print "  version:      {0}".format(recipe['version'])
     print "  dependencies: {0}".format(", ".join(recipe['dependencies']))
     print "  attributes:   {0}".format(", ".join(recipe['attributes']))
+
 
 def _get_roles_in_node(node):
     '''Gets the name of all roles found in the run_list of a node'''
@@ -674,6 +703,7 @@ def _get_roles_in_node(node):
             role = elem.split('[')[1].split(']')[0]
             roles.append(role)
     return roles
+
 
 def _get_role(rolename):
     '''Reads and parses a file containing a role'''
@@ -690,6 +720,7 @@ def _get_role(rolename):
         role['fullname'] = rolename
         return role
 
+
 def _get_roles():
     '''Gets all roles found in the roles/ directory'''
     roles = []
@@ -700,6 +731,7 @@ def _get_roles():
                     root[len('roles/'):], filename[:-len('.json')])
                 roles.append(_get_role(path))
     return roles
+
 
 def _print_role(role, detailed=True):
     '''Pretty prints the given role'''
@@ -718,6 +750,7 @@ def _print_role(role, detailed=True):
         _pprint(role['override_attributes'])
     print ""
 
+
 def _get_cookbook_path(cookbook_name):
     '''Returns path to the cookbook for the given cookbook name'''
     for cookbook_path in _cookbook_paths:
@@ -725,6 +758,7 @@ def _get_cookbook_path(cookbook_name):
         if os.path.exists(path):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
+
 
 def _pprint(dic):
     '''Prints a dictionary with one indentation level'''
