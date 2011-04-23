@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-'''LittleChef: Configuration Management using Chef without a Chef Server'''
+"""LittleChef: Configuration Management using Chef without a Chef Server"""
 import ConfigParser
 import os
 import sys
@@ -100,6 +100,8 @@ def deploy_chef(gems="no", ask="yes"):
             _gem_rpm_install()
         else:
             _rpm_install()
+    elif distro_type == "gentoo":
+        _emerge_install()
     else:
         abort('wrong distro type: {0}'.format(distro_type))
     _configure_chef_solo()
@@ -316,43 +318,49 @@ def _configure_chef_solo():
 
 
 def _check_distro():
-    '''Check that the given distro is supported and return the distro type'''
+    """Check that the given distro is supported and return the distro type"""
     debian_distros = ['sid', 'squeeze', 'lenny']
     ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
+    gentoo_distros = ['gentoo']
 
     with settings(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
-            distro_type = 'debian'
+            distro_type = "debian"
         elif 'Debian GNU/Linux 6.0' in output:
             distro = "squeeze"
-            distro_type = 'debian'
+            distro_type = "debian"
         elif 'Ubuntu' in output:
             distro = sudo('lsb_release -c').split('\t')[-1]
-            distro_type = 'debian'
+            distro_type = "debian"
         elif 'CentOS' in output:
             distro = "CentOS"
-            distro_type = 'rpm'
+            distro_type = "rpm"
         elif 'Red Hat Enterprise Linux' in output:
             distro = "Red Hat"
-            distro_type = 'rpm'
+            distro_type = "rpm"
         elif 'Scientific Linux SL' in output:
             distro = "Scientific Linux"
-            distro_type = 'rpm'
+            distro_type = "rpm"
+        elif 'This is \\n.\\O (\\s \\m \\r) \\t' in output:
+            distro = "Gentoo"
+            distro_type = "gentoo"
         else:
             print "Currently supported distros are:"
             print "  Debian: " + ", ".join(debian_distros)
             print "  Ubuntu: " + ", ".join(ubuntu_distros)
             print "  RHEL: " + ", ".join(rpm_distros)
+            print "  Gentoo"
             abort("Unsupported distro " + run('cat /etc/issue'))
     return distro_type, distro
 
 
 def _gem_install():
-    '''Install Chef from gems'''
+    """Install Chef from gems"""
+    # Install RubyGems from Source
     run('wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz')
     run('tar zxf rubygems-1.3.7.tgz')
     with cd("rubygems-1.3.7"):
@@ -362,13 +370,13 @@ def _gem_install():
 
 
 def _gem_apt_install():
-    '''Install Chef from gems for apt based distros'''
+    """Install Chef from gems for apt based distros"""
     sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
 
 
 def _gem_rpm_install():
-    '''Install chef from gems for rpm based distros'''
+    """Install Chef from gems for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
         sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
@@ -376,7 +384,7 @@ def _gem_rpm_install():
 
 
 def _apt_install(distro):
-    '''Install chef for debian based distros'''
+    """Install Chef for debian based distros"""
     sudo('apt-get --yes install wget')
     append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
     sudo('mv opscode.list /etc/apt/sources.list.d/')
@@ -396,7 +404,7 @@ def _apt_install(distro):
 
 
 def _add_rpm_repos():
-    '''Add EPEL and ELFF'''
+    """Add EPEL and ELFF"""
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings'), warn_only=True):
@@ -413,11 +421,17 @@ def _add_rpm_repos():
 
 
 def _rpm_install():
-    '''Install chef for rpm based distros'''
+    """Install Chef for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
         # Install Chef Solo
         sudo('yum -y install chef')
+
+
+def _emerge_install():
+    """Install Chef for Gentoo"""
+    with show('running'):
+        sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
 
 
 ##################################################################
