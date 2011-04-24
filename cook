@@ -6,17 +6,17 @@ from subprocess import call
 
 fabfile = None
 try:
-    import littlechef
+    from littlechef import littlechef
     fabfile = re.sub(r'\.pyc$', '.py', littlechef.__file__)
 except ImportError:
     # Fallback
     import os
     from distutils.sysconfig import get_python_lib
-    fabfile = get_python_lib() + "/littlechef.py"
+    fabfile = get_python_lib() + "/littlechef/littlechef.py"
     if not os.path.exists(fabfile):
         fabfile = fabfile.replace('/usr/lib/', '/usr/local/lib/')
         if not os.path.exists(fabfile):
-            fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef.py'
+            fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef/littlechef.py'
             if not os.path.exists(fabfile):
                 sys.exit("There was an installation error. Couldn't find littlechef.py, try reinstalling again")
     sys.path.insert(0, os.path.dirname(fabfile))
