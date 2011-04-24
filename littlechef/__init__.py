@@ -1,1 +1,1 @@
-from littlechef import *
+from version import version
