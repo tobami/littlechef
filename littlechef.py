@@ -24,9 +24,6 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from fabric import colors
 
-VERSION = (0, 5, 2)
-version = ".".join([str(x) for x in VERSION])
-
 NODEPATH = "nodes/"
 APPNAME = "littlechef"
 
