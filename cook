@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import re
 import sys
+import re
 from subprocess import call
 
 
@@ -9,18 +9,8 @@ try:
     from littlechef import littlechef
     fabfile = re.sub(r'\.pyc$', '.py', littlechef.__file__)
 except ImportError:
-    # Fallback
-    import os
-    from distutils.sysconfig import get_python_lib
-    fabfile = get_python_lib() + "/littlechef/littlechef.py"
-    if not os.path.exists(fabfile):
-        fabfile = fabfile.replace('/usr/lib/', '/usr/local/lib/')
-        if not os.path.exists(fabfile):
-            fabfile = __file__.replace('EGG-INFO/scripts/cook', '') + 'littlechef/littlechef.py'
-            if not os.path.exists(fabfile):
-                sys.exit("There was an installation error. Couldn't find littlechef.py, try reinstalling again")
-    sys.path.insert(0, os.path.dirname(fabfile))
-    import littlechef
+    print("Little Chef was not correctly installed: Couldn't import littlechef.py")
+    sys.exit(1)
 
 # Act on some arguments and pass others to fabric
 args = ['fab', '-f', fabfile]
