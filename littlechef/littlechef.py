@@ -326,7 +326,6 @@ def _check_distro():
     with settings(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
-        print output
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
             distro_type = "debian"
