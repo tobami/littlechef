@@ -24,6 +24,8 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from fabric import colors
 
+from version import version
+
 NODEPATH = "nodes/"
 APPNAME = "littlechef"
 
@@ -324,6 +326,7 @@ def _check_distro():
     with settings(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
+        print output
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
             distro_type = "debian"
