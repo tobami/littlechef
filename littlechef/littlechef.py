@@ -197,7 +197,7 @@ def list_nodes_with_recipe(recipe):
 
 @hosts('api')
 def list_nodes_with_role(role):
-    '''Show all nodes which have asigned a given role'''
+    """Show all nodes which have asigned a given role"""
     for node in _get_nodes():
         recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
@@ -206,7 +206,7 @@ def list_nodes_with_role(role):
 
 @hosts('api')
 def list_recipes():
-    '''Show a list of all available recipes'''
+    """Show a list of all available recipes"""
     for recipe in _get_recipes():
         margin_left = _get_margin(len(recipe['name']))
         print("{0}{1}{2}".format(
@@ -215,14 +215,14 @@ def list_recipes():
 
 @hosts('api')
 def list_recipes_detailed():
-    '''Show information for all recipes'''
+    """Show information for all recipes"""
     for recipe in _get_recipes():
         _print_recipe(recipe)
 
 
 @hosts('api')
 def list_roles():
-    '''Show a list of all available roles'''
+    """Show a list of all available roles"""
     for role in _get_roles():
         margin_left = _get_margin(len(role['fullname']))
         print("{0}:{1}{2}".format(
@@ -232,7 +232,7 @@ def list_roles():
 
 @hosts('api')
 def list_roles_detailed():
-    '''Show information for all roles'''
+    """Show information for all roles"""
     for role in _get_roles():
         _print_role(role)
 
@@ -300,7 +300,7 @@ def _get_margin(length):
 ### Chef Solo deployment ###
 ############################
 def _configure_chef_solo():
-    '''Deploy chef-solo specific files.'''
+    """Deploy chef-solo specific files."""
     sudo('mkdir -p {0}'.format(_node_work_path))
     sudo('mkdir -p {0}/cache'.format(_node_work_path))
     sudo('umask 0377; touch solo.rb')

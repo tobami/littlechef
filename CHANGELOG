@@ -3,6 +3,12 @@ Little Chef Changelog
 ======================
 
 
+Version 0.5.3
+-----------------------------------------
+* NEW: npinto added Gentoo support
+* FIX: npinto fixed a bug where LittleChef could not be installed due to circular dependencies
+
+
 Version 0.5.2 April 20, 2011
 -----------------------------------------
 * FIX: sirlantis fixed exception when a cookbook was only present in site-cookbooks

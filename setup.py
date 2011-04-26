@@ -10,9 +10,8 @@ setup(
     download_url="http://github.com/tobami/littlechef/archives/master",
     keywords=["chef", "devops"],
     install_requires=['fabric>=1.0.1', 'simplejson'],
-    py_modules=['littlechef/littlechef', 'littlechef/version'],
+    packages=['littlechef'],
     scripts=['cook'],
-    zip_safe=False,
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
