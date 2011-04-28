@@ -1,4 +1,4 @@
-#Copyright 2010 Miquel Torres <tobami@googlemail.com>
+#Copyright 2010-2011 Miquel Torres <tobami@googlemail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from fabric.contrib.console import confirm
 from fabric import colors
 
 from version import version
+import solo
 
 NODEPATH = "nodes/"
 APPNAME = "littlechef"
@@ -35,18 +36,19 @@ fabric.state.output['running'] = False
 
 @hosts('setup')
 def debug():
-    '''Sets logging level to debug'''
+    """Sets logging level to debug"""
     print "Setting Chef Solo log level to 'debug'..."
     env.loglevel = 'debug'
 
 
 @hosts('setup')
 def new_deployment():
-    '''Create LittleChef directory structure (Kitchen)'''
+    """Create LittleChef directory structure (Kitchen)"""
     def _mkdir(d):
         if not os.path.exists(d):
             os.mkdir(d)
             print "{0}/ directory created...".format(d)
+
     _mkdir("nodes")
     _mkdir("roles")
     for cookbook_path in _cookbook_paths:
@@ -62,7 +64,7 @@ def new_deployment():
 
 @hosts('setup')
 def node(host):
-    '''Select a node'''
+    """Select a node"""
     if host == 'all':
         for node in _get_nodes():
             env.hosts.append(node[APPNAME]['nodename'])
@@ -73,14 +75,13 @@ def node(host):
 
 
 def deploy_chef(gems="no", ask="yes"):
-    '''Install chef-solo on a node'''
+    """Install chef-solo on a node"""
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
 
-    distro_type, distro = _check_distro()
-    print ""
-    message = 'Are you sure you want to install Chef at the node {0}'.format(
+    distro_type, distro = solo.check_distro()
+    message = '\nAre you sure you want to install Chef at the node {0}'.format(
         env.host_string)
     if gems == "yes":
         message += ', using gems for "{0}"?'.format(distro)
@@ -91,19 +92,19 @@ def deploy_chef(gems="no", ask="yes"):
 
     if distro_type == "debian":
         if gems == "yes":
-            _gem_apt_install()
+            solo.gem_apt_install()
         else:
-            _apt_install(distro)
+            solo.apt_install(distro)
     elif distro_type == "rpm":
         if gems == "yes":
-            _gem_rpm_install()
+            solo.gem_rpm_install()
         else:
-            _rpm_install()
+            solo.rpm_install()
     elif distro_type == "gentoo":
-        _emerge_install()
+        solo.emerge_install()
     else:
         abort('wrong distro type: {0}'.format(distro_type))
-    _configure_chef_solo()
+    solo.configure_chef_solo()
 
 
 def recipe(recipe, save=False):
@@ -225,7 +226,7 @@ def list_roles():
     """Show a list of all available roles"""
     for role in _get_roles():
         margin_left = _get_margin(len(role['fullname']))
-        print("{0}:{1}{2}".format(
+        print("{0}{1}{2}".format(
             role['fullname'], margin_left,
             role.get('description', '(no description)')))
 
@@ -287,150 +288,19 @@ else:
 ################################################################################
 def _get_margin(length):
     """Add enough tabs to align in two columns"""
-    margin_left = "\t"
-    numtabs = 3 - (length + 1) / 8
-    if numtabs < 0:
-        numtabs = 0
-    for i in range(numtabs):
-        margin_left += "\t"
+    if length > 23:
+        margin_left = "\t"
+        chars = 1
+    elif length > 15:
+        margin_left = "\t\t"
+        chars = 2
+    elif length > 7:
+        margin_left = "\t\t\t"
+        chars = 3
+    else:
+        margin_left = "\t\t\t\t"
+        chars = 4
     return margin_left
-
-
-############################
-### Chef Solo deployment ###
-############################
-def _configure_chef_solo():
-    """Deploy chef-solo specific files."""
-    sudo('mkdir -p {0}'.format(_node_work_path))
-    sudo('mkdir -p {0}/cache'.format(_node_work_path))
-    sudo('umask 0377; touch solo.rb')
-    append('solo.rb', 'file_cache_path "{0}/cache"'.format(_node_work_path), use_sudo=True)
-    reversed_cookbook_paths = _cookbook_paths[:]
-    reversed_cookbook_paths.reverse()
-    cookbook_paths_line = 'cookbook_path [{0}]'.format(
-        ', '.join(['''"{0}/{1}"'''.format(_node_work_path, x) \
-            for x in reversed_cookbook_paths]))
-    append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "{0}/roles"'.format(_node_work_path), use_sudo=True)
-    sudo('mkdir -p /etc/chef')
-    sudo('mv solo.rb /etc/chef/')
-
-
-def _check_distro():
-    """Check that the given distro is supported and return the distro type"""
-    debian_distros = ['sid', 'squeeze', 'lenny']
-    ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
-    rpm_distros = ['centos', 'rhel', 'sl']
-    gentoo_distros = ['gentoo']
-
-    with settings(
-        hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
-        output = sudo('cat /etc/issue')
-        if 'Debian GNU/Linux 5.0' in output:
-            distro = "lenny"
-            distro_type = "debian"
-        elif 'Debian GNU/Linux 6.0' in output:
-            distro = "squeeze"
-            distro_type = "debian"
-        elif 'Ubuntu' in output:
-            distro = sudo('lsb_release -c').split('\t')[-1]
-            distro_type = "debian"
-        elif 'CentOS' in output:
-            distro = "CentOS"
-            distro_type = "rpm"
-        elif 'Red Hat Enterprise Linux' in output:
-            distro = "Red Hat"
-            distro_type = "rpm"
-        elif 'Scientific Linux SL' in output:
-            distro = "Scientific Linux"
-            distro_type = "rpm"
-        elif 'This is \\n.\\O (\\s \\m \\r) \\t' in output:
-            distro = "Gentoo"
-            distro_type = "gentoo"
-        else:
-            print "Currently supported distros are:"
-            print "  Debian: " + ", ".join(debian_distros)
-            print "  Ubuntu: " + ", ".join(ubuntu_distros)
-            print "  RHEL: " + ", ".join(rpm_distros)
-            print "  Gentoo"
-            abort("Unsupported distro " + run('cat /etc/issue'))
-    return distro_type, distro
-
-
-def _gem_install():
-    """Install Chef from gems"""
-    # Install RubyGems from Source
-    run('wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz')
-    run('tar zxf rubygems-1.3.7.tgz')
-    with cd("rubygems-1.3.7"):
-        sudo('ruby setup.rb --no-format-executable')
-    sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
-    sudo('gem install --no-rdoc --no-ri chef')
-
-
-def _gem_apt_install():
-    """Install Chef from gems for apt based distros"""
-    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
-    _gem_install()
-
-
-def _gem_rpm_install():
-    """Install Chef from gems for rpm based distros"""
-    _add_rpm_repos()
-    with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
-    _gem_install()
-
-
-def _apt_install(distro):
-    """Install Chef for debian based distros"""
-    sudo('apt-get --yes install wget')
-    append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
-    sudo('mv opscode.list /etc/apt/sources.list.d/')
-    gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
-    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-    with hide('stdout'):
-        sudo('apt-get update')
-    with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
-
-    # We only want chef-solo, kill chef-client and remove it from init process
-    sudo('update-rc.d -f chef-client remove')
-    import time
-    time.sleep(0.5)
-    with settings(hide('warnings'), warn_only=True):
-        sudo('pkill chef-client')
-
-
-def _add_rpm_repos():
-    """Add EPEL and ELFF"""
-    with show('running'):
-        # Install the EPEL Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
-            installed = "package epel-release-5-4.noarch is already installed"
-            if output.failed and installed not in output:
-                abort(output)
-        # Install the ELFF Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
-            installed = "package elff-release-5-3.noarch is already installed"
-            if output.failed and installed not in output:
-                abort(output)
-
-
-def _rpm_install():
-    """Install Chef for rpm based distros"""
-    _add_rpm_repos()
-    with show('running'):
-        # Install Chef Solo
-        sudo('yum -y install chef')
-
-
-def _emerge_install():
-    """Install Chef for Gentoo"""
-    with show('running'):
-        sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
 
 
 ##################################################################
@@ -605,11 +475,11 @@ def _upload_and_unpack(source):
             sudo('rm {0}'.format(remote_archive))
 
 
-###########
-### API ###
-###########
+######################################
+### Parsing and Printing functions ###
+######################################
 def _get_nodes():
-    '''Gets all nodes found in the nodes/ directory'''
+    """Gets all nodes found in the nodes/ directory"""
     if not os.path.exists(NODEPATH):
         return []
     nodes = []
@@ -630,7 +500,7 @@ def _get_nodes():
 
 
 def _print_node(node):
-    '''Pretty prints the given node'''
+    """Pretty prints the given node"""
     nodename = node[APPNAME]['nodename']
     print(colors.yellow("\n" + nodename))
     for recipe in _get_recipes_in_node(node):
@@ -647,7 +517,7 @@ def _print_node(node):
 
 
 def _get_recipes_in_cookbook(name):
-    '''Gets the name of all recipes present in a cookbook'''
+    """Gets the name of all recipes present in a cookbook"""
     recipes = []
     path = None
     for cookbook_path in _cookbook_paths:
@@ -680,7 +550,7 @@ def _get_recipes_in_cookbook(name):
 
 
 def _get_recipes_in_node(node):
-    '''Gets the name of all recipes present in the run_list of a node'''
+    """Gets the name of all recipes present in the run_list of a node"""
     recipes = []
     for elem in node.get('run_list'):
         if elem.startswith("recipe"):
@@ -690,7 +560,7 @@ def _get_recipes_in_node(node):
 
 
 def _get_recipes():
-    '''Gets all recipes found in the cookbooks/ directory'''
+    """Gets all recipes found in the cookbooks/ directory"""
     recipes = []
     for dirname in sorted(
         [d for d in os.listdir('cookbooks') if os.path.isdir(
@@ -700,7 +570,7 @@ def _get_recipes():
 
 
 def _print_recipe(recipe):
-    '''Pretty prints the given recipe'''
+    """Pretty prints the given recipe"""
     print(colors.yellow("\n{0}".format(recipe['name'])))
     print "  description:  {0}".format(recipe['description'])
     print "  version:      {0}".format(recipe['version'])
@@ -709,7 +579,7 @@ def _print_recipe(recipe):
 
 
 def _get_roles_in_node(node):
-    '''Gets the name of all roles found in the run_list of a node'''
+    """Gets the name of all roles found in the run_list of a node"""
     roles = []
     for elem in node.get('run_list'):
         if elem.startswith("role"):
@@ -719,7 +589,7 @@ def _get_roles_in_node(node):
 
 
 def _get_role(rolename):
-    '''Reads and parses a file containing a role'''
+    """Reads and parses a file containing a role"""
     path = 'roles/' + rolename + '.json'
     if not os.path.exists(path):
         abort("Couldn't read role file {0}".format(path))
@@ -735,7 +605,7 @@ def _get_role(rolename):
 
 
 def _get_roles():
-    '''Gets all roles found in the roles/ directory'''
+    """Gets all roles found in the roles/ directory"""
     roles = []
     for root, subfolders, files in os.walk('roles/'):
         for filename in files:
@@ -747,7 +617,7 @@ def _get_roles():
 
 
 def _print_role(role, detailed=True):
-    '''Pretty prints the given role'''
+    """Pretty prints the given role"""
     if detailed:
         print(colors.yellow(role.get('fullname')))
     else:
@@ -765,7 +635,7 @@ def _print_role(role, detailed=True):
 
 
 def _get_cookbook_path(cookbook_name):
-    '''Returns path to the cookbook for the given cookbook name'''
+    """Returns path to the cookbook for the given cookbook name"""
     for cookbook_path in _cookbook_paths:
         path = os.path.join(cookbook_path, cookbook_name)
         if os.path.exists(path):
@@ -774,9 +644,10 @@ def _get_cookbook_path(cookbook_name):
 
 
 def _pprint(dic):
-    '''Prints a dictionary with one indentation level'''
+    """Prints a dictionary with one indentation level"""
     for key, value in dic.items():
         print "        {0}: {1}".format(key, value)
+
 
 #################
 ### Constants ###
