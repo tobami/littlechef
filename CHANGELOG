@@ -7,7 +7,7 @@ Version 0.5.3
 -----------------------------------------
 * NEW: npinto added Gentoo support
 * FIX: npinto fixed a bug where LittleChef could not be installed due to circular dependencies
-* FIX: refactored code to a package with several modules
+* FIX: Masive code refactoring. littlechef is now a package with several modules
 
 
 Version 0.5.2 April 20, 2011

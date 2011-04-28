@@ -102,7 +102,7 @@ h3. Using Little Chef as a library
 
 You can import littlechef.py into your own Python project. The following script is equivalent to using the @cook@ orders:
 
-bc. import littlechef
+bc. from littlechef import littlechef
 littlechef.env.user = 'MyUsername'
 littlechef.env.password = 'MyPassword'
 littlechef.env.host_string = 'MyHostnameOrIP'

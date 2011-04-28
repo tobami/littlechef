@@ -4,20 +4,20 @@ import re
 from subprocess import call
 
 
-fabfile = None
+file_path = None
 try:
-    from littlechef import fabfile
-    file_path = re.sub(r'\.pyc$', '.py', fabfile.__file__)
+    from littlechef import littlechef
+    file_path = re.sub(r'\.pyc$', '.py', littlechef.__file__)
 except ImportError:
-    print("Little Chef was not correctly installed: Couldn't import fabfile.py")
+    print("Little Chef was not correctly installed: Couldn't import littlechef.py")
     sys.exit(1)
 
-# Act on some arguments and pass others to fabric
+# Act on some arguments and pass the rest to fabric
 args = ['fab', '-f', file_path]
 if len(sys.argv) > 1:
     for arg in sys.argv[1:]:
         if arg == '-v' or arg == '-V' or arg == '--version':
-            print('LittleChef {0}'.format(fabfile.version))
+            print('LittleChef {0}'.format(littlechef.version))
             sys.argv.remove(arg)
             sys.exit(0)
         else:
