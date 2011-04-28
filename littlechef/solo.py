@@ -1,21 +1,37 @@
+#Copyright 2010-2011 Miquel Torres <tobami@googlemail.com>
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+#
 """Chef Solo deployment"""
 from fabric.api import *
 from fabric.contrib.files import append, exists
 
 
-def configure_chef_solo():
+def configure_chef_solo(node_work_path, cookbook_paths):
     """Deploy chef-solo specific files."""
-    sudo('mkdir -p {0}'.format(_node_work_path))
-    sudo('mkdir -p {0}/cache'.format(_node_work_path))
+    sudo('mkdir -p {0}'.format(node_work_path))
+    sudo('mkdir -p {0}/cache'.format(node_work_path))
     sudo('umask 0377; touch solo.rb')
-    append('solo.rb', 'file_cache_path "{0}/cache"'.format(_node_work_path), use_sudo=True)
-    reversed_cookbook_paths = _cookbook_paths[:]
+    append('solo.rb', 'file_cache_path "{0}/cache"'.format(
+        node_work_path), use_sudo=True)
+    reversed_cookbook_paths = cookbook_paths[:]
     reversed_cookbook_paths.reverse()
     cookbook_paths_line = 'cookbook_path [{0}]'.format(
-        ', '.join(['''"{0}/{1}"'''.format(_node_work_path, x) \
+        ', '.join(['''"{0}/{1}"'''.format(node_work_path, x) \
             for x in reversed_cookbook_paths]))
     append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "{0}/roles"'.format(_node_work_path), use_sudo=True)
+    append('solo.rb', 'role_path "{0}/roles"'.format(node_work_path),
+        use_sudo=True)
     sudo('mkdir -p /etc/chef')
     sudo('mv solo.rb /etc/chef/')
 
@@ -105,7 +121,7 @@ def apt_install(distro):
         sudo('pkill chef-client')
 
 
-def __add_rpm_repos():
+def _add_rpm_repos():
     """Add EPEL and ELFF"""
     with show('running'):
         # Install the EPEL Yum Repository.
@@ -124,7 +140,7 @@ def __add_rpm_repos():
 
 def rpm_install():
     """Install Chef for rpm based distros"""
-    __add_rpm_repos()
+    _add_rpm_repos()
     with show('running'):
         # Install Chef Solo
         sudo('yum -y install chef')

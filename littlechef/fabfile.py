@@ -26,9 +26,8 @@ from fabric import colors
 
 from version import version
 import solo
+import lib
 
-NODEPATH = "nodes/"
-APPNAME = "littlechef"
 
 env.loglevel = "info"
 fabric.state.output['running'] = False
@@ -51,7 +50,7 @@ def new_deployment():
 
     _mkdir("nodes")
     _mkdir("roles")
-    for cookbook_path in _cookbook_paths:
+    for cookbook_path in cookbook_paths:
         _mkdir(cookbook_path)
     if not os.path.exists("auth.cfg"):
         with open("auth.cfg", "w") as authfh:
@@ -66,8 +65,8 @@ def new_deployment():
 def node(host):
     """Select a node"""
     if host == 'all':
-        for node in _get_nodes():
-            env.hosts.append(node[APPNAME]['nodename'])
+        for node in lib.get_nodes():
+            env.hosts.append(node['littlechef']['nodename'])
         if not len(env.hosts):
             abort('No nodes found')
     else:
@@ -76,7 +75,6 @@ def node(host):
 
 def deploy_chef(gems="no", ask="yes"):
     """Install chef-solo on a node"""
-    # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
 
@@ -104,7 +102,7 @@ def deploy_chef(gems="no", ask="yes"):
         solo.emerge_install()
     else:
         abort('wrong distro type: {0}'.format(distro_type))
-    solo.configure_chef_solo()
+    solo.configure_chef_solo(node_work_path, cookbook_paths)
 
 
 def recipe(recipe, save=False):
@@ -119,7 +117,7 @@ def recipe(recipe, save=False):
         recipe, env.host_string)
 
     recipe_found = False
-    for cookbook_path in _cookbook_paths:
+    for cookbook_path in cookbook_paths:
         if os.path.exists(os.path.join(cookbook_path, recipe.split('::')[0])):
             recipe_found = True
             break
@@ -164,52 +162,53 @@ def configure():
 
     print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
     configfile = env.host_string + ".json"
-    if not os.path.exists(NODEPATH + configfile):
+    node_path = os.path.join("nodes", configfile)
+    if not os.path.exists(node_path):
         print "Warning: No config file found for {0}".format(env.host_string)
         print "Warning: Chef run aborted"
         return
 
     # Configure node
-    _sync_node(NODEPATH + configfile)
+    _sync_node(node_path)
 
 
 @hosts('api')
 def list_nodes():
     """List all nodes"""
-    for node in _get_nodes():
-        _print_node(node)
+    for node in lib.get_nodes():
+        lib.print_node(node)
 
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
     """Show all nodes which have asigned a given recipe"""
-    for node in _get_nodes():
-        if recipe in _get_recipes_in_node(node):
-            _print_node(node)
+    for node in lib.get_nodes():
+        if recipe in lib.get_recipes_in_node(node):
+            lib.print_node(node)
         else:
-            for role in _get_roles_in_node(node):
+            for role in lib.get_roles_in_node(node):
                 with open('roles/' + role + '.json', 'r') as f:
                     roles = json.loads(f.read())
                     # Reuse _get_recipes_in_node to extract recipes in a role
-                    if recipe in _get_recipes_in_node(roles):
-                        _print_node(node)
+                    if recipe in lib.get_recipes_in_node(roles):
+                        lib.print_node(node)
                         break
 
 
 @hosts('api')
 def list_nodes_with_role(role):
     """Show all nodes which have asigned a given role"""
-    for node in _get_nodes():
+    for node in lib.get_nodes():
         recipename = 'role[' + role + ']'
         if recipename in node.get('run_list'):
-            _print_node(node)
+            lib.print_node(node)
 
 
 @hosts('api')
 def list_recipes():
     """Show a list of all available recipes"""
-    for recipe in _get_recipes():
-        margin_left = _get_margin(len(recipe['name']))
+    for recipe in lib.get_recipes(cookbook_paths):
+        margin_left = lib.get_margin(len(recipe['name']))
         print("{0}{1}{2}".format(
             recipe['name'], margin_left, recipe['description']))
 
@@ -217,15 +216,15 @@ def list_recipes():
 @hosts('api')
 def list_recipes_detailed():
     """Show information for all recipes"""
-    for recipe in _get_recipes():
-        _print_recipe(recipe)
+    for recipe in lib.get_recipes(cookbook_paths):
+        lib.print_recipe(recipe)
 
 
 @hosts('api')
 def list_roles():
     """Show a list of all available roles"""
-    for role in _get_roles():
-        margin_left = _get_margin(len(role['fullname']))
+    for role in lib.get_roles():
+        margin_left = lib.get_margin(len(role['fullname']))
         print("{0}{1}{2}".format(
             role['fullname'], margin_left,
             role.get('description', '(no description)')))
@@ -235,7 +234,7 @@ def list_roles():
 def list_roles_detailed():
     """Show information for all roles"""
     for role in _get_roles():
-        _print_role(role)
+        lib.print_role(role)
 
 
 # Check that user is cooking inside a kitchen and configure authentication #
@@ -286,22 +285,6 @@ else:
 ################################################################################
 ### Private functions                                                        ###
 ################################################################################
-def _get_margin(length):
-    """Add enough tabs to align in two columns"""
-    if length > 23:
-        margin_left = "\t"
-        chars = 1
-    elif length > 15:
-        margin_left = "\t\t"
-        chars = 2
-    elif length > 7:
-        margin_left = "\t\t\t"
-        chars = 3
-    else:
-        margin_left = "\t\t\t\t"
-        chars = 4
-    return margin_left
-
 
 ##################################################################
 ### Node configuration and syncing                             ###
@@ -330,9 +313,9 @@ def _synchronize_node(configfile):
     Uploads needed cookbooks and all roles to a node
     """
     # Clean up node
-    for path in ['roles'] + _cookbook_paths:
+    for path in ['roles'] + cookbook_paths:
         with hide('stdout'):
-            sudo('rm -rf {0}/{1}'.format(_node_work_path, path))
+            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
 
     cookbooks = []
     with open(configfile, 'r') as f:
@@ -343,13 +326,13 @@ def _synchronize_node(configfile):
             msg += ' "{0}":\n                {1}'.format(configfile, str(e))
             abort(msg)
     # Fetch cookbooks needed for recipes
-    for recipe in _get_recipes_in_node(node):
+    for recipe in lib.get_recipes_in_node(node):
         recipe = recipe.split('::')[0]
         if recipe not in cookbooks:
             cookbooks.append(recipe)
 
     # Fetch cookbooks needed for role recipes
-    for role in _get_roles_in_node(node):
+    for role in lib.get_roles_in_node(node):
         try:
             with open('roles/' + role + '.json', 'r') as f:
                 try:
@@ -360,7 +343,7 @@ def _synchronize_node(configfile):
                         role, str(e))
                     abort(msg)
                 # Reuse _get_recipes_in_node to extract recipes in a role
-                for recipe in _get_recipes_in_node(roles):
+                for recipe in lib.get_recipes_in_node(roles):
                     recipe = recipe.split('::')[0]
                     if recipe not in cookbooks:
                         cookbooks.append(recipe)
@@ -370,11 +353,11 @@ def _synchronize_node(configfile):
     # Fetch dependencies
     warnings = []
     for cookbook in cookbooks:
-        for recipe in _get_recipes_in_cookbook(cookbook):
+        for recipe in lib.get_recipes_in_cookbook(cookbook, cookbook_paths):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     try:
-                        _get_cookbook_path(dep)
+                        lib.get_cookbook_path(dep, cookbook_paths)
                         cookbooks.append(dep)
                     except IOError:
                         if dep not in warnings:
@@ -387,7 +370,7 @@ def _synchronize_node(configfile):
 
     cookbooks_by_path = {}
     for cookbook in cookbooks:
-        for cookbook_path in _cookbook_paths:
+        for cookbook_path in cookbook_paths:
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
@@ -432,7 +415,7 @@ def _configure_node(configfile):
 
 def _upload_and_unpack(source):
     """Packs the given directories, uploads the tar.gz to the node
-    and unpacks it in the _node_work_path (typically '/var/chef-solo') directory
+    and unpacks it in the node_work_path (typically '/var/chef-solo') directory
     """
     with hide('running', 'stdout'):
         # Local archive relative path
@@ -459,194 +442,20 @@ def _upload_and_unpack(source):
         local('rm {0}'.format(local_archive))
         local('chmod -R u+w tmp')
         local('rm -rf tmp')
-        if not exists(_node_work_path):
+        if not exists(node_work_path):
             # Report error with remote paths
-            msg = "the {0} directory was not found at ".format(_node_work_path)
+            msg = "the {0} directory was not found at ".format(node_work_path)
             msg += "the node. Is Chef correctly installed?"
             msg += "\nYou can deploy chef-solo by typing:\n"
             msg += "  cook node:{0} deploy_chef".format(env.host)
             abort(msg)
-        with cd(_node_work_path):
+        with cd(node_work_path):
             # Install the remote copy of archive
             sudo('tar xzf {0}'.format(remote_archive))
             # Fix ownership
-            sudo('chown -R root:root {0}'.format(_node_work_path))
+            sudo('chown -R root:root {0}'.format(node_work_path))
             # Remove the remote copy of archive
             sudo('rm {0}'.format(remote_archive))
-
-
-######################################
-### Parsing and Printing functions ###
-######################################
-def _get_nodes():
-    """Gets all nodes found in the nodes/ directory"""
-    if not os.path.exists(NODEPATH):
-        return []
-    nodes = []
-    for filename in sorted(
-        [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
-        with open(NODEPATH + filename, 'r') as f:
-            try:
-                node = json.loads(f.read())
-                # Don't append "nodename" to the root namespace
-                # because it could colide with some cookbook's attribute
-                node[APPNAME] = {'nodename': ".".join(filename.split('.')[:-1])}
-                nodes.append(node)
-            except json.decoder.JSONDecodeError as e:
-                msg = "Little Chef found the following error in your"
-                msg += " {0} file:\n  {1}".format(filename, e)
-                abort(msg)
-    return nodes
-
-
-def _print_node(node):
-    """Pretty prints the given node"""
-    nodename = node[APPNAME]['nodename']
-    print(colors.yellow("\n" + nodename))
-    for recipe in _get_recipes_in_node(node):
-        print "  Recipe:", recipe
-        print "    attributes: " + str(node.get(recipe, ""))
-    for role in _get_roles_in_node(node):
-        _print_role(_get_role(role), detailed=False)
-
-    print "  Node attributes:"
-    for attribute in node.keys():
-        if attribute == "run_list" or attribute == "littlechef":
-            continue
-        print "    {0}: {1}".format(attribute, node[attribute])
-
-
-def _get_recipes_in_cookbook(name):
-    """Gets the name of all recipes present in a cookbook"""
-    recipes = []
-    path = None
-    for cookbook_path in _cookbook_paths:
-        path = '{0}/{1}/metadata.json'.format(cookbook_path, name)
-        try:
-            with open(path, 'r') as f:
-                try:
-                    cookbook = json.loads(f.read())
-                    for recipe in cookbook.get('recipes', []):
-                        recipes.append(
-                            {
-                                'name': recipe,
-                                'description': cookbook['recipes'][recipe],
-                                'version': cookbook.get('version'),
-                                'dependencies': cookbook.get('dependencies').keys(),
-                                'attributes': cookbook.get('attributes').keys(),
-                            }
-                        )
-                except json.decoder.JSONDecodeError, e:
-                    print e
-                    msg = "Little Chef found the following error in your"
-                    msg += " {0} file:\n  {1}".format(path, e)
-                    abort(msg)
-            break
-        except IOError:
-            None
-    if not recipes:
-        abort('Unable to find cookbook "{0}" with metadata.json'.format(name))
-    return recipes
-
-
-def _get_recipes_in_node(node):
-    """Gets the name of all recipes present in the run_list of a node"""
-    recipes = []
-    for elem in node.get('run_list'):
-        if elem.startswith("recipe"):
-            recipe = elem.split('[')[1].split(']')[0]
-            recipes.append(recipe)
-    return recipes
-
-
-def _get_recipes():
-    """Gets all recipes found in the cookbooks/ directory"""
-    recipes = []
-    for dirname in sorted(
-        [d for d in os.listdir('cookbooks') if os.path.isdir(
-            os.path.join('cookbooks', d)) and not d.startswith('.')]):
-        recipes.extend(_get_recipes_in_cookbook(dirname))
-    return recipes
-
-
-def _print_recipe(recipe):
-    """Pretty prints the given recipe"""
-    print(colors.yellow("\n{0}".format(recipe['name'])))
-    print "  description:  {0}".format(recipe['description'])
-    print "  version:      {0}".format(recipe['version'])
-    print "  dependencies: {0}".format(", ".join(recipe['dependencies']))
-    print "  attributes:   {0}".format(", ".join(recipe['attributes']))
-
-
-def _get_roles_in_node(node):
-    """Gets the name of all roles found in the run_list of a node"""
-    roles = []
-    for elem in node.get('run_list'):
-        if elem.startswith("role"):
-            role = elem.split('[')[1].split(']')[0]
-            roles.append(role)
-    return roles
-
-
-def _get_role(rolename):
-    """Reads and parses a file containing a role"""
-    path = 'roles/' + rolename + '.json'
-    if not os.path.exists(path):
-        abort("Couldn't read role file {0}".format(path))
-    with open(path, 'r') as f:
-        try:
-            role = json.loads(f.read())
-        except json.decoder.JSONDecodeError as e:
-            msg = "Little Chef found the following error in your"
-            msg += " {0} file:\n  {0}".format(rolename, str(e))
-            abort(msg)
-        role['fullname'] = rolename
-        return role
-
-
-def _get_roles():
-    """Gets all roles found in the roles/ directory"""
-    roles = []
-    for root, subfolders, files in os.walk('roles/'):
-        for filename in files:
-            if filename.endswith(".json"):
-                path = os.path.join(
-                    root[len('roles/'):], filename[:-len('.json')])
-                roles.append(_get_role(path))
-    return roles
-
-
-def _print_role(role, detailed=True):
-    """Pretty prints the given role"""
-    if detailed:
-        print(colors.yellow(role.get('fullname')))
-    else:
-        print("  Role: {0}".format(role.get('fullname')))
-    if detailed:
-        print "    description: {0}".format(role.get('description'))
-    print detailed
-    if 'default_attributes' in role:
-        print "    default_attributes:"
-        _pprint(role['default_attributes'])
-    if 'override_attributes' in role:
-        print "    override_attributes:"
-        _pprint(role['override_attributes'])
-    print ""
-
-
-def _get_cookbook_path(cookbook_name):
-    """Returns path to the cookbook for the given cookbook name"""
-    for cookbook_path in _cookbook_paths:
-        path = os.path.join(cookbook_path, cookbook_name)
-        if os.path.exists(path):
-            return path
-    raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
-
-
-def _pprint(dic):
-    """Prints a dictionary with one indentation level"""
-    for key, value in dic.items():
-        print "        {0}: {1}".format(key, value)
 
 
 #################
@@ -654,10 +463,10 @@ def _pprint(dic):
 #################
 
 # Paths that may contain cookbooks
-_cookbook_paths = ['site-cookbooks', 'cookbooks']
+cookbook_paths = ['site-cookbooks', 'cookbooks']
 
 # Node's work directory for storing cookbooks, roles, etc.
-_node_work_path = '/var/chef-solo'
+node_work_path = '/var/chef-solo'
 
 # Upload sensitive files with secure permissions
 _file_mode = 400
