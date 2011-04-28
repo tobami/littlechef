@@ -1,5 +1,6 @@
-# LittleChef's setup.py
+"""LittleChef's setup.py"""
 from distutils.core import setup
+
 setup(
     name="LittleChef",
     version=__import__('littlechef').version,
