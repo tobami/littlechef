@@ -21,6 +21,7 @@ import simplejson as json
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric import colors
+from fabric.utils import abort
 
 import lib
 

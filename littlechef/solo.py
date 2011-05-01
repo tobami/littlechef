@@ -15,6 +15,7 @@
 """Chef Solo deployment"""
 from fabric.api import *
 from fabric.contrib.files import append, exists
+from fabric.utils import abort
 
 
 def configure_chef_solo(node_work_path, cookbook_paths):

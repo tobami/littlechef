@@ -22,12 +22,12 @@ from fabric.utils import abort
 
 def get_nodes():
     """Gets all nodes found in the nodes/ directory"""
-    if not os.path.exists(NODEPATH):
+    if not os.path.exists('nodes/'):
         return []
     nodes = []
     for filename in sorted(
-        [f for f in os.listdir(NODEPATH) if not os.path.isdir(f) and ".json" in f]):
-        with open(NODEPATH + filename, 'r') as f:
+        [f for f in os.listdir('nodes/') if not os.path.isdir(f) and ".json" in f]):
+        with open('nodes/' + filename, 'r') as f:
             try:
                 node = json.loads(f.read())
                 # Don't append "nodename" to the root namespace
@@ -48,7 +48,7 @@ def print_node(node):
     for recipe in get_recipes_in_node(node):
         print "  Recipe:", recipe
         print "    attributes: " + str(node.get(recipe, ""))
-    for role in _get_roles_in_node(node):
+    for role in get_roles_in_node(node):
         print_role(_get_role(role), detailed=False)
 
     print "  Node attributes:"

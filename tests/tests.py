@@ -64,5 +64,13 @@ class CookbookTest(BaseTest):
         self.assertTrue('0.8.4' in resp)
 
 
+class NodeTest(BaseTest):
+    def test_list_nodes(self):
+        """Should list all nodes"""
+        resp, error = self.execute(['../cook', 'list_nodes'])
+        self.assertTrue('testnode' in resp)
+        self.assertTrue('Recipe: subversion' in resp)
+
+
 if __name__ == "__main__":
     unittest.main()
