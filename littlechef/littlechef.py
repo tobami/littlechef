@@ -47,11 +47,15 @@ def debug():
 
 
 @hosts('setup')
-def new_deployment():
+def new_kitchen():
     """Create LittleChef directory structure (Kitchen)"""
     def _mkdir(d):
         if not os.path.exists(d):
             os.mkdir(d)
+            readme_path = os.path.join(d, 'README')
+            if not os.path.exists(readme_path):
+                with open(readme_path, "w") as readme:
+                    print >> readme, ""
             print "{0}/ directory created...".format(d)
 
     _mkdir("nodes")
@@ -249,9 +253,9 @@ def _readconfig():
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
         if not os.path.exists(dirname):
-            msg = "You are executing 'cook' outside of a deployment directory\n"
-            msg += "To create a new deployment in the current directory"
-            msg += " type 'cook new_deployment'"
+            msg = "You are executing 'cook' outside of a kitchen\n"
+            msg += "To create a new kitchen in the current directory"
+            msg += " type 'cook new_kitchen'"
             abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
@@ -280,7 +284,7 @@ def _readconfig():
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
 
-if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_deployment":
+if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
     # If littlechef.py has been called from the cook script, read configuration
     _readconfig()
 else:

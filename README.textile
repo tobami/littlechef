@@ -10,7 +10,7 @@ Installing LittleChef to your work computer is all you need to get you started.
 
 h3. How it all works
 
-It all starts in the kitchen, your deployment directory, which you should keep under version control:
+It all starts in the kitchen, which you should keep under version control:
 @auth.cfg@: Authentication information needed to be able to connect to the nodes
 @nodes/@: After recipes are run on "Nodes":http://wiki.opscode.com/display/chef/Nodes, their configuration is stored here. You can manually edit them or even add new ones. Note that Little Chef will use the file name as the hostname or IP to connect to the node.
 @cookbooks/@: This will be your "Cookbooks":http://wiki.opscode.com/display/chef/Cookbooks repository
@@ -53,9 +53,9 @@ Little Chef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 h3. Setup
 
-@cook new_deployment@ will create inside the current directory a few files and directories for LittleChef to be able to cook. You can create and have as many deployment directories (kitchens) as you like on your computer.
+@cook new_kitchen@ will create inside the current directory a few files and directories for LittleChef to be able to cook. You can create and have as many kitchens as you like on your computer.
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_deployment@ will have created a file named @auth.cfg@. You can edit it now to enter a username and password or a keypair-file.
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_kitchen@ will have created a file named @auth.cfg@. You can edit it now to enter a username and password or a keypair-file.
 
 h3. Deploying
 
