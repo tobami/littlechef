@@ -17,6 +17,7 @@ import os
 import simplejson as json
 
 from fabric import colors
+from fabric.utils import abort
 
 
 def get_nodes():
