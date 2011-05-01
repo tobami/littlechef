@@ -239,7 +239,7 @@ def list_roles():
 @hosts('api')
 def list_roles_detailed():
     """Show information for all roles"""
-    for role in _get_roles():
+    for role in lib.get_roles():
         lib.print_role(role)
 
 

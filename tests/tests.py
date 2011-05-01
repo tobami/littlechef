@@ -71,6 +71,15 @@ class NodeTest(BaseTest):
         self.assertTrue('testnode' in resp)
         self.assertTrue('Recipe: subversion' in resp)
 
+    def test_list_nodes_with_recipe(self):
+        """Should list all nodes with a recipe in the run list"""
+        resp, error = self.execute(['../cook', 'list_nodes_with_recipe:subversion'])
+        self.assertTrue('testnode' in resp)
+        self.assertTrue('Recipe: subversion' in resp)
+
+        resp, error = self.execute(['../cook', 'list_nodes_with_recipe:apache2'])
+        self.assertFalse('testnode' in resp)
+
 
 if __name__ == "__main__":
     unittest.main()
