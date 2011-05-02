@@ -41,16 +41,24 @@ def get_nodes():
     return nodes
 
 
-def print_node(node):
+def print_node(node, detailed=False):
     """Pretty prints the given node"""
     nodename = node['littlechef']['nodename']
     print(colors.yellow("\n" + nodename))
-    for recipe in get_recipes_in_node(node):
-        print "  Recipe:", recipe
-        print "    attributes: " + str(node.get(recipe, ""))
-    for role in get_roles_in_node(node):
-        print_role(_get_role(role), detailed=False)
-
+    # Roles
+    if detailed:
+        for role in get_roles_in_node(node):
+            print_role(_get_role(role), detailed=False)
+    else:
+        print('  Roles: {0}'.format(", ".join(get_roles_in_node(node))))
+    # Recipes
+    if detailed:
+        for recipe in get_recipes_in_node(node):
+            print "  Recipe:", recipe
+            print "    attributes: {0}".format(node.get(recipe, ""))
+    else:
+        print('  Recipes: {0}'.format( ", ".join(get_recipes_in_node(node))))
+    # Node attributes
     print "  Node attributes:"
     for attribute in node.keys():
         if attribute == "run_list" or attribute == "littlechef":
@@ -166,7 +174,6 @@ def print_role(role, detailed=True):
         print("  Role: {0}".format(role.get('fullname')))
     if detailed:
         print("    description: {0}".format(role.get('description')))
-    print detailed
     if 'default_attributes' in role:
         print("    default_attributes:")
         _pprint(role['default_attributes'])

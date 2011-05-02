@@ -182,9 +182,16 @@ def configure():
 
 @hosts('api')
 def list_nodes():
-    """List all nodes"""
+    """List all configured nodes"""
     for node in lib.get_nodes():
         lib.print_node(node)
+
+
+@hosts('api')
+def list_nodes_detailed():
+    """Show a detailed list of all nodes"""
+    for node in lib.get_nodes():
+        lib.print_node(node, detailed=True)
 
 
 @hosts('api')
@@ -223,7 +230,7 @@ def list_recipes():
 
 @hosts('api')
 def list_recipes_detailed():
-    """Show information for all recipes"""
+    """Show detailed information for all recipes"""
     for recipe in lib.get_recipes(cookbook_paths):
         lib.print_recipe(recipe)
 
@@ -240,7 +247,7 @@ def list_roles():
 
 @hosts('api')
 def list_roles_detailed():
-    """Show information for all roles"""
+    """Show detailed information for all roles"""
     for role in lib.get_roles():
         lib.print_role(role)
 
