@@ -22,7 +22,6 @@ import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-from fabric import colors
 
 from version import version
 import solo
@@ -122,9 +121,8 @@ def recipe(recipe, save=False):
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
-
-    print "\n== Executing recipe {0} on node {1} ==".format(
-        recipe, env.host_string)
+    lib.print_header(
+        "Executing recipe '{0}' on node {1}".format(recipe, env.host_string))
 
     recipe_found = False
     for cookbook_path in cookbook_paths:
@@ -132,7 +130,7 @@ def recipe(recipe, save=False):
             recipe_found = True
             break
     if not recipe_found:
-        abort('Cookbook "{0}" not found'.format(recipe))
+        abort("Cookbook '{0}' not found".format(recipe))
 
     # Now create configuration and sync node
     data = {"run_list": ["recipe[{0}]".format(recipe)]}
@@ -146,8 +144,8 @@ def role(role, save=False):
     # Do some checks
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
+    lib.print_header("Applying role '{0}' to node {1}".format(role, env.host_string))
 
-    print "\n== Applying role {0} to node {1} ==".format(role, env.host_string)
     if not os.path.exists('roles/' + role + '.json'):
         if os.path.exists('roles/' + role + '.rb'):
             msg = "Role '{0}' only found as '{1}.rb'.".format(role, role)
@@ -170,7 +168,7 @@ def configure():
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
 
-    print(colors.yellow("\n== Configuring {0} ==".format(env.host_string)))
+    lib.print_header("Configuring {0}".format(env.host_string))
     configfile = env.host_string + ".json"
     node_path = os.path.join("nodes", configfile)
     if not os.path.exists(node_path):

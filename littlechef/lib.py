@@ -191,6 +191,11 @@ def _pprint(dic):
         print("        {0}: {1}".format(key, value))
 
 
+def print_header(string):
+    """Prints a colored header"""
+    print(colors.yellow("\n== {0} ==".format(string)))
+
+
 def get_margin(length):
     """Add enough tabs to align in two columns"""
     if length > 23:

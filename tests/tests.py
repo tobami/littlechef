@@ -17,9 +17,10 @@ class ConfigTest(BaseTest):
         cwd = os.getcwd()
         # Change to parent dir, which has no nodes/cookbooks/roles dir
         os.chdir("/".join(cwd.split('/')[:-1]))
+        # Call cook from the current directory above "tests/"
         resp, error = self.execute(['./cook', '-l'])
         self.assertTrue("Fatal error" in error)
-        self.assertTrue("outside of a deployment directory" in error)
+        self.assertTrue("outside of a kitchen" in error)
         self.assertEquals(resp, "")
         # Return to test dir
         os.chdir(cwd)
