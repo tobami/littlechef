@@ -23,6 +23,8 @@ from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 
+from paramiko.config import SSHConfig
+
 from version import version
 import solo
 import lib
@@ -67,6 +69,7 @@ def new_kitchen():
             print >> authfh, "user = "
             print >> authfh, "password = "
             print >> authfh, "keypair-file = "
+            print >> authfh, "ssh-config = "
             print "auth.cfg file created..."
 
 
@@ -264,17 +267,41 @@ def _readconfig():
             abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
+
+    # We expect an ssh_config file here,
+    # and/or a user, (password/keyfile) pair
     try:
-        env.user = config.get('userinfo', 'user')
-        if not env.user:
-            raise ValueError('user variable is empty')
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError, ValueError):
-        msg = 'You need to define a user in the "userinfo" section'
-        msg += ' of auth.cfg. Refer to the README for help'
+        ssh_config = config.get('userinfo', 'ssh-config')
+    except ConfigParser.NoSectionError:
+        msg = 'You need to define a "userinfo" section'
+        msg += ' in auth.cfg. Refer to the README for help'
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
+    except ConfigParser.NoOptionError:
+        ssh_config = None
 
-    # Allow password OR keypair-file not to be present
+    if ssh_config:
+        env.ssh_config = SSHConfig()
+        try:
+            env.ssh_config.parse(open(os.path.expanduser(ssh_config)))
+        except IOError:
+            msg = "Couldn't open the ssh-config file '%s'" % ssh_config
+            abort(msg)
+        except Exception:
+            msg = "Couldn't parse the ssh-config file '%s'" % ssh_config
+            abort(msg)
+    else:
+        env.ssh_config = None
+
+    try:
+        env.user = config.get('userinfo', 'user')
+    except ConfigParser.NoSectionError:
+        if not ssh_config:
+            msg = 'You need to define a user in the "userinfo" section'
+            msg += ' of auth.cfg. Refer to the README for help'
+            msg += ' (http://github.com/tobami/littlechef)'
+            abort(msg)
+
     try:
         env.password = config.get('userinfo', 'password')
     except ConfigParser.NoOptionError:
@@ -284,8 +311,7 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    # Both cannot be empty
-    if not env.password and not env.key_filename:
+    if env.user and (not env.password and not env.key_filename):
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
 

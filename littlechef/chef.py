@@ -45,9 +45,17 @@ def save_config(save, data, hostname):
 
 
 def sync_node(filepath, cookbook_paths, node_work_path):
-    """Buils, synchronizes and configures a node"""
-    _synchronize_node(filepath, cookbook_paths, node_work_path)
-    _configure_node(filepath)
+    """Builds, synchronizes and configures a node"""
+    if env.ssh_config:
+        credentials = env.ssh_config.lookup(env.host)
+        # translate from paramiko params to fabric params
+        credentials['key_filename'] = credentials['identityfile']
+    else:
+        credentials = env
+
+    with settings(**credentials):
+        _synchronize_node(filepath, cookbook_paths, node_work_path)
+        _configure_node(filepath)
 
 
 def _synchronize_node(configfile, cookbook_paths, node_work_path):
