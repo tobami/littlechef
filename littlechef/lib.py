@@ -87,9 +87,8 @@ def get_recipes_in_cookbook(name, cookbook_paths):
                             }
                         )
                 except json.decoder.JSONDecodeError, e:
-                    print e
                     msg = "Little Chef found the following error in your"
-                    msg += " {0} file:\n  {1}".format(path, e)
+                    msg += " {0}.json file:\n  {1}".format(path, e)
                     abort(msg)
             break
         except IOError:
@@ -148,7 +147,7 @@ def _get_role(rolename):
             role = json.loads(f.read())
         except json.decoder.JSONDecodeError as e:
             msg = "Little Chef found the following error in your"
-            msg += " {0} file:\n  {0}".format(rolename, str(e))
+            msg += " {0}.json file:\n  {1}".format(rolename, str(e))
             abort(msg)
         role['fullname'] = rolename
         return role
