@@ -49,7 +49,8 @@ def sync_node(filepath, cookbook_paths, node_work_path):
     if env.ssh_config:
         credentials = env.ssh_config.lookup(env.host)
         # translate from paramiko params to fabric params
-        credentials['key_filename'] = credentials['identityfile']
+        if 'identityfile' in credentials:
+            credentials['key_filename'] = credentials['identityfile']
     else:
         credentials = env
 
