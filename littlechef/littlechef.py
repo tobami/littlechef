@@ -295,12 +295,14 @@ def _readconfig():
 
     try:
         env.user = config.get('userinfo', 'user')
-    except ConfigParser.NoSectionError:
+        user_specified = True
+    except ConfigParser.NoOptionError:
         if not ssh_config:
             msg = 'You need to define a user in the "userinfo" section'
             msg += ' of auth.cfg. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
             abort(msg)
+        user_specified = False
 
     try:
         env.password = config.get('userinfo', 'password')
@@ -311,7 +313,7 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    if env.user and (not env.password and not env.key_filename):
+    if user_specified and (not env.password and not env.key_filename):
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
 
