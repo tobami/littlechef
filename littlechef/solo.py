@@ -17,24 +17,27 @@ from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.utils import abort
 
+from lib import credentials
+
 
 def configure_chef_solo(node_work_path, cookbook_paths):
     """Deploy chef-solo specific files."""
-    sudo('mkdir -p {0}'.format(node_work_path))
-    sudo('mkdir -p {0}/cache'.format(node_work_path))
-    sudo('umask 0377; touch solo.rb')
-    append('solo.rb', 'file_cache_path "{0}/cache"'.format(
-        node_work_path), use_sudo=True)
-    reversed_cookbook_paths = cookbook_paths[:]
-    reversed_cookbook_paths.reverse()
-    cookbook_paths_line = 'cookbook_path [{0}]'.format(
-        ', '.join(['''"{0}/{1}"'''.format(node_work_path, x) \
-            for x in reversed_cookbook_paths]))
-    append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "{0}/roles"'.format(node_work_path),
-        use_sudo=True)
-    sudo('mkdir -p /etc/chef')
-    sudo('mv solo.rb /etc/chef/')
+    with credentials():
+        sudo('mkdir -p {0}'.format(node_work_path))
+        sudo('mkdir -p {0}/cache'.format(node_work_path))
+        sudo('umask 0377; touch solo.rb')
+        append('solo.rb', 'file_cache_path "{0}/cache"'.format(
+            node_work_path), use_sudo=True)
+        reversed_cookbook_paths = cookbook_paths[:]
+        reversed_cookbook_paths.reverse()
+        cookbook_paths_line = 'cookbook_path [{0}]'.format(
+            ', '.join(['''"{0}/{1}"'''.format(node_work_path, x) \
+                for x in reversed_cookbook_paths]))
+        append('solo.rb', cookbook_paths_line, use_sudo=True)
+        append('solo.rb', 'role_path "{0}/roles"'.format(node_work_path),
+            use_sudo=True)
+        sudo('mkdir -p /etc/chef')
+        sudo('mv solo.rb /etc/chef/')
 
 
 def check_distro():
@@ -43,7 +46,7 @@ def check_distro():
     ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
 
-    with settings(
+    with credentials(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
@@ -90,36 +93,39 @@ def _gem_install():
 
 def gem_apt_install():
     """Install Chef from gems for apt based distros"""
-    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
-    _gem_install()
+    with credentials():
+        sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
+        _gem_install()
 
 
 def gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
-    _add_rpm_repos()
-    with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
-    _gem_install()
+    with credentials():
+        _add_rpm_repos()
+        with show('running'):
+            sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
+        _gem_install()
 
 
 def apt_install(distro):
     """Install Chef for debian based distros"""
-    sudo('apt-get --yes install wget')
-    append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
-    sudo('mv opscode.list /etc/apt/sources.list.d/')
-    gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
-    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-    with hide('stdout'):
-        sudo('apt-get update')
-    with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+    with credentials():
+        sudo('apt-get --yes install wget')
+        append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
+        sudo('mv opscode.list /etc/apt/sources.list.d/')
+        gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
+        sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
+        with hide('stdout'):
+            sudo('apt-get update')
+        with show('running'):
+            sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
 
-    # We only want chef-solo, kill chef-client and remove it from init process
-    sudo('update-rc.d -f chef-client remove')
-    import time
-    time.sleep(0.5)
-    with settings(hide('warnings'), warn_only=True):
-        sudo('pkill chef-client')
+        # We only want chef-solo, kill chef-client and remove it from init process
+        sudo('update-rc.d -f chef-client remove')
+        import time
+        time.sleep(0.5)
+        with settings(hide('warnings'), warn_only=True):
+            sudo('pkill chef-client')
 
 
 def _add_rpm_repos():
@@ -141,14 +147,15 @@ def _add_rpm_repos():
 
 def rpm_install():
     """Install Chef for rpm based distros"""
-    _add_rpm_repos()
-    with show('running'):
-        # Install Chef Solo
-        sudo('yum -y install chef')
+    with credentials():
+        _add_rpm_repos()
+        with show('running'):
+            # Install Chef Solo
+            sudo('yum -y install chef')
 
 
 def emerge_install():
     """Install Chef for Gentoo"""
-    with show('running'):
-        sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
-
+    with credentials():
+        with show('running'):
+            sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
