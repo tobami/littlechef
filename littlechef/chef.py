@@ -17,6 +17,7 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 """
 import os
 import simplejson as json
+import time
 
 from fabric.api import *
 from fabric.contrib.files import append, exists
@@ -54,12 +55,7 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
     """Performs the Synchronize step of a Chef run:
     Uploads needed cookbooks and all roles to a node
     """
-    # Clean up node
-    for path in ['roles'] + cookbook_paths:
-        with hide('stdout'):
-            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
-
-    cookbooks = []
+    # Read node.json
     with open(configfile, 'r') as f:
         try:
             node = json.loads(f.read())
@@ -67,6 +63,7 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
             msg = 'Little Chef found the following error in'
             msg += ' "{0}":\n                {1}'.format(configfile, str(e))
             abort(msg)
+    cookbooks = []
     # Fetch cookbooks needed for recipes
     for recipe in lib.get_recipes_in_node(node):
         recipe = recipe.split('::')[0]
@@ -107,7 +104,6 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
                             print "Warning: Possible error because of missing",
                             print "dependency for cookbook {0}".format(recipe['name'])
                             print "         Cookbook '{0}' not found".format(dep)
-                            import time
                             time.sleep(1)
 
     cookbooks_by_path = {}
@@ -117,8 +113,12 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
 
-    print "Uploading cookbooks... ({0})".format(
-            ", ".join(c for c in cookbooks))
+    # Clean up node
+    for path in ['roles'] + cookbook_paths:
+        with hide('stdout'):
+            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
+
+    print "Uploading cookbooks... ({0})".format(", ".join(c for c in cookbooks))
     _upload_and_unpack([p for p in cookbooks_by_path.keys()], node_work_path)
 
     print "Uploading roles..."

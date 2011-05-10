@@ -276,11 +276,12 @@ def _readconfig():
 
     # Allow password OR keypair-file not to be present
     try:
-        env.password = config.get('userinfo', 'password')
+        env.password = config.get('userinfo', 'password') or None
     except ConfigParser.NoOptionError:
         pass
     try:
-        env.key_filename = config.get('userinfo', 'keypair-file')
+        #If keypair-file is empty, assign None or fabric will try to read key ""
+        env.key_filename = config.get('userinfo', 'keypair-file') or None
     except ConfigParser.NoOptionError:
         pass
 
