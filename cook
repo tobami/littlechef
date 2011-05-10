@@ -9,7 +9,7 @@ try:
     from littlechef import littlechef
     file_path = re.sub(r'\.pyc$', '.py', littlechef.__file__)
 except ImportError:
-    print("Little Chef was not correctly installed: Couldn't import littlechef.py")
+    print("LittleChef was not correctly installed: Couldn't import littlechef.py")
     sys.exit(1)
 
 # Act on some arguments and pass the rest to fabric

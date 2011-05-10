@@ -41,6 +41,21 @@ def get_nodes():
     return nodes
 
 
+def get_node(name):
+    node_path = os.path.join("nodes", name + ".json")
+    if not os.path.exists(node_path):
+        abort("No config file found for node '{0}'".format(name))
+    # Read node.json
+    with open(node_path, 'r') as f:
+        try:
+            node = json.loads(f.read())
+        except json.decoder.JSONDecodeError as e:
+            msg = 'LittleChef found the following error in'
+            msg += ' "{0}":\n                {1}'.format(node_path, str(e))
+            abort(msg)
+    return node
+
+
 def print_node(node, detailed=False):
     """Pretty prints the given node"""
     nodename = node['littlechef']['nodename']

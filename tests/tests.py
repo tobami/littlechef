@@ -75,6 +75,13 @@ class CookbookTest(BaseTest):
         self.assertTrue(expected in error)
 
 
+class RoleTest(BaseTest):
+    def test_list_roles(self):
+        """Should list all roles"""
+        resp, error = self.execute(['../cook', 'list_roles'])
+        self.assertTrue('base' in resp and 'example aplication' in resp)
+
+
 class NodeTest(BaseTest):
     def test_list_nodes(self):
         """Should list all nodes"""

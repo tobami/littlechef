@@ -31,38 +31,36 @@ import lib
 _file_mode = 400
 
 
-def save_config(save, data, hostname):
+def _save_config(node):
     """Saves node configuration
-    if save=True, or if no hostname.json exists, it creates one
-    if save=False, it saves it to tmp_node.json
+    if no nodes/hostname.json exists, it creates one
+    it also saves to tmp_node.json
     """
-    filepath = os.path.join("nodes/", hostname + ".json")
-    if os.path.exists(filepath) and not save:
-        filepath = 'tmp_node.json'
-    with open(filepath, 'w') as f:
-        f.write(json.dumps(data, indent=4))
-        f.write('\n')
-    return filepath
+    filepath = os.path.join("nodes/", env.host_string + ".json")
+    files = ['tmp_node.json']
+    if not os.path.exists(filepath):
+        # Only save to nodes/ if there is not already a file
+        files += filepath
+    for node_file in files:
+        with open(node_file, 'w') as f:
+            f.write(json.dumps(node, indent=4))
+            f.write('\n')
+    return 'tmp_node.json'
 
 
-def sync_node(filepath, cookbook_paths, node_work_path):
+def sync_node(node, cookbook_paths, node_work_path):
     """Buils, synchronizes and configures a node"""
-    _synchronize_node(filepath, cookbook_paths, node_work_path)
+    cookbooks = _build_node(node, cookbook_paths, node_work_path)
+    _synchronize_node(cookbooks, cookbook_paths, node_work_path)
+    # Everything was configured alright, so save the node configuration
+    filepath = _save_config(node)
     _configure_node(filepath)
 
 
-def _synchronize_node(configfile, cookbook_paths, node_work_path):
+def _build_node(node, cookbook_paths, node_work_path):
     """Performs the Synchronize step of a Chef run:
     Uploads needed cookbooks and all roles to a node
     """
-    # Read node.json
-    with open(configfile, 'r') as f:
-        try:
-            node = json.loads(f.read())
-        except json.decoder.JSONDecodeError as e:
-            msg = 'Little Chef found the following error in'
-            msg += ' "{0}":\n                {1}'.format(configfile, str(e))
-            abort(msg)
     cookbooks = []
     # Fetch cookbooks needed for recipes
     for recipe in lib.get_recipes_in_node(node):
@@ -87,7 +85,7 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
                     if recipe not in cookbooks:
                         cookbooks.append(recipe)
         except IOError:
-            abort(colors.red("Role '{0}' not found".format(role)))
+            abort("Role '{0}' not found".format(role))
 
     # Fetch dependencies
     warnings = []
@@ -105,6 +103,14 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
                             print "dependency for cookbook {0}".format(recipe['name'])
                             print "         Cookbook '{0}' not found".format(dep)
                             time.sleep(1)
+    return cookbooks
+
+
+def _synchronize_node(cookbooks, cookbook_paths, node_work_path):
+    # Clean up node
+    for path in ['roles'] + cookbook_paths:
+        with hide('stdout'):
+            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
 
     cookbooks_by_path = {}
     for cookbook in cookbooks:
@@ -112,11 +118,6 @@ def _synchronize_node(configfile, cookbook_paths, node_work_path):
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
-
-    # Clean up node
-    for path in ['roles'] + cookbook_paths:
-        with hide('stdout'):
-            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
 
     print "Uploading cookbooks... ({0})".format(", ".join(c for c in cookbooks))
     _upload_and_unpack([p for p in cookbooks_by_path.keys()], node_work_path)
@@ -133,6 +134,8 @@ def _configure_node(configfile):
         put(configfile, remote_file, use_sudo=True, mode=_file_mode)
         sudo('chown root:root {0}'.format(remote_file)),
         sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
+        # Remove local temporary node file
+        os.remove(configfile)
 
         print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):

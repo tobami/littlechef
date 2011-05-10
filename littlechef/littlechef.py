@@ -114,70 +114,48 @@ def deploy_chef(gems="no", ask="yes"):
     solo.configure_chef_solo(node_work_path, cookbook_paths)
 
 
-def recipe(recipe, save=False):
-    """Apply the given recipe to a node
-        ignores existing config unless save=True
+def recipe(recipe):
+    """Apply the given recipe to a node, ignoring any existing configuration
+    If no nodes/hostname.json file exists, it creates one
     """
-    # Do some checks
+    # Check that a node has been selected
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     lib.print_header(
         "Executing recipe '{0}' on node {1}".format(recipe, env.host_string))
 
-    recipe_found = False
-    for cookbook_path in cookbook_paths:
-        if os.path.exists(os.path.join(cookbook_path, recipe.split('::')[0])):
-            recipe_found = True
-            break
-    if not recipe_found:
-        abort("Cookbook '{0}' not found".format(recipe))
-
     # Now create configuration and sync node
     data = {"run_list": ["recipe[{0}]".format(recipe)]}
-    filepath = chef.save_config(save, data, env.host_string)
-    chef.sync_node(filepath, cookbook_paths, node_work_path)
+    chef.sync_node(data, cookbook_paths, node_work_path)
 
 
-def role(role, save=False):
-    """Apply the given role to a node
-        ignores existing config unless save=True"""
-    # Do some checks
+def role(role):
+    """Apply the given role to a node, ignoring any existing configuration
+    If no nodes/hostname.json file exists, it creates one
+    """
+    # Check that a node has been selected
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
-    lib.print_header("Applying role '{0}' to node {1}".format(role, env.host_string))
-
-    if not os.path.exists('roles/' + role + '.json'):
-        if os.path.exists('roles/' + role + '.rb'):
-            msg = "Role '{0}' only found as '{1}.rb'.".format(role, role)
-            msg += " It should be in json format."
-            abort(msg)
-        else:
-            abort("Role '{0}' not found".format(role))
+    lib.print_header(
+        "Applying role '{0}' to node {1}".format(role, env.host_string))
 
     # Now create configuration and sync node
     data = {"run_list": ["role[{0}]".format(role)]}
-    filepath = chef.save_config(save, data, env.host_string)
-    chef.sync_node(filepath, cookbook_paths, node_work_path)
+    chef.sync_node(data, cookbook_paths, node_work_path)
 
 
 def configure():
     """Configure node using existing config file"""
-    # Do some checks
+    # Check that a node has been selected
     if not env.host_string:
         msg = 'no node specified\n'
         msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
         abort(msg)
-
     lib.print_header("Configuring {0}".format(env.host_string))
-    configfile = env.host_string + ".json"
-    node_path = os.path.join("nodes", configfile)
-    if not os.path.exists(node_path):
-        print "Warning: No config file found for {0}".format(env.host_string)
-        print "Warning: Chef run aborted"
-        return
 
-    # Configure node
-    chef.sync_node(node_path, cookbook_paths, node_work_path)
+    # Read node data and configure node
+    node = lib.get_node(env.host_string)
+    chef.sync_node(node, cookbook_paths, node_work_path)
 
 
 @hosts('api')
