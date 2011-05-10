@@ -251,7 +251,8 @@ def get_margin(length):
 
 def credentials(*args, **kwargs):
     """Override default credentials with contents of .ssh/config,
-    if appropriate"""
+    if appropriate
+    """
     if env.ssh_config:
         credentials = env.ssh_config.lookup(env.host)
         # translate from paramiko params to fabric params

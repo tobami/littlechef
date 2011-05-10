@@ -23,7 +23,7 @@ from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 
-from paramiko.config import SSHConfig
+from paramiko.config import SSHConfig as _SSHConfig
 
 from version import version
 import solo
@@ -100,8 +100,8 @@ def deploy_chef(gems="no", ask="yes"):
     if ask != "no" and not confirm(message):
         abort('Aborted by user')
 
-    solo.install_chef(distro_type, distro, gems)
-    solo.configure_chef_solo(node_work_path, cookbook_paths)
+    solo.install(distro_type, distro, gems)
+    solo.configure(node_work_path, cookbook_paths)
 
 
 def recipe(recipe):
@@ -246,14 +246,14 @@ def _readconfig():
         ssh_config = None
 
     if ssh_config:
-        env.ssh_config = SSHConfig()
+        env.ssh_config = _SSHConfig()
         try:
             env.ssh_config.parse(open(os.path.expanduser(ssh_config)))
         except IOError:
-            msg = "Couldn't open the ssh-config file '%s'" % ssh_config
+            msg = "Couldn't open the ssh-config file '{0}'".format(ssh_config)
             abort(msg)
         except Exception:
-            msg = "Couldn't parse the ssh-config file '%s'" % ssh_config
+            msg = "Couldn't parse the ssh-config file '{0}'".format(ssh_config)
             abort(msg)
     else:
         env.ssh_config = None

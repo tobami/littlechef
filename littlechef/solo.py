@@ -20,7 +20,7 @@ from fabric.utils import abort
 from lib import credentials
 
 
-def install_chef(distro_type, distro, gems):
+def install(distro_type, distro, gems):
     with credentials():
         if distro_type == "debian":
             if gems == "yes":
@@ -38,7 +38,7 @@ def install_chef(distro_type, distro, gems):
             abort('wrong distro type: {0}'.format(distro_type))
 
 
-def configure_chef_solo(node_work_path, cookbook_paths):
+def configure(node_work_path, cookbook_paths):
     """Deploy chef-solo specific files."""
     with credentials():
         sudo('mkdir -p {0}'.format(node_work_path))
