@@ -100,20 +100,7 @@ def deploy_chef(gems="no", ask="yes"):
     if ask != "no" and not confirm(message):
         abort('Aborted by user')
 
-    if distro_type == "debian":
-        if gems == "yes":
-            solo.gem_apt_install()
-        else:
-            solo.apt_install(distro)
-    elif distro_type == "rpm":
-        if gems == "yes":
-            solo.gem_rpm_install()
-        else:
-            solo.rpm_install()
-    elif distro_type == "gentoo":
-        solo.emerge_install()
-    else:
-        abort('wrong distro type: {0}'.format(distro_type))
+    solo.install_chef(distro_type, distro, gems)
     solo.configure_chef_solo(node_work_path, cookbook_paths)
 
 

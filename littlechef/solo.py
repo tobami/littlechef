@@ -20,6 +20,24 @@ from fabric.utils import abort
 from lib import credentials
 
 
+def install_chef(distro_type, distro, gems):
+    with credentials():
+        if distro_type == "debian":
+            if gems == "yes":
+                _gem_apt_install()
+            else:
+                _apt_install(distro)
+        elif distro_type == "rpm":
+            if gems == "yes":
+                _gem_rpm_install()
+            else:
+                _rpm_install()
+        elif distro_type == "gentoo":
+            _emerge_install()
+        else:
+            abort('wrong distro type: {0}'.format(distro_type))
+
+
 def configure_chef_solo(node_work_path, cookbook_paths):
     """Deploy chef-solo specific files."""
     with credentials():
@@ -91,41 +109,38 @@ def _gem_install():
     sudo('gem install --no-rdoc --no-ri chef')
 
 
-def gem_apt_install():
+def _gem_apt_install():
     """Install Chef from gems for apt based distros"""
-    with credentials():
-        sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
-        _gem_install()
+    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
+    _gem_install()
 
 
-def gem_rpm_install():
+def _gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
-    with credentials():
-        _add_rpm_repos()
-        with show('running'):
-            sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
-        _gem_install()
+    _add_rpm_repos()
+    with show('running'):
+        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
+    _gem_install()
 
 
-def apt_install(distro):
+def _apt_install(distro):
     """Install Chef for debian based distros"""
-    with credentials():
-        sudo('apt-get --yes install wget')
-        append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
-        sudo('mv opscode.list /etc/apt/sources.list.d/')
-        gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
-        sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-        with hide('stdout'):
-            sudo('apt-get update')
-        with show('running'):
-            sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+    sudo('apt-get --yes install wget')
+    append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
+    sudo('mv opscode.list /etc/apt/sources.list.d/')
+    gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
+    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
+    with hide('stdout'):
+        sudo('apt-get update')
+    with show('running'):
+        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
 
-        # We only want chef-solo, kill chef-client and remove it from init process
-        sudo('update-rc.d -f chef-client remove')
-        import time
-        time.sleep(0.5)
-        with settings(hide('warnings'), warn_only=True):
-            sudo('pkill chef-client')
+    # We only want chef-solo, kill chef-client and remove it from init process
+    sudo('update-rc.d -f chef-client remove')
+    import time
+    time.sleep(0.5)
+    with settings(hide('warnings'), warn_only=True):
+        sudo('pkill chef-client')
 
 
 def _add_rpm_repos():
@@ -145,17 +160,15 @@ def _add_rpm_repos():
                 abort(output)
 
 
-def rpm_install():
+def _rpm_install():
     """Install Chef for rpm based distros"""
-    with credentials():
-        _add_rpm_repos()
-        with show('running'):
-            # Install Chef Solo
-            sudo('yum -y install chef')
+    _add_rpm_repos()
+    with show('running'):
+        # Install Chef Solo
+        sudo('yum -y install chef')
 
 
-def emerge_install():
+def _emerge_install():
     """Install Chef for Gentoo"""
-    with credentials():
-        with show('running'):
-            sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
+    with show('running'):
+        sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
