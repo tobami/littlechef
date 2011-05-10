@@ -51,10 +51,11 @@ def _save_config(node):
 def sync_node(node, cookbook_paths, node_work_path):
     """Buils, synchronizes and configures a node"""
     cookbooks = _build_node(node, cookbook_paths, node_work_path)
-    _synchronize_node(cookbooks, cookbook_paths, node_work_path)
-    # Everything was configured alright, so save the node configuration
-    filepath = _save_config(node)
-    _configure_node(filepath)
+    with lib.credentials():
+        _synchronize_node(cookbooks, cookbook_paths, node_work_path)
+        # Everything was configured alright, so save the node configuration
+        filepath = _save_config(node)
+        _configure_node(filepath)
 
 
 def _build_node(node, cookbook_paths, node_work_path):

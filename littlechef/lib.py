@@ -17,6 +17,7 @@ import os
 import simplejson as json
 
 from fabric import colors
+from fabric.api import env, settings
 from fabric.utils import abort
 
 
@@ -246,3 +247,17 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
+
+
+def credentials(*args, **kwargs):
+    """Override default credentials with contents of .ssh/config,
+    if appropriate"""
+    if env.ssh_config:
+        credentials = env.ssh_config.lookup(env.host)
+        # translate from paramiko params to fabric params
+        if 'identityfile' in credentials:
+            credentials['key_filename'] = credentials['identityfile']
+        credentials.update(kwargs)
+    else:
+        credentials = kwargs
+    return settings(*args, **credentials)
