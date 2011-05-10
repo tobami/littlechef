@@ -46,9 +46,10 @@ def save_config(save, data, hostname):
 
 
 def sync_node(filepath, cookbook_paths, node_work_path):
-    """Buils, synchronizes and configures a node"""
-    _synchronize_node(filepath, cookbook_paths, node_work_path)
-    _configure_node(filepath)
+    """Builds, synchronizes and configures a node"""
+    with lib.credentials():
+        _synchronize_node(filepath, cookbook_paths, node_work_path)
+        _configure_node(filepath)
 
 
 def _synchronize_node(configfile, cookbook_paths, node_work_path):

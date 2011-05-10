@@ -17,24 +17,45 @@ from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.utils import abort
 
+from lib import credentials
+
+
+def install_chef(distro_type, distro, gems):
+    with credentials():
+        if distro_type == "debian":
+            if gems == "yes":
+                _gem_apt_install()
+            else:
+                _apt_install(distro)
+        elif distro_type == "rpm":
+            if gems == "yes":
+                _gem_rpm_install()
+            else:
+                _rpm_install()
+        elif distro_type == "gentoo":
+            _emerge_install()
+        else:
+            abort('wrong distro type: {0}'.format(distro_type))
+
 
 def configure_chef_solo(node_work_path, cookbook_paths):
     """Deploy chef-solo specific files."""
-    sudo('mkdir -p {0}'.format(node_work_path))
-    sudo('mkdir -p {0}/cache'.format(node_work_path))
-    sudo('umask 0377; touch solo.rb')
-    append('solo.rb', 'file_cache_path "{0}/cache"'.format(
-        node_work_path), use_sudo=True)
-    reversed_cookbook_paths = cookbook_paths[:]
-    reversed_cookbook_paths.reverse()
-    cookbook_paths_line = 'cookbook_path [{0}]'.format(
-        ', '.join(['''"{0}/{1}"'''.format(node_work_path, x) \
-            for x in reversed_cookbook_paths]))
-    append('solo.rb', cookbook_paths_line, use_sudo=True)
-    append('solo.rb', 'role_path "{0}/roles"'.format(node_work_path),
-        use_sudo=True)
-    sudo('mkdir -p /etc/chef')
-    sudo('mv solo.rb /etc/chef/')
+    with credentials():
+        sudo('mkdir -p {0}'.format(node_work_path))
+        sudo('mkdir -p {0}/cache'.format(node_work_path))
+        sudo('umask 0377; touch solo.rb')
+        append('solo.rb', 'file_cache_path "{0}/cache"'.format(
+            node_work_path), use_sudo=True)
+        reversed_cookbook_paths = cookbook_paths[:]
+        reversed_cookbook_paths.reverse()
+        cookbook_paths_line = 'cookbook_path [{0}]'.format(
+            ', '.join(['''"{0}/{1}"'''.format(node_work_path, x) \
+                for x in reversed_cookbook_paths]))
+        append('solo.rb', cookbook_paths_line, use_sudo=True)
+        append('solo.rb', 'role_path "{0}/roles"'.format(node_work_path),
+            use_sudo=True)
+        sudo('mkdir -p /etc/chef')
+        sudo('mv solo.rb /etc/chef/')
 
 
 def check_distro():
@@ -43,7 +64,7 @@ def check_distro():
     ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
 
-    with settings(
+    with credentials(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
@@ -88,13 +109,13 @@ def _gem_install():
     sudo('gem install --no-rdoc --no-ri chef')
 
 
-def gem_apt_install():
+def _gem_apt_install():
     """Install Chef from gems for apt based distros"""
     sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
 
 
-def gem_rpm_install():
+def _gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
@@ -102,7 +123,7 @@ def gem_rpm_install():
     _gem_install()
 
 
-def apt_install(distro):
+def _apt_install(distro):
     """Install Chef for debian based distros"""
     sudo('apt-get --yes install wget')
     append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
@@ -139,7 +160,7 @@ def _add_rpm_repos():
                 abort(output)
 
 
-def rpm_install():
+def _rpm_install():
     """Install Chef for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
@@ -147,8 +168,7 @@ def rpm_install():
         sudo('yum -y install chef')
 
 
-def emerge_install():
+def _emerge_install():
     """Install Chef for Gentoo"""
     with show('running'):
         sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
-
