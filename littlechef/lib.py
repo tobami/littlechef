@@ -26,21 +26,14 @@ def get_nodes():
     if not os.path.exists('nodes/'):
         return []
     nodes = []
-    for filename in sorted(
-        [f for f in os.listdir('nodes/')
-            if not os.path.isdir(f) and ".json" in f]):
-        with open('nodes/' + filename, 'r') as f:
-            try:
-                node = json.loads(f.read())
-                # Don't append "nodename" to the root namespace
-                # because it could colide with some cookbook's attribute
-                node['littlechef'] = {
-                    'nodename': ".".join(filename.split('.')[:-1])}
-                nodes.append(node)
-            except json.decoder.JSONDecodeError as e:
-                msg = "Little Chef found the following error in your"
-                msg += " {0} file:\n  {1}".format(filename, e)
-                abort(msg)
+    for filename in sorted([f for f in os.listdir('nodes/')
+                                if not os.path.isdir(f) and ".json" in f]):
+        hostname = ".".join(filename.split('.')[:-1])#remove .json from name
+        node = get_node(hostname)
+        # Don't append "nodename" to the root namespace
+        # because it could colide with some cookbook's attribute
+        node['littlechef'] = {'nodename': hostname}
+        nodes.append(node)
     return nodes
 
 

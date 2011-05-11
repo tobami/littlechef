@@ -14,9 +14,8 @@ Version 0.5.5
 Version 0.5.4 May 2, 2011
 -----------------------------------------
 * NEW: Renamed new_deployment to new_kitchen
-* NEW: new_kitchen now creates empty README files in cookbooks, roles
+* NEW#13: new_kitchen now creates empty README files in cookbooks, roles
     and nodes so that the kitchen is ready to be used as a git repository.
-    Solves #13
 * FIX: Brian Riley fixed failing abort messages because of missing import
 * FIX: list_nodes and list_roles_detailed failed because of refactoring
 
@@ -32,8 +31,8 @@ Version 0.5.3 April 28, 2011
 Version 0.5.2 April 20, 2011
 -----------------------------------------
 * FIX: sirlantis fixed exception when a cookbook was only present in site-cookbooks
-* FIX: When configuring a node, the /var/chef-solo/cache directory won't be
-    deleted any more. Solves issue #26
+* FIX#26: When configuring a node, the /var/chef-solo/cache directory won't be
+    deleted any more
 * OPTIMIZATION: sirlantis improved OSX support by not packing files named ._{filename}
 * OPTIMIZATION: .svn directories are no longer packed and uploaded
 
