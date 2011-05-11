@@ -3,6 +3,14 @@ LittleChef Changelog
 ======================
 
 
+Version 0.5.5
+----------------------------------------
+* NEW: tow implemented support for ssh-config
+* NEW: split list_nodes into list_nodes and list_nodes_detailed
+* FIX#31: Some debian installs were not able to install wget without updating
+    the repos first
+
+
 Version 0.5.4 May 2, 2011
 -----------------------------------------
 * NEW: Renamed new_deployment to new_kitchen

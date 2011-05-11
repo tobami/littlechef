@@ -101,8 +101,10 @@ def _build_node(node, cookbook_paths, node_work_path):
                         if dep not in warnings:
                             warnings.append(dep)
                             print "Warning: Possible error because of missing",
-                            print "dependency for cookbook {0}".format(recipe['name'])
-                            print "         Cookbook '{0}' not found".format(dep)
+                            print "dependency for cookbook {0}".format(
+                                recipe['name'])
+                            print "         Cookbook '{0}' not found".format(
+                                dep)
                             time.sleep(1)
     return cookbooks
 
@@ -159,7 +161,6 @@ def _configure_node(configfile):
                 print(colors.green("\nSUCCESS: Node correctly configured"))
 
 
-
 def _upload_and_unpack(source, node_work_path):
     """Packs the given directories, uploads the tar.gz to the node
     and unpacks it in the node_work_path (typically '/var/chef-solo') directory
@@ -203,4 +204,3 @@ def _upload_and_unpack(source, node_work_path):
             sudo('chown -R root:root {0}'.format(node_work_path))
             # Remove the remote copy of archive
             sudo('rm {0}'.format(remote_archive))
-

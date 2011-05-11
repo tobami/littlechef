@@ -139,7 +139,8 @@ def configure():
     # Check that a node has been selected
     if not env.host_string:
         msg = 'no node specified\n'
-        msg += 'Usage:\n  cook node:MYNODE configure\n  cook node:all configure'
+        msg += 'Usage:\n  cook node:MYNODE configure'
+        msg += '\n  cook node:all configure'
         abort(msg)
     lib.print_header("Configuring {0}".format(env.host_string))
 
@@ -274,7 +275,7 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
     try:
-        #If keypair-file is empty, assign None or fabric will try to read key ""
+        #If keypair-file is empty, assign None or fabric will try to read key "
         env.key_filename = config.get('userinfo', 'keypair-file') or None
     except ConfigParser.NoOptionError:
         pass

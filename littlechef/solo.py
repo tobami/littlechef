@@ -111,6 +111,8 @@ def _gem_install():
 
 def _gem_apt_install():
     """Install Chef from gems for apt based distros"""
+    with hide('stdout'):
+        sudo('apt-get update')
     sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
 
@@ -125,8 +127,12 @@ def _gem_rpm_install():
 
 def _apt_install(distro):
     """Install Chef for debian based distros"""
+    with hide('stdout'):
+        # we may not be able to install wget withtout 'apt-get update' first
+        sudo('apt-get update')
     sudo('apt-get --yes install wget')
-    append('opscode.list', 'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
+    append('opscode.list',
+        'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
     sudo('mv opscode.list /etc/apt/sources.list.d/')
     gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
     sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
@@ -139,7 +145,7 @@ def _apt_install(distro):
     sudo('update-rc.d -f chef-client remove')
     import time
     time.sleep(0.5)
-    with settings(hide('warnings'), warn_only=True):
+    with settings(hide('warnings', 'stdout'), warn_only=True):
         sudo('pkill chef-client')
 
 

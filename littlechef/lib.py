@@ -27,13 +27,15 @@ def get_nodes():
         return []
     nodes = []
     for filename in sorted(
-        [f for f in os.listdir('nodes/') if not os.path.isdir(f) and ".json" in f]):
+        [f for f in os.listdir('nodes/')
+            if not os.path.isdir(f) and ".json" in f]):
         with open('nodes/' + filename, 'r') as f:
             try:
                 node = json.loads(f.read())
                 # Don't append "nodename" to the root namespace
                 # because it could colide with some cookbook's attribute
-                node['littlechef'] = {'nodename': ".".join(filename.split('.')[:-1])}
+                node['littlechef'] = {
+                    'nodename': ".".join(filename.split('.')[:-1])}
                 nodes.append(node)
             except json.decoder.JSONDecodeError as e:
                 msg = "Little Chef found the following error in your"
@@ -73,7 +75,7 @@ def print_node(node, detailed=False):
             print "  Recipe:", recipe
             print "    attributes: {0}".format(node.get(recipe, ""))
     else:
-        print('  Recipes: {0}'.format( ", ".join(get_recipes_in_node(node))))
+        print('  Recipes: {0}'.format(", ".join(get_recipes_in_node(node))))
     # Node attributes
     print "  Node attributes:"
     for attribute in node.keys():
@@ -106,8 +108,10 @@ def get_recipes_in_cookbook(name, cookbook_paths):
                             'name': recipe,
                             'description': cookbook['recipes'][recipe],
                             'version': cookbook.get('version'),
-                            'dependencies': cookbook.get('dependencies', {}).keys(),
-                            'attributes': cookbook.get('attributes', {}).keys(),
+                            'dependencies': cookbook.get(
+                                'dependencies', {}).keys(),
+                            'attributes': cookbook.get(
+                                'attributes', {}).keys(),
                         }
                     )
                 if not recipes:
