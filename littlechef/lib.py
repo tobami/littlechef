@@ -81,10 +81,13 @@ def get_recipes_in_cookbook(name, cookbook_paths):
     """Gets the name of all recipes present in a cookbook"""
     recipes = []
     path = None
-    exists = False
+    cookbook_exists = False
+    metadata_exists = False
     for cookbook_path in cookbook_paths:
         path = os.path.join(cookbook_path, name)
-        exists = exists or os.path.exists(path)
+        # cookbook exists if present in any of the cookbook paths
+        cookbook_exists = cookbook_exists or os.path.exists(path)
+        # Now try to open metadata.json
         try:
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
                 try:
@@ -95,33 +98,34 @@ def get_recipes_in_cookbook(name, cookbook_paths):
                         os.path.join(path, 'metadata.json'), e)
                     abort(msg)
                 # Add each recipe defined in the cookbook
+                metadata_exists = True
                 for recipe in cookbook.get('recipes', []):
-                    recipes.append(
-                        {
-                            'name': recipe,
-                            'description': cookbook['recipes'][recipe],
-                            'version': cookbook.get('version'),
-                            'dependencies': cookbook.get(
-                                'dependencies', {}).keys(),
-                            'attributes': cookbook.get(
-                                'attributes', {}).keys(),
-                        }
-                    )
+                    recipes.append({
+                        'name': recipe,
+                        'description': cookbook['recipes'][recipe],
+                        'version': cookbook.get('version'),
+                        'dependencies': cookbook.get('dependencies', {}).keys(),
+                        'attributes': cookbook.get('attributes', {}).keys(),
+                        })
+                # When a recipe has no default recipe (libraries?),
+                # add one so that it is listed
                 if not recipes:
-                    msg = 'Cookbook "{0}"\'s metadata.json'.format(name)
-                    msg += ' doesn\'t define any recipes'
-                    abort(msg)
-            # If cookbook metadata.json found, don't try next cookbook path
-            # metadata.json in site-cookbooks has preference
+                    recipes.append({
+                        'name': name,
+                        'description': 'This cookbook has no default recipe',
+                        'version': cookbook.get('version'),
+                        'dependencies': cookbook.get('dependencies', {}).keys(),
+                        'attributes': cookbook.get('attributes', {}).keys(),})
+            # Cookbook metadata.json was found, don't try next cookbook path
+            # because metadata.json in site-cookbooks has preference
             break
         except IOError:
             # metadata.json was not found, try next cookbook_path
             pass
-    if not recipes:
-        if exists:
-            abort('Cookbook "{0}" has no metadata.json'.format(name))
-        else:
-            abort('Unable to find cookbook "{0}"'.format(name))
+    if not cookbook_exists:
+        abort('Unable to find cookbook "{0}"'.format(name))
+    elif not metadata_exists:
+        abort('Cookbook "{0}" has no metadata.json'.format(name))
     return recipes
 
 
