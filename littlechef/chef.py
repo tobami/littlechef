@@ -38,12 +38,12 @@ def _save_config(node):
     it also saves to tmp_node.json
     """
     filepath = os.path.join("nodes/", env.host_string + ".json")
-    files = ['tmp_node.json']
+    files_to_create = ['tmp_node.json']
     if not os.path.exists(filepath):
         # Only save to nodes/ if there is not already a file
         print "Saving configuration to {0}".format(filepath)
-        files.append(filepath)
-    for node_file in files:
+        files_to_create.append(filepath)
+    for node_file in files_to_create:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4))
             f.write('\n')
@@ -124,12 +124,11 @@ def _synchronize_node(cookbooks):
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
-
-    print "Uploading cookbooks... ({0})".format(", ".join(c for c in cookbooks))
-    _upload_and_unpack([p for p in cookbooks_by_path.keys()])
-
-    print "Uploading roles..."
-    _upload_and_unpack(['roles'])
+    print "Uploading roles and cookbooks:"
+    print " ({0})".format(", ".join(c for c in cookbooks))
+    to_upload = [p for p in cookbooks_by_path.keys()]
+    to_upload.append('roles')
+    _upload_and_unpack(to_upload)
 
 
 def _configure_node(configfile):
