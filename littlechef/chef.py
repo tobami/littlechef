@@ -40,7 +40,7 @@ def _save_config(node):
     files = ['tmp_node.json']
     if not os.path.exists(filepath):
         # Only save to nodes/ if there is not already a file
-        files += filepath
+        files.append(filepath)
     for node_file in files:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4))
