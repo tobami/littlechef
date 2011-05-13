@@ -24,6 +24,7 @@ from fabric.contrib.files import append, exists
 from fabric import colors
 from fabric.utils import abort
 
+import littlechef
 import lib
 
 
@@ -40,6 +41,7 @@ def _save_config(node):
     files = ['tmp_node.json']
     if not os.path.exists(filepath):
         # Only save to nodes/ if there is not already a file
+        print "Saving configuration to {0}".format(filepath)
         files.append(filepath)
     for node_file in files:
         with open(node_file, 'w') as f:
@@ -48,17 +50,17 @@ def _save_config(node):
     return 'tmp_node.json'
 
 
-def sync_node(node, cookbook_paths, node_work_path):
+def sync_node(node):
     """Buils, synchronizes and configures a node"""
-    cookbooks = _build_node(node, cookbook_paths, node_work_path)
+    cookbooks = _build_node(node)
     with lib.credentials():
-        _synchronize_node(cookbooks, cookbook_paths, node_work_path)
+        _synchronize_node(cookbooks)
         # Everything was configured alright, so save the node configuration
         filepath = _save_config(node)
         _configure_node(filepath)
 
 
-def _build_node(node, cookbook_paths, node_work_path):
+def _build_node(node):
     """Performs the Synchronize step of a Chef run:
     Uploads needed cookbooks and all roles to a node
     """
@@ -91,11 +93,12 @@ def _build_node(node, cookbook_paths, node_work_path):
     # Fetch dependencies
     warnings = []
     for cookbook in cookbooks:
-        for recipe in lib.get_recipes_in_cookbook(cookbook, cookbook_paths):
+        for recipe in lib.get_recipes_in_cookbook(
+                                        cookbook, littlechef.cookbook_paths):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     try:
-                        lib.get_cookbook_path(dep, cookbook_paths)
+                        lib.get_cookbook_path(dep, littlechef.cookbook_paths)
                         cookbooks.append(dep)
                     except IOError:
                         if dep not in warnings:
@@ -109,24 +112,24 @@ def _build_node(node, cookbook_paths, node_work_path):
     return cookbooks
 
 
-def _synchronize_node(cookbooks, cookbook_paths, node_work_path):
+def _synchronize_node(cookbooks):
     # Clean up node
-    for path in ['roles'] + cookbook_paths:
+    for path in ['roles'] + littlechef.cookbook_paths:
         with hide('stdout'):
-            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
+            sudo('rm -rf {0}/{1}'.format(littlechef.node_work_path, path))
 
     cookbooks_by_path = {}
     for cookbook in cookbooks:
-        for cookbook_path in cookbook_paths:
+        for cookbook_path in littlechef.cookbook_paths:
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
 
     print "Uploading cookbooks... ({0})".format(", ".join(c for c in cookbooks))
-    _upload_and_unpack([p for p in cookbooks_by_path.keys()], node_work_path)
+    _upload_and_unpack([p for p in cookbooks_by_path.keys()])
 
     print "Uploading roles..."
-    _upload_and_unpack(['roles'], node_work_path)
+    _upload_and_unpack(['roles'])
 
 
 def _configure_node(configfile):
@@ -161,7 +164,7 @@ def _configure_node(configfile):
                 print(colors.green("\nSUCCESS: Node correctly configured"))
 
 
-def _upload_and_unpack(source, node_work_path):
+def _upload_and_unpack(source):
     """Packs the given directories, uploads the tar.gz to the node
     and unpacks it in the node_work_path (typically '/var/chef-solo') directory
     """
@@ -190,17 +193,17 @@ def _upload_and_unpack(source, node_work_path):
         local('rm {0}'.format(local_archive))
         local('chmod -R u+w tmp')
         local('rm -rf tmp')
-        if not exists(node_work_path):
+        if not exists(littlechef.node_work_path):
             # Report error with remote paths
-            msg = "the {0} directory was not found at ".format(node_work_path)
-            msg += "the node. Is Chef correctly installed?"
+            msg = "the {0} directory was".format(littlechef.node_work_path)
+            msg += " not found at the node. Is Chef correctly installed?"
             msg += "\nYou can deploy chef-solo by typing:\n"
             msg += "  cook node:{0} deploy_chef".format(env.host)
             abort(msg)
-        with cd(node_work_path):
+        with cd(littlechef.node_work_path):
             # Install the remote copy of archive
             sudo('tar xzf {0}'.format(remote_archive))
             # Fix ownership
-            sudo('chown -R root:root {0}'.format(node_work_path))
+            sudo('chown -R root:root {0}'.format(littlechef.node_work_path))
             # Remove the remote copy of archive
             sudo('rm {0}'.format(remote_archive))

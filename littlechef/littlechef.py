@@ -101,7 +101,7 @@ def deploy_chef(gems="no", ask="yes"):
         abort('Aborted by user')
 
     solo.install(distro_type, distro, gems)
-    solo.configure(node_work_path, cookbook_paths)
+    solo.configure()
 
 
 def recipe(recipe):
@@ -116,7 +116,7 @@ def recipe(recipe):
 
     # Now create configuration and sync node
     data = {"run_list": ["recipe[{0}]".format(recipe)]}
-    chef.sync_node(data, cookbook_paths, node_work_path)
+    chef.sync_node(data)
 
 
 def role(role):
@@ -131,7 +131,7 @@ def role(role):
 
     # Now create configuration and sync node
     data = {"run_list": ["role[{0}]".format(role)]}
-    chef.sync_node(data, cookbook_paths, node_work_path)
+    chef.sync_node(data)
 
 
 def configure():
@@ -146,7 +146,7 @@ def configure():
 
     # Read node data and configure node
     node = lib.get_node(env.host_string)
-    chef.sync_node(node, cookbook_paths, node_work_path)
+    chef.sync_node(node)
 
 
 @hosts('api')

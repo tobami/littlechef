@@ -27,7 +27,8 @@ def get_nodes():
         return []
     nodes = []
     for filename in sorted([f for f in os.listdir('nodes/')
-                                if not os.path.isdir(f) and ".json" in f]):
+                                if not os.path.isdir(f) and ".json" in f
+                                    and not f.startswith('.')]):
         hostname = ".".join(filename.split('.')[:-1])#remove .json from name
         node = get_node(hostname)
         # Don't append "nodename" to the root namespace
@@ -92,7 +93,7 @@ def get_recipes_in_cookbook(name, cookbook_paths):
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
                 try:
                     cookbook = json.loads(f.read())
-                except json.decoder.JSONDecodeError, e:
+                except json.decoder.JSONDecodeError as e:
                     msg = "Little Chef found the following error in your"
                     msg += " {0}.json file:\n  {1}".format(
                         os.path.join(path, 'metadata.json'), e)
