@@ -1,4 +1,4 @@
-h1. LitteChef
+h1. LittleChef
 
 With LittleChef you will be able to get started more quickly cooking with "Chef":http://www.opscode.com/chef, the excellent Configuration Management System.
 
@@ -51,11 +51,35 @@ Careful what you do with your nodes!:
 bq. A certain famous Chef: What do I always say? Anyone can cook.
 LittleChef: Yeah. Anyone can, that doesn't mean that anyone should.
 
-h3. Setup
+h3. Local Setup
 
-@cook new_kitchen@ will create inside the current directory a few files and directories for LittleChef to be able to cook. You can create and have as many kitchens as you like on your computer.
+@cook new_kitchen@ will create inside the current directory a few files and directories for LittleChef to be able to cook: @auth.cfg@, @roles/@, @nodes/@, @cookbooks/@ and @site-cookbooks@. You can create and have as many kitchens as you like on your computer.
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_kitchen@ will have created a file named @auth.cfg@. You can edit it now to enter a username and password or a keypair-file, or a reference to an ssh-config file.
+h3. Authentication
+
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. @new_kitchen@ will have created a file named @auth.cfg@. You can edit it now to enter needed authentication data. There are several possibilities:
+
+* username and password
+* username, password and keypair-file
+* A reference to an ssh-config file
+
+The last one allows the most flexibility, as it allows you to define different
+usernames, passwords and/or keypair-files per hostname. LittleChef will look at
+~/.ssh/config by default, but you can always specify another path in @auth.cfg@:
+@
+[userinfo]
+user = myusername
+password = mypassword
+ssh-config = /path/to/config/file@
+
+An example @~/.ssh/config@ file:
+@Host www.cooldomain.com
+    HostName www.cooldomain.com
+    IdentityFile ~/.ssh/prod_rsa
+    User produser
+Host *.devdomain.com
+    IdentityFile ~/.ssh/dev_rsa
+    User devuser@
 
 h3. Deploying
 

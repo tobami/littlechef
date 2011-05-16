@@ -40,7 +40,7 @@ def install(distro_type, distro, gems):
 
 
 def configure():
-    """Deploy chef-solo specific files."""
+    """Deploy chef-solo specific files"""
     with credentials():
         sudo('mkdir -p {0}'.format(littlechef.node_work_path))
         sudo('mkdir -p {0}/cache'.format(littlechef.node_work_path))
