@@ -4,7 +4,7 @@ With LittleChef you will be able to get started more quickly cooking with "Chef"
 
 h2. Overview
 
-You may think of this like a pocket Chef. You don't need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
+You may think of this like a pocket Chef. No need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
 
 Installing LittleChef to your work computer is all you need to get you started.
 
@@ -53,7 +53,7 @@ LittleChef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 h3. Local Setup
 
-@cook new_kitchen@ will create inside the current directory a few files and directories for LittleChef to be able to cook: @auth.cfg@, @roles/@, @nodes/@, @cookbooks/@ and @site-cookbooks@. You can create and have as many kitchens as you like on your computer.
+@cook new_kitchen@ will create inside the current directory a few files and directories for LittleChef to be able to cook: @auth.cfg@, @roles/@, @nodes/@, @cookbooks/@ and @site-cookbooks/@. You can create and have as many kitchens as you like on your computer.
 
 h3. Authentication
 
@@ -65,21 +65,22 @@ To be able to issue commands to remote nodes, you need to enter a user and a pas
 
 The last one allows the most flexibility, as it allows you to define different
 usernames, passwords and/or keypair-files per hostname. LittleChef will look at
-~/.ssh/config by default, but you can always specify another path in @auth.cfg@:
-@
+@~/.ssh/config@ by default, but you can always specify another path in @auth.cfg@:
+
 [userinfo]
 user = myusername
 password = mypassword
 ssh-config = /path/to/config/file@
 
 An example @~/.ssh/config@ file:
-@Host www.cooldomain.com
+
+bc. Host www.cooldomain.com
     HostName www.cooldomain.com
     IdentityFile ~/.ssh/prod_rsa
     User produser
 Host *.devdomain.com
     IdentityFile ~/.ssh/dev_rsa
-    User devuser@
+    User devuser
 
 h3. Deploying
 
@@ -114,7 +115,8 @@ Once a node has a configfile, the command you will be using most often is @cook 
 
 h3. Consulting the inventory
 
-* @cook list_nodes@: Lists all configured nodes, showing its associated recipes, roles and attributes
+* @cook list_nodes@: Lists all configured nodes, showing its associated recipes and roles
+* @cook list_nodes_detailed@: Same as above, by it also shows attributes
 * @cook list_nodes_with_recipe:MYRECIPE@: The same as above but it only lists nodes which have associated the recipe @MYRECIPE@
 * @cook list_nodes_with_role:MYROLE@: The same as above but it only lists nodes which have associated the role @MYROLE@
 * @cook list_recipes@: Lists all available recipes

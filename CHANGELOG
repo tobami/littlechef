@@ -3,12 +3,17 @@ LittleChef Changelog
 ======================
 
 
-Version 0.5.5
+Version 0.5.5 May 16, 2011
 ----------------------------------------
 * NEW: tow implemented support for ssh-config
 * NEW: split list_nodes into list_nodes and list_nodes_detailed
+* OPTIMIZATION: Speed up node syncing by pushing cookbooks and roles in a single zip
 * FIX#31: Some debian installs were not able to install wget without updating
     the repos first
+* FIX#32: If metadata.json defines no recipes, don't abort. Allows the use of empty
+    cookbooks (libraries for example)
+* FIX: Avoid leaving tmp_node.json around when a configuration run aborts
+* FIX: Display proper error message when there is an error in a role file
 
 
 Version 0.5.4 May 2, 2011
