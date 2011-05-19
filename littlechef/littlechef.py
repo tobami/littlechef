@@ -115,7 +115,8 @@ def recipe(recipe):
         "Executing recipe '{0}' on node {1}".format(recipe, env.host_string))
 
     # Now create configuration and sync node
-    data = {"run_list": ["recipe[{0}]".format(recipe)]}
+    data = lib.get_node(env.host_string)
+    data["run_list"] = ["recipe[{0}]".format(recipe)]
     chef.sync_node(data)
 
 
@@ -130,7 +131,8 @@ def role(role):
         "Applying role '{0}' to node {1}".format(role, env.host_string))
 
     # Now create configuration and sync node
-    data = {"run_list": ["role[{0}]".format(role)]}
+    data = lib.get_node(env.host_string)
+    data["run_list"] = ["role[{0}]".format(role)]
     chef.sync_node(data)
 
 
