@@ -12,10 +12,9 @@ Installing LittleChef to your work computer is all you need to get you started.
 
 It all starts in the **kitchen**, which you should keep under version control:
 
-`auth.cfg`: Authentication information needed to be able to connect to the nodes  
-`nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You can manually   edit them or even add new ones. Note that LittleChef will use the file name as the hostname or IP to connect to the node.  
-
-* `cookbooks/`: This will be your [Cookbooks][] repository  
+* `auth.cfg`: Authentication information needed to be able to connect to the nodes
+* `nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You can manually   edit them or even add new ones. Note that LittleChef will use the file name as the hostname or IP to connect to the node
+* `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined
 
@@ -27,8 +26,8 @@ The result is that you can play as often with your recipes and nodes as you want
 
 ### Requirements
 
--   Python 2.6+
--   Fabric 1.0.1+
+* Python 2.6+
+* Fabric 1.0.1+
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
 `sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
@@ -68,10 +67,10 @@ To be able to issue commands to remote nodes, you need to enter a user and a pas
 The last one allows the most flexibility, as it allows you to define different usernames, passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by default, but you can always specify another path in `auth.cfg`:
 
 ```ini
-    [userinfo]
-    user = myusername
-    password = mypassword
-    ssh-config = /path/to/config/file@
+[userinfo]
+user = myusername
+password = mypassword
+ssh-config = /path/to/config/file@
 ```
 
 An example `~/.ssh/config` file:
@@ -89,13 +88,12 @@ An example `~/.ssh/config` file:
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
-The best way is to use the packages from the [Opscode repository][]:
+The best way is to use the packages from the [Opscode repository][]:  
 `cook node:MYNODE deploy_chef`
 
-LittleChef will try to autodetect the distro type and version of that
-node, and will use the appropriate installation method and packages.
+LittleChef will try to autodetect the distro type and version of that node, and will use the appropriate installation method and packages.
 
-You can also install Chef Solo with gems and/or without asking for confirmation:
+You can also install Chef Solo with gems and/or without asking for confirmation:  
 `cook node:MYNODE deploy_chef:gems=yes,ask=no`
 
 Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS, RHEL, Scientific Linux and Gentoo.
