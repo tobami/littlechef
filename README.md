@@ -70,7 +70,7 @@ The last one allows the most flexibility, as it allows you to define different u
 [userinfo]
 user = myusername
 password = mypassword
-ssh-config = /path/to/config/file@
+ssh-config = /path/to/config/file
 ```
 
 An example `~/.ssh/config` file:
@@ -111,7 +111,7 @@ Note: Don't cook outside of a kitchen!
 * `cook node:all configure`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
 * `cook debug node:MYNODE configure`: You can start all your commands with `cook debug` to see all Chef Solo debugging information
 
-Once a node has a configfile, the command you will be using most often is `cook node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
+Once a node has a config file, the command you will be using most often is `cook node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
 ### Consulting the inventory
 

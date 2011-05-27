@@ -102,11 +102,13 @@ def check_distro():
 def _gem_install():
     """Install Chef from gems"""
     # Install RubyGems from Source
-    run('wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz')
-    run('tar zxf rubygems-1.3.7.tgz')
-    with cd("rubygems-1.3.7"):
-        sudo('ruby setup.rb --no-format-executable')
-    sudo('rm -rf rubygems-1.3.7 rubygems-1.3.7.tgz')
+    rubygems_version = "1.7.2"
+    run('wget http://production.cf.rubygems.org/rubygems/rubygems-{0}.tgz'
+        .format(rubygems_version))
+    run('tar zxf rubygems-{0}.tgz'.format(rubygems_version))
+    with cd('rubygems-{0}'.format(rubygems_version)):
+        sudo('ruby setup.rb --no-format-executable'.format(rubygems_version))
+    sudo('rm -rf rubygems-{0} rubygems-{0}.tgz'.format(rubygems_version))
     sudo('gem install --no-rdoc --no-ri chef')
 
 
