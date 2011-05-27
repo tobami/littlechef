@@ -10,12 +10,14 @@ Installing LittleChef to your work computer is all you need to get you started.
 
 ### How it all works
 
-It all starts in the kitchen, which you should keep under version control:
+It all starts in the **kitchen**, which you should keep under version control:
+
 `auth.cfg`: Authentication information needed to be able to connect to the nodes  
-`nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You can manually edit them or even add new ones. Note that LittleChef will use the file name as the hostname or IP to connect to the node.
-`cookbooks/`: This will be your [Cookbooks][] repository
-`site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
-`roles/`: Where Chef [Roles][] are defined
+`nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You can manually   edit them or even add new ones. Note that LittleChef will use the file name as the hostname or IP to connect to the node.  
+
+* `cookbooks/`: This will be your [Cookbooks][] repository  
+* `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
+* `roles/`: Where Chef [Roles][] are defined
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the `/var/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
@@ -28,16 +30,16 @@ The result is that you can play as often with your recipes and nodes as you want
 -   Python 2.6+
 -   Fabric 1.0.1+
 
-The best way to install LittleChef is using pip. Required packages are installed by typing:
-`sudo apt-get install python-pip python-dev` for Debian and Ubuntu
-or
+The best way to install LittleChef is using pip. Required packages are installed by typing:  
+`sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
+or  
 `yum install python-pip python-devel` for RHEL and CentOS
 
 pip will then take care of the extra Python dependencies
 
 ### Installation
 
-You can install LittleChef directly from the PyPI:
+You can install LittleChef directly from the PyPI:  
 `pip install littlechef`
 
 Note: your distribution may have a `cook` package that also provides a `cook` executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
@@ -48,7 +50,7 @@ Note: your distribution may have a `cook` package that also provides a `cook` ex
 
 Careful what you do with your nodes!:
 
-> A certain famous Chef: What do I always say? Anyone can cook.
+> A certain famous Chef: What do I always say? Anyone can cook.  
 > LittleChef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 ### Local Setup
@@ -59,11 +61,12 @@ Careful what you do with your nodes!:
 
 To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. `new_kitchen` will have created a file named `auth.cfg`. You can edit it now to enter needed authentication data. There are several possibilities:
 
--   username and password
--   username, password and keypair-file
--   A reference to an ssh-config file
+* username and password
+* username, password and keypair-file
+* A reference to an ssh-config file
 
 The last one allows the most flexibility, as it allows you to define different usernames, passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by default, but you can always specify another path in `auth.cfg`:
+
 ```ini
     [userinfo]
     user = myusername
@@ -86,34 +89,25 @@ An example `~/.ssh/config` file:
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
-The best way is to use the packages from the [Opscode repository][]\
+The best way is to use the packages from the [Opscode repository][]:
 `cook node:MYNODE deploy_chef`
 
 LittleChef will try to autodetect the distro type and version of that
 node, and will use the appropriate installation method and packages.
 
-You can also install Chef Solo with gems and/or without asking for
-confirmation:\
+You can also install Chef Solo with gems and/or without asking for confirmation:
 `cook node:MYNODE deploy_chef:gems=yes,ask=no`
 
-Currently supported Linux distributions include Ubuntu, Debian Lenny and
-Squeeze, CentOS, RHEL, Scientific Linux and Gentoo.
+Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS, RHEL, Scientific Linux and Gentoo.
 
-Note that if you already have Chef Solo installed on your nodes, you
-won't need this. Also, if you previously installed Chef using the Gem
-procedure, please don't use the deploy\_chef package installation
-method. Installing Opscode's packages on top of it could be a mess.
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method. Installing Opscode's packages on top of it could be a mess.
 
 ### Cooking
 
 Note: Don't cook outside of a kitchen!
 
 * `cook -l`: Show a list of all available orders
-* `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular
-node by giving its hostname or IP. `nginx::source` “subrecipes” are
-supported.
-Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file.
-You can force the saving of the run with `cook node:MYNODE recipe:MYRECIPE,save=True`
+* `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. `nginx::source` “subrecipes” are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
 * `cook node:MYNODE role:MYROLE`: The same as above but role-based
 * `cook node:MYNODE configure`: Configures a particular pre-configured node
 * `cook node:all configure`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
@@ -137,13 +131,15 @@ Once a node has a configfile, the command you will be using most often is `cook 
 You can import littlechef.py into your own Python project. The following
 script is equivalent to using the `cook` orders:
 
-    from littlechef import littlechef
-    littlechef.env.user = 'MyUsername'
-    littlechef.env.password = 'MyPassword'
-    littlechef.env.host_string = 'MyHostnameOrIP'
-    littlechef.deploy_chef(gems='yes', ask='no')
-    littlechef.recipe('MYRECIPE')#Applies <MYRECIPE> to <MyHostnameOrIP>
-    littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configuration
+```python
+from littlechef import littlechef
+littlechef.env.user = 'MyUsername'
+littlechef.env.password = 'MyPassword'
+littlechef.env.host_string = 'MyHostnameOrIP'
+littlechef.deploy_chef(gems='yes', ask='no')
+littlechef.recipe('MYRECIPE')#Applies <MYRECIPE> to <MyHostnameOrIP>
+littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configuration
+```
 
 ### Other tutorial material
 
