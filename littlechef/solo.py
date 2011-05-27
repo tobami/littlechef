@@ -21,13 +21,13 @@ import littlechef
 from lib import credentials
 
 
-def install(distro_type, distro, gems):
+def install(distro_type, distro, gems, version):
     with credentials():
         if distro_type == "debian":
             if gems == "yes":
                 _gem_apt_install()
             else:
-                _apt_install(distro)
+                _apt_install(distro, version)
         elif distro_type == "rpm":
             if gems == "yes":
                 _gem_rpm_install()
@@ -61,7 +61,7 @@ def configure():
 
 def check_distro():
     """Check that the given distro is supported and return the distro type"""
-    debian_distros = ['sid', 'squeeze', 'lenny']
+    debian_distros = ['wheezy', 'squeeze', 'lenny']
     ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
     rpm_distros = ['centos', 'rhel', 'sl']
 
@@ -74,8 +74,11 @@ def check_distro():
         elif 'Debian GNU/Linux 6.0' in output:
             distro = "squeeze"
             distro_type = "debian"
+        elif 'Debian GNU/Linux wheezy' in output:
+            distro = "wheezy"
+            distro_type = "debian"
         elif 'Ubuntu' in output:
-            distro = sudo('lsb_release -c').split('\t')[-1]
+            distro = sudo('lsb_release -cs')
             distro_type = "debian"
         elif 'CentOS' in output:
             distro = "CentOS"
@@ -128,14 +131,19 @@ def _gem_rpm_install():
     _gem_install()
 
 
-def _apt_install(distro):
+def _apt_install(distro, version):
     """Install Chef for debian based distros"""
     with hide('stdout'):
         # we may not be able to install wget withtout 'apt-get update' first
         sudo('apt-get update')
     sudo('apt-get --yes install wget')
+    if version == "0.9":
+        version = ""
+    else:
+        version = "-" + version
     append('opscode.list',
-        'deb http://apt.opscode.com/ {0} main'.format(distro), use_sudo=True)
+        'deb http://apt.opscode.com/ {0}{1} main'.format(distro, version),
+            use_sudo=True)
     sudo('mv opscode.list /etc/apt/sources.list.d/')
     gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
     sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))

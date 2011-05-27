@@ -85,11 +85,14 @@ def node(host):
         env.hosts = [host]
 
 
-def deploy_chef(gems="no", ask="yes"):
+def deploy_chef(gems="no", ask="yes", version="0.9"):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
-
+    chef_versions = ["0.9", "0.10"]
+    if version not in chef_versions:
+        abort('Wrong Chef version specified. Valid versions are {0}'.format(
+            ", ".join(chef_versions)))
     distro_type, distro = solo.check_distro()
     message = '\nAre you sure you want to install Chef at the node {0}'.format(
         env.host_string)
@@ -100,7 +103,7 @@ def deploy_chef(gems="no", ask="yes"):
     if ask != "no" and not confirm(message):
         abort('Aborted by user')
 
-    solo.install(distro_type, distro, gems)
+    solo.install(distro_type, distro, gems, version)
     solo.configure()
 
 
