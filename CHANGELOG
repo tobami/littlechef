@@ -9,7 +9,8 @@ Version 0.6.0 , 2011
 * NEW: Upgraded to use rubygems 1.7.2 in the gem installation
 * NEW: Added support for deploying Chef on debian wheezy (testing)
 * NEW: aVenger changed the behaviour of the commands 'recipe' and 'role' so that
-    they preserve attributes of node which have a configuration file
+    they preserve attributes of nodes which have a configuration file
+* NEW: Added support for data bags by pushing a Chef Solo patch
 
 
 Version 0.5.5 May 16, 2011

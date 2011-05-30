@@ -29,7 +29,7 @@ class ConfigTest(BaseTest):
         """Should output the correct Little Chef version"""
         resp, error = self.execute(['../cook', '-v'])
         self.assertEquals(error, "")
-        self.assertTrue('LittleChef 0.5.' in resp)
+        self.assertTrue('LittleChef 0.6.' in resp)
 
     def test_list_commands(self):
         """Should output a list of available commands"""

@@ -12,6 +12,7 @@ setup(
     keywords=["chef", "devops"],
     install_requires=['fabric>=1.0.1', 'simplejson'],
     packages=['littlechef'],
+    package_data={'littlechef': ['data_bags_patch.rb']},
     scripts=['cook'],
     classifiers=[
         "Programming Language :: Python",

@@ -26,6 +26,7 @@ from fabric.utils import abort
 
 import littlechef
 import lib
+import solo
 
 
 # Upload sensitive files with secure permissions
@@ -128,7 +129,23 @@ def _synchronize_node(cookbooks):
     print " ({0})".format(", ".join(c for c in cookbooks))
     to_upload = [p for p in cookbooks_by_path.keys()]
     to_upload.append('roles')
+    to_upload.append('data_bags')
     _upload_and_unpack(to_upload)
+    _add_data_bag_patch()
+
+
+def _add_data_bag_patch():
+    """Adds data_bag_lib cookbook, which provides a library to read data bags"""
+    # Create extra cookbook dir
+    lib_path = os.path.join(
+        littlechef.node_work_path, littlechef.cookbook_paths[0],
+        'data_bag_lib', 'libraries')
+    sudo('mkdir -p {0}'.format(lib_path))
+    # Path to local patch 
+    basedir = os.path.abspath(os.path.dirname(__file__).replace('\\','/'))
+    # Create remote data bags patch
+    put(os.path.join(basedir, 'data_bags_patch.rb'),
+        os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
 
 
 def _configure_node(configfile):
@@ -141,7 +158,8 @@ def _configure_node(configfile):
         sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
         # Remove local temporary node file
         os.remove(configfile)
-
+        # Always configure Chef Solo
+        solo.configure()
         print "\n== Cooking ==\n"
         with settings(hide('warnings'), warn_only=True):
             output = sudo(
