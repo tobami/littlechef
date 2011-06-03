@@ -29,10 +29,6 @@ import lib
 import solo
 
 
-# Upload sensitive files with secure permissions
-_file_mode = 400
-
-
 def _save_config(node):
     """Saves node configuration
     if no nodes/hostname.json exists, it creates one
@@ -42,7 +38,7 @@ def _save_config(node):
     files_to_create = ['tmp_node.json']
     if not os.path.exists(filepath):
         # Only save to nodes/ if there is not already a file
-        print "Saving configuration to {0}".format(filepath)
+        print "Saving node configuration to {0}...".format(filepath)
         files_to_create.append(filepath)
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
@@ -62,9 +58,7 @@ def sync_node(node):
 
 
 def _build_node(node):
-    """Performs the Synchronize step of a Chef run:
-    Uploads needed cookbooks and all roles to a node
-    """
+    """Builds a list with all needed cookbooks and their dependencies"""
     cookbooks = []
     # Fetch cookbooks needed for recipes
     for recipe in lib.get_recipes_in_node(node):
@@ -114,6 +108,8 @@ def _build_node(node):
 
 
 def _synchronize_node(cookbooks):
+    """Performs the Synchronize step of a Chef run:
+    Uploads needed cookbooks, all roles and all databags to a node"""
     # Clean up node
     for path in ['roles'] + littlechef.cookbook_paths:
         with hide('stdout'):
@@ -153,7 +149,8 @@ def _configure_node(configfile):
     with hide('running'):
         print "Uploading node.json..."
         remote_file = '/root/{0}'.format(configfile.split("/")[-1])
-        put(configfile, remote_file, use_sudo=True, mode=_file_mode)
+        # Ensure secure permissions
+        put(configfile, remote_file, use_sudo=True, mode=400)
         sudo('chown root:root {0}'.format(remote_file)),
         sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
         # Remove local temporary node file
@@ -205,7 +202,7 @@ def _upload_and_unpack(source):
             'cd tmp && COPYFILE_DISABLE=true tar czf ../{0} --exclude=".svn" .'.format(
                 local_archive))
         # Upload archive to remote
-        put(local_archive, remote_archive, use_sudo=True, mode=_file_mode)
+        put(local_archive, remote_archive, use_sudo=True, mode=400)
         # Remove local copy of archive and directory
         local('rm {0}'.format(local_archive))
         local('chmod -R u+w tmp')

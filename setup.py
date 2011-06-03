@@ -32,13 +32,13 @@ It works as follows: Whenever you apply a recipe to a node, all needed
 cookbooks and its dependencies are gzipped and uploaded to that node. A
 node.json file gets created on the fly and uploaded, and Chef Solo gets
 executed at the remote node, using node.json as the node configuration and the
-pre-installed solo.rb for Chef Solo configuration. Cookbooks and roles are
-configured to be found at (/var/chef-solo/).
+pre-installed solo.rb for Chef Solo configuration. Cookbooks, data bags and roles
+are configured to be found at (/var/chef-solo/).
 
 The result is that you can play as often with your recipes and nodes as you
 want, without having to worry about a central Chef repository, Chef server nor
 anything else. You can make small changes to your cookbooks and test them again
-and again without having to commit the changes. LittleChef brings back sanity
+and again without having to commit the changes. LittleChef brings sanity
 to cookbook development.
 
 .. _Chef: http://wiki.opscode.com/display/chef/Home

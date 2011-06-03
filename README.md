@@ -17,10 +17,11 @@ It all starts in the **kitchen**, which you should keep under version control:
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined
+* `data_bags/`: Chef [Data Bags][]
 
-Whenever you apply a recipe to a node, all needed cookbooks (including dependencies) and all roles are gzipped and uploaded to that node, to the `/var/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Whenever you apply a recipe to a node, all needed cookbooks (including dependencies), all roles and all databags are gzipped and uploaded to that node, to the `/var/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
-The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings back sanity to cookbook development.
+The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings sanity to cookbook development.
 
 ## Installation
 
@@ -54,7 +55,7 @@ Careful what you do with your nodes!:
 
 ### Local Setup
 
-`cook new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `auth.cfg`, `roles/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
+`cook new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `auth.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
 
 ### Authentication
 
@@ -130,13 +131,13 @@ You can import littlechef.py into your own Python project. The following
 script is equivalent to using the `cook` orders:
 
 ```python
-from littlechef import littlechef
-littlechef.env.user = 'MyUsername'
-littlechef.env.password = 'MyPassword'
-littlechef.env.host_string = 'MyHostnameOrIP'
-littlechef.deploy_chef(gems='yes', ask='no')
-littlechef.recipe('MYRECIPE')#Applies <MYRECIPE> to <MyHostnameOrIP>
-littlechef.configure()#Applies again the saved nodes/MyHostnameOrIP.json configuration
+from littlechef import littlechef as lc
+lc.env.user = 'MyUsername'
+lc.env.password = 'MyPassword'
+lc.env.host_string = 'MyHostnameOrIP'
+lc.deploy_chef(gems='yes', ask='no')
+lc.recipe('MYRECIPE')#Applies <MYRECIPE> to <MyHostnameOrIP>
+lc.configure()#Applies the saved nodes/MyHostnameOrIP.json configuration
 ```
 
 ### Other tutorial material
@@ -158,6 +159,7 @@ Happy cooking!
   [Nodes]: http://wiki.opscode.com/display/chef/Nodes
   [Cookbooks]: http://wiki.opscode.com/display/chef/Cookbooks
   [Roles]: http://wiki.opscode.com/display/chef/Roles
+  [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags
   [Opscode repository]: http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo:
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
   [discussion group]: http://groups.google.com/group/littlechef
