@@ -22,22 +22,18 @@ import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-
 from paramiko.config import SSHConfig as _SSHConfig
 
-from version import version
-import solo
-import lib
-import chef
+from littlechef.version import version
+from littlechef import solo
+from littlechef import lib
+from littlechef import chef
+from littlechef import settings
 
 
 # Fabric settings
 env.loglevel = "info"
 fabric.state.output['running'] = False
-# Paths that may contain cookbooks
-cookbook_paths = ['site-cookbooks', 'cookbooks']
-# Node's Chef Solo working directory for storing cookbooks, roles, etc.
-node_work_path = '/var/chef-solo'
 
 
 @hosts('setup')
@@ -201,7 +197,7 @@ def list_nodes_with_role(role):
 @hosts('api')
 def list_recipes():
     """Show a list of all available recipes"""
-    for recipe in lib.get_recipes(cookbook_paths):
+    for recipe in lib.get_recipes():
         margin_left = lib.get_margin(len(recipe['name']))
         print("{0}{1}{2}".format(
             recipe['name'], margin_left, recipe['description']))
@@ -210,7 +206,7 @@ def list_recipes():
 @hosts('api')
 def list_recipes_detailed():
     """Show detailed information for all recipes"""
-    for recipe in lib.get_recipes(cookbook_paths):
+    for recipe in lib.get_recipes():
         lib.print_recipe(recipe)
 
 
@@ -235,9 +231,10 @@ def list_roles_detailed():
 def _readconfig():
     """Configure environment"""
     # Check that all dirs and files are present
-    for dirname in ['nodes', 'roles', 'cookbooks', 'auth.cfg']:
+    for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags', 'auth.cfg']:
         if not os.path.exists(dirname):
-            msg = "You are executing 'cook' outside of a kitchen\n"
+            msg = "Couln't find {0} directory. ".format(dirname)
+            msg += "Are you are executing 'cook' outside of a kitchen\n"
             msg += "To create a new kitchen in the current directory"
             msg += " type 'cook new_kitchen'"
             abort(msg)
@@ -293,14 +290,10 @@ def _readconfig():
     if user_specified and (not env.password and not env.key_filename):
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
-# Test whether we are running from the cook script
-import littlechef
-if littlechef.COOKING:
-    # Littlechef was called from the cook script.
-    # Test whether we are creating a new kitchen.
-    if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
-        # Read configuration
-        _readconfig()
+
+# Only read config if cook is being used and we are not creating a new kitchen
+if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
+    _readconfig()
 else:
     # It has been imported
     pass

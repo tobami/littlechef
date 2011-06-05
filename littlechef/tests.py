@@ -22,6 +22,20 @@ class BaseTest(unittest.TestCase):
             os.remove('tmp_node.json')
 
 
+class TestLib(BaseTest):
+    def test_list_nodes(self):
+        expected = [
+            {'littlechef': {'nodename': 'testnode'},
+            'run_list': ['recipe[subversion]']}]
+        self.assertEquals(lib.get_nodes(), expected)
+
+    def test_list_recipes(self):
+        recipes = lib.get_recipes()
+        self.assertEquals(len(recipes), 3)
+        self.assertEquals(recipes[1]['description'], 'Subversion Client installs subversion and some extra svn libs')
+        self.assertEquals(recipes[2]['name'], 'subversion::server')
+
+
 class TestChef(BaseTest):
     def test_save_config(self):
         """Should create tmp_node.json and a nodes/testnode2.json config file"""
@@ -46,7 +60,7 @@ class TestChef(BaseTest):
         env.host_string = 'testnode'
         cookbooks = chef._build_node(lib.get_node(env.host_string))
         self.assertEquals(cookbooks, ['subversion'])
-        #TODO: add
+        #TODO: add more cookbooks with dependencies, add apache2
 
 
 if __name__ == "__main__":

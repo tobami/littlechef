@@ -20,6 +20,8 @@ from fabric import colors
 from fabric.api import env, settings
 from fabric.utils import abort
 
+from littlechef.settings import cookbook_paths
+
 
 def get_nodes():
     """Gets all nodes found in the nodes/ directory"""
@@ -78,7 +80,7 @@ def print_node(node, detailed=False):
         print "    {0}: {1}".format(attribute, node[attribute])
 
 
-def get_recipes_in_cookbook(name, cookbook_paths):
+def get_recipes_in_cookbook(name):
     """Gets the name of all recipes present in a cookbook"""
     recipes = []
     path = None
@@ -140,13 +142,13 @@ def get_recipes_in_node(node):
     return recipes
 
 
-def get_recipes(cookbook_paths):
+def get_recipes():
     """Gets all recipes found in the cookbooks/ directory"""
     recipes = []
     for dirname in sorted(
         [d for d in os.listdir('cookbooks') if os.path.isdir(
             os.path.join('cookbooks', d)) and not d.startswith('.')]):
-        recipes.extend(get_recipes_in_cookbook(dirname, cookbook_paths))
+        recipes.extend(get_recipes_in_cookbook(dirname))
     return recipes
 
 
@@ -214,7 +216,7 @@ def print_role(role, detailed=True):
     print("")
 
 
-def get_cookbook_path(cookbook_name, cookbook_paths):
+def get_cookbook_path(cookbook_name):
     """Returns path to the cookbook for the given cookbook name"""
     for cookbook_path in cookbook_paths:
         path = os.path.join(cookbook_path, cookbook_name)

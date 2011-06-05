@@ -6,11 +6,10 @@ from subprocess import call
 
 file_path = None
 try:
-    import littlechef
-    # Set a flag so that we know we were called from cook
-    littlechef.COOKING = True
-    file_path = re.sub(r'\.pyc$', '.py', littlechef.__file__)
-    import littlechef.littlechef
+    import littlechef # Needed later for version
+    # Get fabfile full path
+    from littlechef import runner
+    file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
 except ImportError:
     print("LittleChef was not correctly installed: Couldn't import littlechef.py")
     sys.exit(1)

@@ -131,7 +131,7 @@ You can import littlechef.py into your own Python project. The following
 script is equivalent to using the `cook` orders:
 
 ```python
-from littlechef import littlechef as lc
+from littlechef import runner as lc
 lc.env.user = 'MyUsername'
 lc.env.password = 'MyPassword'
 lc.env.host_string = 'MyHostnameOrIP'

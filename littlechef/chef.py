@@ -24,9 +24,9 @@ from fabric.contrib.files import append, exists
 from fabric import colors
 from fabric.utils import abort
 
-import littlechef
-import lib
-import solo
+from littlechef import lib
+from littlechef import solo
+from littlechef.settings import node_work_path, cookbook_paths
 
 
 def _save_config(node):
@@ -88,12 +88,11 @@ def _build_node(node):
     # Fetch dependencies
     warnings = []
     for cookbook in cookbooks:
-        for recipe in lib.get_recipes_in_cookbook(
-                                        cookbook, littlechef.cookbook_paths):
+        for recipe in lib.get_recipes_in_cookbook(cookbook):
             for dep in recipe['dependencies']:
                 if dep not in cookbooks:
                     try:
-                        lib.get_cookbook_path(dep, littlechef.cookbook_paths)
+                        lib.get_cookbook_path(dep)
                         cookbooks.append(dep)
                     except IOError:
                         if dep not in warnings:
@@ -111,13 +110,13 @@ def _synchronize_node(cookbooks):
     """Performs the Synchronize step of a Chef run:
     Uploads needed cookbooks, all roles and all databags to a node"""
     # Clean up node
-    for path in ['roles'] + littlechef.cookbook_paths:
+    for path in ['roles'] + cookbook_paths:
         with hide('stdout'):
-            sudo('rm -rf {0}/{1}'.format(littlechef.node_work_path, path))
+            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
 
     cookbooks_by_path = {}
     for cookbook in cookbooks:
-        for cookbook_path in littlechef.cookbook_paths:
+        for cookbook_path in cookbook_paths:
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
@@ -133,9 +132,8 @@ def _synchronize_node(cookbooks):
 def _add_data_bag_patch():
     """Adds data_bag_lib cookbook, which provides a library to read data bags"""
     # Create extra cookbook dir
-    lib_path = os.path.join(
-        littlechef.node_work_path, littlechef.cookbook_paths[0],
-        'data_bag_lib', 'libraries')
+    lib_path = os.path.join(node_work_path, cookbook_paths[0],
+                                'data_bag_lib', 'libraries')
     sudo('mkdir -p {0}'.format(lib_path))
     # Path to local patch 
     basedir = os.path.abspath(os.path.dirname(__file__).replace('\\','/'))
@@ -207,17 +205,17 @@ def _upload_and_unpack(source):
         local('rm {0}'.format(local_archive))
         local('chmod -R u+w tmp')
         local('rm -rf tmp')
-        if not exists(littlechef.node_work_path):
+        if not exists(node_work_path):
             # Report error with remote paths
-            msg = "the {0} directory was".format(littlechef.node_work_path)
+            msg = "the {0} directory was".format(node_work_path)
             msg += " not found at the node. Is Chef correctly installed?"
             msg += "\nYou can deploy chef-solo by typing:\n"
             msg += "  cook node:{0} deploy_chef".format(env.host)
             abort(msg)
-        with cd(littlechef.node_work_path):
+        with cd(node_work_path):
             # Install the remote copy of archive
             sudo('tar xzf {0}'.format(remote_archive))
             # Fix ownership
-            sudo('chown -R root:root {0}'.format(littlechef.node_work_path))
+            sudo('chown -R root:root {0}'.format(node_work_path))
             # Remove the remote copy of archive
             sudo('rm {0}'.format(remote_archive))
