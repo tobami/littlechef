@@ -1,15 +1,16 @@
-======================
+====================
 LittleChef Changelog
-======================
+====================
 
 
-Version 0.6.0 , 2011
+Version 0.6.0 June 3, 2011
 ----------------------------------------
+* NEW: Added support for data bags thanks to Brian Akins's Chef Solo patch
 * NEW: Added option to install Chef 0.10 from debian packages. Not yet default
 * NEW: Upgraded to use rubygems 1.7.2 in the gem installation
 * NEW: Added support for deploying Chef on debian wheezy (testing)
 * NEW: aVenger changed the behaviour of the commands 'recipe' and 'role' so that
-    they preserve attributes of node which have a configuration file
+    they preserve attributes of nodes which already have a configuration file
 
 
 Version 0.5.5 May 16, 2011

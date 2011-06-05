@@ -42,19 +42,23 @@ def install(distro_type, distro, gems, version):
 def configure():
     """Deploy chef-solo specific files"""
     with credentials():
-        sudo('mkdir -p {0}'.format(littlechef.node_work_path))
         sudo('mkdir -p {0}/cache'.format(littlechef.node_work_path))
         sudo('umask 0377; touch solo.rb')
-        append('solo.rb', 'file_cache_path "{0}/cache"'.format(
-            littlechef.node_work_path), use_sudo=True)
+        text = ""
+        text += 'file_cache_path "{0}/cache"'.format(littlechef.node_work_path)
+        text += "\n"
         reversed_cookbook_paths = littlechef.cookbook_paths[:]
         reversed_cookbook_paths.reverse()
         cookbook_paths_line = 'cookbook_path [{0}]'.format(', '.join(
-            ['''"{0}/{1}"'''.format(littlechef.node_work_path, x) \
+            ['"{0}/{1}"'.format(littlechef.node_work_path, x) \
                 for x in reversed_cookbook_paths]))
-        append('solo.rb', cookbook_paths_line, use_sudo=True)
-        append('solo.rb', 'role_path "{0}/roles"'.format(
-            littlechef.node_work_path), use_sudo=True)
+        text += cookbook_paths_line + "\n"
+        text += cookbook_paths_line + "\n"
+        text += 'role_path "{0}/roles"'.format(
+                                            littlechef.node_work_path) + "\n"
+        text += 'data_bag_path "{0}/data_bags"'.format(
+                                            littlechef.node_work_path) + "\n"
+        append('solo.rb', text, use_sudo=True)
         sudo('mkdir -p /etc/chef')
         sudo('mv solo.rb /etc/chef/')
 

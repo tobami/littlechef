@@ -53,6 +53,7 @@ def new_kitchen():
     def _mkdir(d):
         if not os.path.exists(d):
             os.mkdir(d)
+            # Add an empty README so that it can be added to version control
             readme_path = os.path.join(d, 'README')
             if not os.path.exists(readme_path):
                 with open(readme_path, "w") as readme:
@@ -61,8 +62,10 @@ def new_kitchen():
 
     _mkdir("nodes")
     _mkdir("roles")
+    _mkdir("data_bags")
     for cookbook_path in cookbook_paths:
         _mkdir(cookbook_path)
+    # Add skeleton auth.cfg
     if not os.path.exists("auth.cfg"):
         with open("auth.cfg", "w") as authfh:
             print >> authfh, "[userinfo]"
@@ -108,7 +111,8 @@ def deploy_chef(gems="no", ask="yes", version="0.9"):
 
 
 def recipe(recipe):
-    """Apply the given recipe to a node, ignoring any existing configuration
+    """Apply the given recipe to a node
+    Sets the run_list to the given recipe
     If no nodes/hostname.json file exists, it creates one
     """
     # Check that a node has been selected
@@ -124,7 +128,8 @@ def recipe(recipe):
 
 
 def role(role):
-    """Apply the given role to a node, ignoring any existing configuration
+    """Apply the given role to a node
+    Sets the run_list to the given role
     If no nodes/hostname.json file exists, it creates one
     """
     # Check that a node has been selected

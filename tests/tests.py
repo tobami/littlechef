@@ -29,7 +29,7 @@ class ConfigTest(BaseTest):
         """Should output the correct Little Chef version"""
         resp, error = self.execute(['../cook', '-v'])
         self.assertEquals(error, "")
-        self.assertTrue('LittleChef 0.5.' in resp)
+        self.assertTrue('LittleChef 0.6.' in resp)
 
     def test_list_commands(self):
         """Should output a list of available commands"""
@@ -69,8 +69,12 @@ class CookbookTest(BaseTest):
         cookbooks_path = os.path.dirname(os.path.abspath(__file__))
         bad_cookbook = os.path.join(cookbooks_path, 'cookbooks', 'bad_cookbook')
         os.mkdir(bad_cookbook)
-        resp, error = self.execute(['../cook', 'list_recipes'])
-        os.rmdir(bad_cookbook)
+        try:
+            resp, error = self.execute(['../cook', 'list_recipes'])
+        except OSError:
+            self.fail("Couldn't execute '../cook'")
+        finally:
+            os.rmdir(bad_cookbook)
         expected = 'Fatal error: Cookbook "bad_cookbook" has no metadata.json'
         self.assertTrue(expected in error)
 
