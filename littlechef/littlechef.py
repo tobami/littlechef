@@ -288,10 +288,14 @@ def _readconfig():
     if user_specified and (not env.password and not env.key_filename):
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
-
-if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
-    # If littlechef.py has been called from the cook script, read configuration
-    _readconfig()
+# Test whether we are running from the cook script
+import littlechef
+if littlechef.COOKING:
+    # Littlechef was called from the cook script.
+    # Test whether we are creating a new kitchen.
+    if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
+        # Read configuration
+        _readconfig()
 else:
-    # If it has been imported (usually len(sys.argv) < 4) don't read auth.cfg
+    # It has been imported
     pass
