@@ -6,11 +6,16 @@ from subprocess import call
 
 file_path = None
 try:
-    from littlechef import littlechef
+    import littlechef
+    # Set a flag so that we know we were called from cook
+    littlechef.COOKING = True
     file_path = re.sub(r'\.pyc$', '.py', littlechef.__file__)
+    import littlechef.littlechef
 except ImportError:
     print("LittleChef was not correctly installed: Couldn't import littlechef.py")
     sys.exit(1)
+
+
 
 # Act on some arguments and pass the rest to fabric
 args = ['fab', '-f', file_path]
