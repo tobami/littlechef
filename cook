@@ -6,7 +6,7 @@ import os
 
 # Messages
 NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
-VERSION = 'LittleChef {0}'.format(littlechef.version)
+VERSION = 'LittleChef {0}'
 INSTALL_ERROR = "LittleChef was not correctly installed: "\
               "Couldn't import littlechef.py"
               
@@ -38,7 +38,7 @@ else:
         # Check for version, that overrides everything else.
         for arg in '-v', '-V', '--version':
             if arg in sys.argv: 
-                print(VERSION)
+                print(VERSION.format(littlechef.version))
                 sys.exit(0)
         # Otherwise, insert our fabfile at the correct place
         if cook_cmd: sys.argv[1:1] = ['-f', file_path]
