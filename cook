@@ -2,9 +2,14 @@
 import sys
 import re
 import os
-from subprocess import call
 
 
+# Messages
+NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
+VERSION = 'LittleChef {0}'.format(littlechef.version)
+INSTALL_ERROR = "LittleChef was not correctly installed: "\
+              "Couldn't import littlechef.py"
+              
 file_path = None
 try:
     import littlechef # Needed later for version
@@ -12,14 +17,10 @@ try:
     from littlechef import runner
     file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
 except ImportError:
-    print("LittleChef was not correctly installed: Couldn't import littlechef.py")
+    print(INSTALL_ERROR)
     sys.exit(1)
 
 import fabric.main
-
-# Messages
-NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
-VERSION = 'LittleChef {0}'.format(littlechef.version)
 
 # Work with args list
 

@@ -292,8 +292,11 @@ def _readconfig():
 
 
 # Only read config if cook is being used and we are not creating a new kitchen
-if len(sys.argv) > 3 and sys.argv[1] == "-f" and sys.argv[3] != "new_kitchen":
-    _readconfig()
+import littlechef
+if littlechef.COOKING:
+    # Called from command line
+    if 'new_kitchen' not in sys.argv:
+         _readconfig()   
 else:
     # It has been imported
     pass
