@@ -59,7 +59,7 @@ def new_kitchen():
     _mkdir("nodes")
     _mkdir("roles")
     _mkdir("data_bags")
-    for cookbook_path in cookbook_paths:
+    for cookbook_path in settings.cookbook_paths:
         _mkdir(cookbook_path)
     # Add skeleton auth.cfg
     if not os.path.exists("auth.cfg"):
