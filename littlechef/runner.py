@@ -233,7 +233,7 @@ def _readconfig():
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags', 'auth.cfg']:
         if not os.path.exists(dirname):
-            msg = "Couln't find {0} directory. ".format(dirname)
+            msg = "Couldn't find {0} directory. ".format(dirname)
             msg += "Are you are executing 'cook' outside of a kitchen\n"
             msg += "To create a new kitchen in the current directory"
             msg += " type 'cook new_kitchen'"
