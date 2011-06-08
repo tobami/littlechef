@@ -27,7 +27,7 @@ class BaseTest(unittest.TestCase):
         
     def execute(self, call, cd=True):
         """Executes a command and returns stdout and stderr"""
-        if WIN32: proc = subprocess.Popen(call, shell=True,
+        if WIN32: proc = subprocess.Popen(call,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else: proc = subprocess.Popen(call, 
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)

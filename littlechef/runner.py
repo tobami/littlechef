@@ -228,16 +228,28 @@ def list_roles_detailed():
 
 
 # Check that user is cooking inside a kitchen and configure authentication #
+def _check_appliances():
+    """Look around and return True/False based on whether we are in a kitchen"""
+    names = os.listdir(os.getcwd())
+    missing = []
+    for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+        if (dirname not in names) or (not os.path.isdir(dirname)):
+            missing.append(dirname)
+    if 'auth.cfg' not in names:
+        missing.append('auth.cfg')
+    return (not bool(missing)), missing
+
 def _readconfig():
     """Configure environment"""
     # Check that all dirs and files are present
-    for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags', 'auth.cfg']:
-        if not os.path.exists(dirname):
-            msg = "Couldn't find the {0} directory. ".format(dirname)
-            msg += "Are you are executing 'cook' outside of a kitchen\n"
-            msg += "To create a new kitchen in the current directory"
-            msg += " type 'cook new_kitchen'"
-            abort(msg)
+    in_a_kitchen, missing = _check_appliances()
+    missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
+    if not in_a_kitchen:
+        msg = "Couldn't find {0}. ".format(missing_str(missing))
+        msg += "Are you are executing 'cook' outside of a kitchen?\n"\
+               "To create a new kitchen in the current directory "\
+               " type 'cook new_kitchen'"
+        abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
 
