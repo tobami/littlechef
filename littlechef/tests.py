@@ -2,23 +2,30 @@ import unittest
 import os
 import shutil
 import json
-
+from os.path import join, split, sep, normpath, abspath, exists
 from fabric.api import *
 
+import littlechef
 import chef
 import lib
 
+# Set some convenience variables
+littlechef_src = split(normpath(abspath(littlechef.__file__)))[0]
+littlechef_top = normpath(join(littlechef_src, '..'))
+littlechef_tests = join(littlechef_top, 'tests')
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
         """Simulate we are inside a kitchen"""
-        for d in ['nodes', 'roles', 'cookbooks']:
-            shutil.copytree('../tests/{0}'.format(d), d)
+        # Orient ourselves
+        os.chdir(littlechef_src)
+        for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+            shutil.copytree(join(littlechef_tests, '{0}'.format(d)), d)
 
     def tearDown(self):
-        for d in ['nodes', 'roles', 'cookbooks']:
+        for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
             shutil.rmtree(d)
-        if os.path.exists('tmp_node.json'):
+        if exists('tmp_node.json'):
             os.remove('tmp_node.json')
 
 
@@ -42,15 +49,15 @@ class TestChef(BaseTest):
         env.host_string = 'testnode2'
         run_list = ["role[testrole]"]
         chef._save_config({"run_list": run_list})
-        self.assertTrue(os.path.exists(os.path.join('nodes/', 'testnode2.json')))
-        with open('nodes/' + 'testnode2.json', 'r') as f:
+        self.assertTrue(exists(join('nodes', 'testnode2.json')))
+        with open(join('nodes','testnode2.json'), 'r') as f:
             data = json.loads(f.read())
             self.assertEquals(data['run_list'], run_list)
         # It should't overwrite existing config files
         env.host_string = 'testnode'# This node exists
         run_list = ["role[testrole]"]
         chef._save_config({"run_list": run_list})
-        with open('nodes/' + 'testnode.json', 'r') as f:
+        with open(join('nodes','testnode.json'), 'r') as f:
             data = json.loads(f.read())
             # It should *NOT* have "testrole" assigned
             self.assertEquals(data['run_list'], ["recipe[subversion]"])
