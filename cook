@@ -9,12 +9,13 @@ NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
 VERSION = 'LittleChef {0}'
 INSTALL_ERROR = "LittleChef was not correctly installed: "\
               "Couldn't import littlechef.py"
-              
+
 file_path = None
 try:
     import littlechef # Needed later for version
+    littlechef.COOKING = True
     # Get fabfile full path
-    from littlechef import runner
+    from littlechef import runner # Checks that we are able to import module
     file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
 except ImportError:
     print(INSTALL_ERROR)
@@ -23,8 +24,7 @@ except ImportError:
 import fabric.main
 
 # Work with args list
-
-if not sys.argv: 
+if not sys.argv:
     print(NO_ORDER)
 else:
     if (os.path.basename(sys.argv[0]).startswith('cook')):
@@ -41,9 +41,9 @@ else:
                 print(VERSION.format(littlechef.version))
                 sys.exit(0)
         # Otherwise, insert our fabfile at the correct place
-        if cook_cmd: sys.argv[1:1] = ['-f', file_path]
-        else: sys.argv[0:0] = ['-f', file_path]
+        if cook_cmd:
+            sys.argv[1:1] = ['-f', file_path]
+        else:
+            sys.argv[0:0] = ['-f', file_path]
         # Pass control over to  fabric
         fabric.main.main()
-
-
