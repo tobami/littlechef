@@ -120,7 +120,7 @@ def _synchronize_node(cookbooks):
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
-    print "Uploading roles and cookbooks:"
+    print "Uploading roles, cookbooks and data bags:"
     print " ({0})".format(", ".join(c for c in cookbooks))
     to_upload = [p for p in cookbooks_by_path.keys()]
     to_upload.append('roles')

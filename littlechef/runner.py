@@ -77,7 +77,7 @@ def node(host):
     """Select a node"""
     if host == 'all':
         for node in lib.get_nodes():
-            env.hosts.append(node['littlechef']['nodename'])
+            env.hosts.append(node['name'])
         if not len(env.hosts):
             abort('No nodes found')
     else:

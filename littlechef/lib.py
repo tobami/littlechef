@@ -33,9 +33,8 @@ def get_nodes():
                                     and not f.startswith('.')]):
         hostname = ".".join(filename.split('.')[:-1])#remove .json from name
         node = get_node(hostname)
-        # Don't append "nodename" to the root namespace
-        # because it could colide with some cookbook's attribute
-        node['littlechef'] = {'nodename': hostname}
+        # Add node name so that we can tell to which node the data belongs to
+        node['name'] = hostname
         nodes.append(node)
     return nodes
 
@@ -43,7 +42,7 @@ def get_nodes():
 def get_node(name):
     node_path = os.path.join("nodes", name + ".json")
     if not os.path.exists(node_path):
-        abort("No config file found for node '{0}'".format(name))
+        return {'run_list': []}
     # Read node.json
     with open(node_path, 'r') as f:
         try:
@@ -57,7 +56,7 @@ def get_node(name):
 
 def print_node(node, detailed=False):
     """Pretty prints the given node"""
-    nodename = node['littlechef']['nodename']
+    nodename = node['name']
     print(colors.yellow("\n" + nodename))
     # Roles
     if detailed:

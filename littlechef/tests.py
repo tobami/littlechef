@@ -23,16 +23,23 @@ class BaseTest(unittest.TestCase):
 
 
 class TestLib(BaseTest):
+    def test_get_node(self):
+        """Should get data for a given node, empty when it doesn't exist"""
+        expected = {'run_list': []}
+        self.assertEquals(lib.get_node('Idon"texist'), expected)
+        expected = {'run_list': ['recipe[subversion]']}
+        self.assertEquals(lib.get_node('testnode'), expected)
+
     def test_list_nodes(self):
-        expected = [
-            {'littlechef': {'nodename': 'testnode'},
-            'run_list': ['recipe[subversion]']}]
+        """Should list all configured nodes"""
+        expected = [{'name': 'testnode', 'run_list': ['recipe[subversion]']}]
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_list_recipes(self):
         recipes = lib.get_recipes()
         self.assertEquals(len(recipes), 3)
-        self.assertEquals(recipes[1]['description'], 'Subversion Client installs subversion and some extra svn libs')
+        self.assertEquals(recipes[1]['description'],
+            'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[2]['name'], 'subversion::server')
 
 
