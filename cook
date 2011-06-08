@@ -1,29 +1,49 @@
 #!/usr/bin/env python
 import sys
 import re
-from subprocess import call
+import os
 
 
+# Messages
+NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
+VERSION = 'LittleChef {0}'
+INSTALL_ERROR = "LittleChef was not correctly installed: "\
+              "Couldn't import littlechef.py"
+              
 file_path = None
 try:
-    from littlechef import littlechef
-    file_path = re.sub(r'\.pyc$', '.py', littlechef.__file__)
+    import littlechef # Needed later for version
+    # Get fabfile full path
+    from littlechef import runner
+    file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
 except ImportError:
-    print("LittleChef was not correctly installed: Couldn't import littlechef.py")
+    print(INSTALL_ERROR)
     sys.exit(1)
 
-# Act on some arguments and pass the rest to fabric
-args = ['fab', '-f', file_path]
-if len(sys.argv) > 1:
-    for arg in sys.argv[1:]:
-        if arg == '-v' or arg == '-V' or arg == '--version':
-            print('LittleChef {0}'.format(littlechef.version))
-            sys.argv.remove(arg)
-            sys.exit(0)
-        else:
-            args.append(arg)
-else:
-    sys.exit("No order given. Type 'cook -l' for a list of orders\n")
+import fabric.main
 
-# Call fabric with the given arguments
-call(args)
+# Work with args list
+
+if not sys.argv: 
+    print(NO_ORDER)
+else:
+    if (os.path.basename(sys.argv[0]).startswith('cook')):
+        cook_cmd = sys.argv[0]
+    else:
+        cook_cmd = None
+    if len(sys.argv) == 1 and cook_cmd:
+        # All that is in sys.argv is the cook command.
+        print(NO_ORDER)
+    else:
+        # Check for version, that overrides everything else.
+        for arg in '-v', '-V', '--version':
+            if arg in sys.argv: 
+                print(VERSION.format(littlechef.version))
+                sys.exit(0)
+        # Otherwise, insert our fabfile at the correct place
+        if cook_cmd: sys.argv[1:1] = ['-f', file_path]
+        else: sys.argv[0:0] = ['-f', file_path]
+        # Pass control over to  fabric
+        fabric.main.main()
+
+
