@@ -1,7 +1,10 @@
 """LittleChef's setup.py"""
-try: from setuptools import setup
-except ImportError: from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 import platform
+
 
 scripts = ['cook']
 if platform.system() == 'Windows':

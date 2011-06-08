@@ -28,7 +28,7 @@ from littlechef.version import version
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef import settings
+from littlechef.settings import cookbook_paths
 
 
 # Fabric settings
@@ -59,7 +59,7 @@ def new_kitchen():
     _mkdir("nodes")
     _mkdir("roles")
     _mkdir("data_bags")
-    for cookbook_path in settings.cookbook_paths:
+    for cookbook_path in cookbook_paths:
         _mkdir(cookbook_path)
     # Add skeleton auth.cfg
     if not os.path.exists("auth.cfg"):
@@ -77,7 +77,7 @@ def node(host):
     """Select a node"""
     if host == 'all':
         for node in lib.get_nodes():
-            env.hosts.append(node['littlechef']['nodename'])
+            env.hosts.append(node['name'])
         if not len(env.hosts):
             abort('No nodes found')
     else:
@@ -233,7 +233,7 @@ def _readconfig():
     # Check that all dirs and files are present
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags', 'auth.cfg']:
         if not os.path.exists(dirname):
-            msg = "Couldn't find {0} directory. ".format(dirname)
+            msg = "Couldn't find the {0} directory. ".format(dirname)
             msg += "Are you are executing 'cook' outside of a kitchen\n"
             msg += "To create a new kitchen in the current directory"
             msg += " type 'cook new_kitchen'"
@@ -296,7 +296,7 @@ import littlechef
 if littlechef.COOKING:
     # Called from command line
     if 'new_kitchen' not in sys.argv:
-         _readconfig()   
+         _readconfig()
 else:
-    # It has been imported
+    # runner module has been imported
     pass
