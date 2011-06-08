@@ -25,7 +25,7 @@ class BaseTest(unittest.TestCase):
         """Change directories to a known location"""
         os.chdir(location)
         
-    def execute(self, call, cd=True):
+    def execute(self, call):
         """Executes a command and returns stdout and stderr"""
         if WIN32: proc = subprocess.Popen(call,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
