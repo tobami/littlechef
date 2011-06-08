@@ -17,7 +17,7 @@ It all starts in the **kitchen**, which you should keep under version control:
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined
-* `data_bags/`: Chef [Data Bags][]
+* `data_bags/`: Chef [Data Bags][]. Note that search for data bags doesn't work yet with Chef Solo
 
 Whenever you apply a recipe to a node, all needed cookbooks (including dependencies), all roles and all databags are gzipped and uploaded to that node, to the `/var/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
@@ -97,7 +97,7 @@ LittleChef will try to autodetect the distro type and version of that node, and 
 You can also install Chef Solo with gems and/or without asking for confirmation:  
 `cook node:MYNODE deploy_chef:gems=yes,ask=no`
 
-Currently supported Linux distributions include Ubuntu, Debian Lenny and Squeeze, CentOS, RHEL, Scientific Linux and Gentoo.
+Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux and Gentoo.
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method. Installing Opscode's packages on top of it could be a mess.
 
@@ -106,9 +106,9 @@ Note that if you already have Chef Solo installed on your nodes, you won't need 
 Note: Don't cook outside of a kitchen!
 
 * `cook -l`: Show a list of all available orders
-* `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. `nginx::source` “subrecipes” are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
+* `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
 * `cook node:MYNODE role:MYROLE`: The same as above but role-based
-* `cook node:MYNODE configure`: Configures a particular pre-configured node
+* `cook node:MYNODE configure`: Configures a pre-configured node
 * `cook node:all configure`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
 * `cook debug node:MYNODE configure`: You can start all your commands with `cook debug` to see all Chef Solo debugging information
 
