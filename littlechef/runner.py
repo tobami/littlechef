@@ -255,6 +255,7 @@ def _readconfig():
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
+    env.ssh_config = None
     try:
         ssh_config = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
@@ -275,8 +276,6 @@ def _readconfig():
         except Exception:
             msg = "Couldn't parse the ssh-config file '{0}'".format(ssh_config)
             abort(msg)
-    else:
-        env.ssh_config = None
 
     try:
         env.user = config.get('userinfo', 'user')
@@ -311,4 +310,4 @@ if littlechef.COOKING:
          _readconfig()
 else:
     # runner module has been imported
-    pass
+    env.ssh_config = None
