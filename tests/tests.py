@@ -4,11 +4,13 @@ import os
 import platform
 from os.path import join, sep, normpath, abspath, split
 
+
 # Set some convenience variables
 import littlechef
 littlechef_src = split(normpath(abspath(littlechef.__file__)))[0]
 littlechef_top = normpath(join(littlechef_src, '..'))
 littlechef_tests = join(littlechef_top, 'tests')
+
 if platform.system() == 'Windows':
     cook = join(littlechef_top, 'cook.cmd')
     WIN32 = True
@@ -16,25 +18,28 @@ else:
     cook = join(littlechef_top,'cook')
     WIN32 = False
 
+
 class BaseTest(unittest.TestCase):
     def setUp(self):
         """Change to the test directory"""
         self.set_location()
-        
+
     def set_location(self, location=littlechef_tests):
         """Change directories to a known location"""
         os.chdir(location)
-        
+
     def execute(self, call):
         """Executes a command and returns stdout and stderr"""
-        if WIN32: proc = subprocess.Popen(call,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else: proc = subprocess.Popen(call, 
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if WIN32:
+            proc = subprocess.Popen(call,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            proc = subprocess.Popen(call,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return proc.communicate()
 
 
-class ConfigTest(BaseTest):
+class TestConfig(BaseTest):
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to parent dir, which has no nodes/cookbooks/roles dir
@@ -61,7 +66,7 @@ class ConfigTest(BaseTest):
         self.assertEquals(len(resp.split('\n')), 20)
 
 
-class CookbookTest(BaseTest):
+class TestCookbook(BaseTest):
     def test_list_recipes(self):
         """Should list available recipes"""
         resp, error = self.execute([cook, 'list_recipes'])
@@ -88,8 +93,7 @@ class CookbookTest(BaseTest):
 
     def test_no_metadata(self):
         """Should abort if cookbook has no metadata.json"""
-        cookbooks_path = os.path.dirname(os.path.abspath(__file__))
-        bad_cookbook = join(cookbooks_path, 'cookbooks', 'bad_cookbook')
+        bad_cookbook = join(littlechef_tests, 'cookbooks', 'bad_cookbook')
         os.mkdir(bad_cookbook)
         try:
             resp, error = self.execute([cook, 'list_recipes'])
@@ -101,14 +105,14 @@ class CookbookTest(BaseTest):
         self.assertTrue(expected in error)
 
 
-class RoleTest(BaseTest):
+class TestRole(BaseTest):
     def test_list_roles(self):
         """Should list all roles"""
         resp, error = self.execute([cook, 'list_roles'])
         self.assertTrue('base' in resp and 'example aplication' in resp)
 
 
-class NodeTest(BaseTest):
+class TestNode(BaseTest):
     def test_list_nodes(self):
         """Should list all nodes"""
         resp, error = self.execute([cook, 'list_nodes'])

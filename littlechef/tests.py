@@ -1,18 +1,35 @@
+#Copyright 2010-2011 Miquel Torres <tobami@googlemail.com>
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+#
 import unittest
 import os
 import shutil
 import json
 from os.path import join, split, sep, normpath, abspath, exists
+
 from fabric.api import *
 
-import littlechef
 import chef
 import lib
+import runner
 
-# Set some convenience variables
-littlechef_src = split(normpath(abspath(littlechef.__file__)))[0]
+
+# Set paths
+littlechef_src = split(normpath(abspath(__file__)))[0]
 littlechef_top = normpath(join(littlechef_src, '..'))
 littlechef_tests = join(littlechef_top, 'tests')
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
@@ -21,12 +38,28 @@ class BaseTest(unittest.TestCase):
         os.chdir(littlechef_src)
         for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
             shutil.copytree(join(littlechef_tests, '{0}'.format(d)), d)
+        shutil.copy(join(littlechef_tests, 'auth.cfg'), littlechef_src)
 
     def tearDown(self):
+        os.chdir(littlechef_src)
         for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
             shutil.rmtree(d)
         if exists('tmp_node.json'):
             os.remove('tmp_node.json')
+        os.remove('auth.cfg')
+
+
+class TestRunner(BaseTest):
+    def test_not_a_kitchen(self):
+        """Should exit with error when not a kitchen directory"""
+        # Change to a directory which is not a kitchen
+        os.chdir(littlechef_top)
+        self.assertRaises(SystemExit, runner._readconfig)
+
+    def test_readconfig(self):
+        """Should read auth.cfg and properly configure variables"""
+        runner._readconfig()
+        self.assertEquals(env.password, 'testpass')
 
 
 class TestLib(BaseTest):

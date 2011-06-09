@@ -10,6 +10,7 @@ VERSION = 'LittleChef {0}'
 INSTALL_ERROR = "LittleChef was not correctly installed: "\
               "Couldn't import littlechef.py"
 
+## Try to import package and set the fabfile path ##
 file_path = None
 try:
     import littlechef # Needed later for version
@@ -21,13 +22,15 @@ except ImportError:
     print(INSTALL_ERROR)
     sys.exit(1)
 
+## Process args list and call fabric main() ##
 import fabric.main
 
-# Work with args list
+# Work on arguments
 if not sys.argv:
     print(NO_ORDER)
 else:
     if (os.path.basename(sys.argv[0]).startswith('cook')):
+        # In windows, the first argument may be just "cook"
         cook_cmd = sys.argv[0]
     else:
         cook_cmd = None

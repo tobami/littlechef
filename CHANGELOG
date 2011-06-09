@@ -3,6 +3,16 @@ LittleChef Changelog
 ====================
 
 
+Version 0.6.1 June 9, 2011
+----------------------------------------
+* NEW #38: VanL added support for Windows and Mac OS X(desktop side).
+           All unit tests are now passing on Linux, Mac OS X and Windows
+* NEW #37: VanL moved fabfile execution to the same process as the cook exe
+* FIX #36, #37: VanL fixed detection of execution mode (cook or library import)
+* FIX #39: The recipe and role commands were not creating new node.json files
+    when none were present
+
+
 Version 0.6.0 June 3, 2011
 ----------------------------------------
 * NEW: Added support for data bags thanks to Brian Akins's Chef Solo patch

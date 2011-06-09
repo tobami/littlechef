@@ -25,6 +25,11 @@ The result is that you can play as often with your recipes and nodes as you want
 
 ## Installation
 
+### Desktop support
+
+LittleChef is fully tested on all three major desktops:  
+  Linux, Mac OS X, and Windows
+
 ### Requirements
 
 * Python 2.6+

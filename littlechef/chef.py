@@ -132,8 +132,8 @@ def _synchronize_node(cookbooks):
 def _add_data_bag_patch():
     """Adds data_bag_lib cookbook, which provides a library to read data bags"""
     # Create extra cookbook dir
-    lib_path = os.path.join(node_work_path, cookbook_paths[0],
-                                'data_bag_lib', 'libraries')
+    lib_path = os.path.join(
+                node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
     sudo('mkdir -p {0}'.format(lib_path))
     # Path to local patch 
     basedir = os.path.abspath(os.path.dirname(__file__).replace('\\','/'))
