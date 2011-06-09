@@ -23,6 +23,7 @@ setup(
     packages=['littlechef'],
     package_data={'littlechef': ['data_bags_patch.rb']},
     scripts=['cook'],
+    test_suite='nose.collector',
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
