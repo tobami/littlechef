@@ -152,7 +152,7 @@ def _apt_install(distro, version):
     with hide('stdout'):
         sudo('apt-get update')
     with show('running'):
-        sudo('DEBIAN_FRONTEND=noninteractive apt-get --yes install chef')
+        sudo('apt-get --yes install chef')
 
     # We only want chef-solo, kill chef-client and remove it from init process
     sudo('update-rc.d -f chef-client remove')
