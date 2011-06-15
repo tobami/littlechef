@@ -18,7 +18,6 @@ import os
 import sys
 import simplejson as json
 
-import fabric
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
@@ -32,8 +31,10 @@ from littlechef.settings import cookbook_paths
 
 
 # Fabric settings
-env.loglevel = "info"
+import fabric
 fabric.state.output['running'] = False
+env.loglevel = "info"
+env.output_prefix = False
 
 
 @hosts('setup')

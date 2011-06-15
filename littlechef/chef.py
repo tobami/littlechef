@@ -111,7 +111,7 @@ def _synchronize_node(cookbooks):
     Uploads needed cookbooks, all roles and all databags to a node"""
     # Clean up node
     for path in ['roles'] + cookbook_paths:
-        with hide('stdout'):
+        with hide('stdout', 'running'):
             sudo('rm -rf {0}/{1}'.format(node_work_path, path))
 
     cookbooks_by_path = {}
@@ -120,7 +120,7 @@ def _synchronize_node(cookbooks):
             path = os.path.join(cookbook_path, cookbook)
             if os.path.exists(path):
                 cookbooks_by_path[path] = cookbook
-    print "Uploading roles, cookbooks and data bags:"
+    print "Uploading roles, data bags and cookbooks:"
     print " ({0})".format(", ".join(c for c in cookbooks))
     to_upload = [p for p in cookbooks_by_path.keys()]
     to_upload.append('roles')
@@ -144,43 +144,42 @@ def _add_data_bag_patch():
 
 def _configure_node(configfile):
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    with hide('running'):
-        print "Uploading node.json..."
-        remote_file = '/root/{0}'.format(configfile.split("/")[-1])
-        # Ensure secure permissions
-        put(configfile, remote_file, use_sudo=True, mode=400)
-        sudo('chown root:root {0}'.format(remote_file)),
-        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
-        # Remove local temporary node file
-        os.remove(configfile)
-        # Always configure Chef Solo
-        solo.configure()
-        print "\n== Cooking ==\n"
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo(
-                'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
-            if output.failed:
-                if 'chef-solo: command not found' in output:
-                    print(
-                        colors.red(
-                            "\nFAILED: Chef Solo is not installed on this node"))
-                    print(
-                        "Type 'cook nodes:{0} deploy_chef' to install it".format(
-                            env.host))
-                    abort("")
-                else:
-                    print(colors.red(
-                        "\nFAILED: A problem occurred while executing chef-solo"))
-                    abort("")
+    print "Uploading node.json..."
+    remote_file = '/root/{0}'.format(configfile.split("/")[-1])
+    # Ensure secure permissions
+    put(configfile, remote_file, use_sudo=True, mode=400)
+    sudo('chown root:root {0}'.format(remote_file)),
+    sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
+    # Remove local temporary node file
+    os.remove(configfile)
+    # Always configure Chef Solo
+    solo.configure()
+    print "\n== Cooking ==\n"
+    with settings(hide('warnings', 'running'), warn_only=True):
+        output = sudo(
+            'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
+        if output.failed:
+            if 'chef-solo: command not found' in output:
+                print(
+                    colors.red(
+                        "\nFAILED: Chef Solo is not installed on this node"))
+                print(
+                    "Type 'cook nodes:{0} deploy_chef' to install it".format(
+                        env.host))
+                abort("")
             else:
-                print(colors.green("\nSUCCESS: Node correctly configured"))
+                print(colors.red(
+                    "\nFAILED: A problem occurred while executing chef-solo"))
+                abort("")
+        else:
+            print(colors.green("\nSUCCESS: Node correctly configured"))
 
 
 def _upload_and_unpack(source):
     """Packs the given directories, uploads the tar.gz to the node
     and unpacks it in the node_work_path (typically '/var/chef-solo') directory
     """
-    with hide('running', 'stdout'):
+    with hide('stdout', 'running'):
         # Local archive relative path
         local_archive = 'temp.tar.gz'
         # Remote archive absolute path

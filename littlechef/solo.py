@@ -119,7 +119,7 @@ def _gem_install():
 
 def _gem_apt_install():
     """Install Chef from gems for apt based distros"""
-    with hide('stdout'):
+    with hide('stdout', 'running'):
         sudo('apt-get update')
     sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
     _gem_install()
@@ -135,7 +135,7 @@ def _gem_rpm_install():
 
 def _apt_install(distro, version):
     """Install Chef for debian based distros"""
-    with hide('stdout'):
+    with hide('stdout', 'running'):
         # we may not be able to install wget withtout 'apt-get update' first
         sudo('apt-get update')
     sudo('apt-get --yes install wget')
@@ -149,7 +149,7 @@ def _apt_install(distro, version):
     sudo('mv opscode.list /etc/apt/sources.list.d/')
     gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
     sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-    with hide('stdout'):
+    with hide('stdout', 'running'):
         sudo('apt-get update')
     with show('running'):
         sudo('apt-get --yes install chef')
@@ -158,7 +158,7 @@ def _apt_install(distro, version):
     sudo('update-rc.d -f chef-client remove')
     import time
     time.sleep(0.5)
-    with settings(hide('warnings', 'stdout'), warn_only=True):
+    with settings(hide('warnings', 'stdout', 'running'), warn_only=True):
         sudo('pkill chef-client')
 
 
@@ -166,13 +166,13 @@ def _add_rpm_repos():
     """Add EPEL and ELFF"""
     with show('running'):
         # Install the EPEL Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
+        with settings(hide('warnings', 'running'), warn_only=True):
             output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
             installed = "package epel-release-5-4.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
         # Install the ELFF Yum Repository.
-        with settings(hide('warnings'), warn_only=True):
+        with settings(hide('warnings', 'running'), warn_only=True):
             output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
