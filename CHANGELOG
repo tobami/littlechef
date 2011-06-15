@@ -3,6 +3,15 @@ LittleChef Changelog
 ====================
 
 
+Version 0.6.2 June 15, 2011
+----------------------------------------
+* FIX: Fixed data_bags_patch.rb not being installed sometimes
+* FIX: Initialize env.ssh_config so that credentials doesn't fail
+* FIX: Prevent fabric from prepending prefix to output messages
+    This makes Chef Solo output much easier to read (no double log prefix)
+* FIX: Added some contributors to NOTICE
+
+
 Version 0.6.1 June 9, 2011
 ----------------------------------------
 * NEW #38: VanL added support for Windows and Mac OS X(desktop side).
