@@ -14,7 +14,6 @@ INSTALL_ERROR = "LittleChef was not correctly installed: "\
 file_path = None
 try:
     import littlechef # Needed later for version
-    littlechef.COOKING = True
     # Get fabfile full path
     from littlechef import runner # Checks that we are able to import module
     file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
@@ -23,9 +22,6 @@ except ImportError:
     sys.exit(1)
 
 ## Process args list and call fabric main() ##
-import fabric.main
-
-# Work on arguments
 if not sys.argv:
     print(NO_ORDER)
 else:
@@ -48,5 +44,8 @@ else:
             sys.argv[1:1] = ['-f', file_path]
         else:
             sys.argv[0:0] = ['-f', file_path]
-        # Pass control over to  fabric
+        # Pass control over to fabric
+        # Fabric should now import runner with COOKING = True
+        littlechef.COOKING = True
+        import fabric.main
         fabric.main.main()

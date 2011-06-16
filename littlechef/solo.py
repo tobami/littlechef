@@ -100,7 +100,7 @@ def check_distro():
             print "  Ubuntu: " + ", ".join(ubuntu_distros)
             print "  RHEL: " + ", ".join(rpm_distros)
             print "  Gentoo"
-            abort("Unsupported distro " + run('cat /etc/issue'))
+            abort("Unsupported distro '{0}'".format(output))
     return distro_type, distro
 
 
