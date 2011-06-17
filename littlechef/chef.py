@@ -196,7 +196,7 @@ def _upload_and_unpack(source):
         local('chmod -R u=rX,go= tmp')
         # Create archive locally
         local(
-            'cd tmp && COPYFILE_DISABLE=true tar czf ../{0} --exclude=".svn" .'.format(
+            'cd tmp && COPYFILE_DISABLE=true tar czf ../{0} --exclude-vcs .'.format(
                 local_archive))
         # Upload archive to remote
         put(local_archive, remote_archive, use_sudo=True, mode=400)
