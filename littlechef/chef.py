@@ -130,13 +130,14 @@ def _synchronize_node(cookbooks):
 
 
 def _add_data_bag_patch():
-    """Adds data_bag_lib cookbook, which provides a library to read data bags"""
+    """Adds data_bag_lib cookbook, which provides a library to read data bags
+    """
     # Create extra cookbook dir
     lib_path = os.path.join(
                 node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
     sudo('mkdir -p {0}'.format(lib_path))
-    # Path to local patch 
-    basedir = os.path.abspath(os.path.dirname(__file__).replace('\\','/'))
+    # Path to local patch
+    basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
     # Create remote data bags patch
     put(os.path.join(basedir, 'data_bags_patch.rb'),
         os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
@@ -195,9 +196,10 @@ def _upload_and_unpack(source):
         # Set secure permissions on copied sources
         local('chmod -R u=rX,go= tmp')
         # Create archive locally
+        prefix = "COPYFILE_DISABLE=true"
         local(
-            'cd tmp && COPYFILE_DISABLE=true tar czf ../{0} --exclude-vcs .'.format(
-                local_archive))
+            'cd tmp && {0} tar czf ../{1} --exclude-vcs .'.format(
+                prefix, local_archive))
         # Upload archive to remote
         put(local_archive, remote_archive, use_sudo=True, mode=400)
         # Remove local copy of archive and directory

@@ -1,8 +1,5 @@
-# save this in the library folder of a cookbook
-# (e.g. ./coookbooks/vagrant/library/chef_solo_patch.rb)
-# see also https://gist.github.com/867958 for vagrant patch
 # Taken from Vagrant's patch: https://gist.github.com/867960
-# based on http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
+# based on Brian Akins's patch: http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
 if Chef::Config[:solo]
   class Chef
     module Mixin

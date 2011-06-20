@@ -121,7 +121,10 @@ def _gem_apt_install():
     """Install Chef from gems for apt based distros"""
     with hide('stdout', 'running'):
         sudo('apt-get update')
-    sudo("DEBIAN_FRONTEND=noninteractive apt-get --yes install ruby ruby-dev libopenssl-ruby irb build-essential wget ssl-cert")
+    prefix = "DEBIAN_FRONTEND=noninteractive"
+    packages = "ruby ruby-dev libopenssl-ruby irb build-essential wget"
+    packages += "ssl-cert"
+    sudo('{0} apt-get --yes install {1}'.format(prefix, packages))
     _gem_install()
 
 
@@ -167,13 +170,17 @@ def _add_rpm_repos():
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm')
+            repo_url = "http://download.fedora.redhat.com"
+            repo_path = "/pub/epel/5/i386/epel-release-5-4.noarch.rpm"
+            output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
             installed = "package epel-release-5-4.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
         # Install the ELFF Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
-            output = sudo('rpm -Uvh http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm')
+            repo_url = "http://download.elff.bravenet.com"
+            repo_path = "/5/i386/elff-release-5-3.noarch.rpm"
+            output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
             installed = "package elff-release-5-3.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)

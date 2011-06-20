@@ -31,7 +31,7 @@ def get_nodes():
     for filename in sorted([f for f in os.listdir('nodes/')
                                 if not os.path.isdir(f) and ".json" in f
                                     and not f.startswith('.')]):
-        hostname = ".".join(filename.split('.')[:-1])#remove .json from name
+        hostname = ".".join(filename.split('.')[:-1])  # Remove .json from name
         node = get_node(hostname)
         # Add node name so that we can tell to which node the data belongs to
         node['name'] = hostname
@@ -106,7 +106,8 @@ def get_recipes_in_cookbook(name):
                         'name': recipe,
                         'description': cookbook['recipes'][recipe],
                         'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies', {}).keys(),
+                        'dependencies': cookbook.get('dependencies',
+                                                        {}).keys(),
                         'attributes': cookbook.get('attributes', {}).keys(),
                         })
                 # When a recipe has no default recipe (libraries?),
@@ -116,8 +117,10 @@ def get_recipes_in_cookbook(name):
                         'name': name,
                         'description': 'This cookbook has no default recipe',
                         'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies', {}).keys(),
-                        'attributes': cookbook.get('attributes', {}).keys(),})
+                        'dependencies': cookbook.get('dependencies',
+                                                        {}).keys(),
+                        'attributes': cookbook.get('attributes', {}).keys()
+                    })
             # Cookbook metadata.json was found, don't try next cookbook path
             # because metadata.json in site-cookbooks has preference
             break

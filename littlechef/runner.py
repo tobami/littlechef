@@ -95,8 +95,8 @@ def deploy_chef(gems="no", ask="yes", version="0.9"):
             ", ".join(chef_versions)))
     distro_type, distro = solo.check_distro()
     if ask == "yes":
-        message = '\nAre you sure you want to install Chef at the node {0}'.format(
-            env.host_string)
+        message = '\nAre you sure you want to install Chef'
+        message += 'at the node {0}'.format(env.host_string)
         if gems == "yes":
             message += ', using gems for "{0}"?'.format(distro)
         else:
@@ -237,7 +237,9 @@ def list_roles_detailed():
 
 # Check that user is cooking inside a kitchen and configure authentication #
 def _check_appliances():
-    """Look around and return True/False based on whether we are in a kitchen"""
+    """Look around and return True or False based on whether we are in a
+    kitchen
+    """
     names = os.listdir(os.getcwd())
     missing = []
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
@@ -246,6 +248,7 @@ def _check_appliances():
     if 'auth.cfg' not in names:
         missing.append('auth.cfg')
     return (not bool(missing)), missing
+
 
 def _readconfig():
     """Configure environment"""
@@ -315,7 +318,7 @@ import littlechef
 if littlechef.COOKING:
     # Called from command line
     if 'new_kitchen' not in sys.argv:
-         _readconfig()
+        _readconfig()
 else:
     # runner module has been imported
     env.ssh_config = None
