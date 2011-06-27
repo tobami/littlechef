@@ -123,7 +123,7 @@ def _gem_apt_install():
         sudo('apt-get update')
     prefix = "DEBIAN_FRONTEND=noninteractive"
     packages = "ruby ruby-dev libopenssl-ruby irb build-essential wget"
-    packages += "ssl-cert"
+    packages += " ssl-cert"
     sudo('{0} apt-get --yes install {1}'.format(prefix, packages))
     _gem_install()
 
@@ -161,6 +161,7 @@ def _apt_install(distro, version):
     sudo('update-rc.d -f chef-client remove')
     import time
     time.sleep(0.5)
+    # If the process is still running kill it
     with settings(hide('warnings', 'stdout', 'running'), warn_only=True):
         sudo('pkill chef-client')
 
