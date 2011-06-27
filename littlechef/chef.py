@@ -28,6 +28,9 @@ from littlechef import lib
 from littlechef import solo
 from littlechef.settings import node_work_path, cookbook_paths
 
+# Path to local patch
+basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
+
 
 def _save_config(node):
     """Saves node configuration
@@ -136,8 +139,6 @@ def _add_data_bag_patch():
     lib_path = os.path.join(
                 node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
     sudo('mkdir -p {0}'.format(lib_path))
-    # Path to local patch
-    basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
     # Create remote data bags patch
     put(os.path.join(basedir, 'data_bags_patch.rb'),
         os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
@@ -155,6 +156,7 @@ def _configure_node(configfile):
     os.remove(configfile)
     # Always configure Chef Solo
     solo.configure()
+
     print "\n== Cooking ==\n"
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(

@@ -19,9 +19,9 @@ setup(
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/archives/master",
     keywords=["chef", "devops"],
-    install_requires=['fabric>=1.0.1', 'simplejson'],
+    install_requires=['fabric>=1.0.2', 'simplejson'],
     packages=['littlechef'],
-    package_data={'littlechef': ['data_bags_patch.rb']},
+    package_data={'littlechef': ['data_bags_patch.rb', 'solo.rb']},
     scripts=['cook'],
     test_suite='nose.collector',
     classifiers=[

@@ -13,13 +13,18 @@
 #limitations under the License.
 #
 """Chef Solo deployment"""
+import os
+
 from fabric.api import *
-from fabric.contrib.files import append, exists
+from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
 from littlechef.lib import credentials
 from littlechef.settings import node_work_path, cookbook_paths
 
+
+# Path to local patch
+basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 def install(distro_type, distro, gems, version):
     with credentials():
@@ -42,23 +47,23 @@ def install(distro_type, distro, gems, version):
 def configure():
     """Deploy chef-solo specific files"""
     with credentials():
-        sudo('mkdir -p {0}/cache'.format(node_work_path))
-        sudo('umask 0377; touch solo.rb')
-        text = ""
-        text += 'file_cache_path "{0}/cache"'.format(node_work_path)
-        text += "\n"
+        # Ensure that config directories exist
+        cache_dir = "{0}/cache".format(node_work_path)
+        if not exists(cache_dir):
+            sudo('mkdir -p {0}'.format(cache_dir))
+        if not exists('/etc/chef'):
+            sudo('mkdir -p /etc/chef')
+        # Set parameters and upload solo.rb template
         reversed_cookbook_paths = cookbook_paths[:]
         reversed_cookbook_paths.reverse()
-        cookbook_paths_line = 'cookbook_path [{0}]'.format(', '.join(
+        cookbook_paths_list = '[{0}]'.format(', '.join(
             ['"{0}/{1}"'.format(node_work_path, x) \
                 for x in reversed_cookbook_paths]))
-        text += cookbook_paths_line + "\n"
-        text += cookbook_paths_line + "\n"
-        text += 'role_path "{0}/roles"'.format(node_work_path) + "\n"
-        text += 'data_bag_path "{0}/data_bags"'.format(node_work_path) + "\n"
-        append('solo.rb', text, use_sudo=True)
-        sudo('mkdir -p /etc/chef')
-        sudo('mv solo.rb /etc/chef/')
+        data = {'node_work_path': node_work_path,
+            'cookbook_paths_list': cookbook_paths_list}
+        upload_template(os.path.join(basedir, 'solo.rb'), '/etc/chef/',
+            context=data, use_sudo=True, mode=0400)
+        sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
 
 
 def check_distro():
