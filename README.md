@@ -104,7 +104,10 @@ You can also install Chef Solo with gems and/or without asking for confirmation:
 
 Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux and Gentoo.
 
-Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method. Installing Opscode's packages on top of it could be a mess.
+When using the Debian repository, you need to take into account that Opscode has separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
+`cook node:MYNODE deploy_chef:version=0.9`
+
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method, removing the gem first might be a good idea.
 
 ### Cooking
 
