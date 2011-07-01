@@ -5,6 +5,8 @@ LittleChef Changelog
 
 Version 0.6.3 to be released
 ----------------------------------------
+* NEW: Chef 0.10.x is not default for Debian package installation.
+        That was already the case for the other methods
 * FIX: cook should not require a kitchen to run "cook -v"
 * FIX: Toby fixed the Debian package installation to run unattended again
 
