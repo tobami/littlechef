@@ -16,6 +16,7 @@
 import os
 
 from fabric.api import *
+from fabric import colors
 from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
@@ -24,7 +25,7 @@ from littlechef.settings import node_work_path, cookbook_paths
 
 
 # Path to local patch
-basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
+BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 def install(distro_type, distro, gems, version):
     with credentials():
@@ -61,7 +62,7 @@ def configure():
                 for x in reversed_cookbook_paths]))
         data = {'node_work_path': node_work_path,
             'cookbook_paths_list': cookbook_paths_list}
-        upload_template(os.path.join(basedir, 'solo.rb'), '/etc/chef/',
+        upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
             context=data, use_sudo=True, mode=0400)
         sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
 
@@ -143,32 +144,56 @@ def _gem_rpm_install():
 
 def _apt_install(distro, version):
     """Install Chef for debian based distros"""
-    with hide('stdout', 'running'):
-        # we may not be able to install wget withtout 'apt-get update' first
-        sudo('apt-get update')
-    sudo('apt-get --yes install wget')
-    if version == "0.9":
-        version = ""
-    else:
-        version = "-" + version
-    append('opscode.list',
-        'deb http://apt.opscode.com/ {0}{1} main'.format(distro, version),
-            use_sudo=True)
-    sudo('mv opscode.list /etc/apt/sources.list.d/')
-    gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
-    sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-    with hide('stdout', 'running'):
-        sudo('apt-get update')
-    with show('running'):
-        sudo('apt-get --yes install chef')
+    with settings(hide('stdout', 'running')):
+        with settings(hide('warnings'), warn_only=True):
+            wget_is_installed = sudo('which wget')
+            if wget_is_installed.failed:
+                # Install wget
+                print "Installing wget..."
+                # we may not be able to install wget withtout 'apt-get update' first
+                sudo('apt-get update')
+                output = sudo('apt-get --yes install wget')
+                if output.failed:
+                    print(colors.red("Error while installing wget:"))
+                    abort(output.lstrip("\\n"))
+        # Add Opscode debia repo
+        print("Setting up Opscode repository...")
+        if version == "0.9":
+            version = ""
+        else:
+            version = "-" + version
+        append('opscode.list',
+            'deb http://apt.opscode.com/ {0}{1} main'.format(distro, version),
+                use_sudo=True)
+        sudo('mv opscode.list /etc/apt/sources.list.d/')
+        # Add repository GPG key
+        gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
+        sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
+        # Load packages from new repository
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('apt-get update')
+            if output.failed:
+                print(colors.red("Error while executing apt-get install chef:"))
+                abort(output)
+        # Install Chef Solo
+        print("Installing Chef Solo")
+        # Ensure we don't get asked for the Chef Server
+        command = "echo chef chef/chef_server_url select ''"
+        command += " | debconf-set-selections"
+        sudo(command)
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('apt-get --yes install chef')
+            if output.failed:
+                print(colors.red("Error while executing 'apt-get install chef':"))
+                abort(output)
 
-    # We only want chef-solo, kill chef-client and remove it from init process
-    sudo('update-rc.d -f chef-client remove')
-    import time
-    time.sleep(0.5)
-    # If the process is still running kill it
-    with settings(hide('warnings', 'stdout', 'running'), warn_only=True):
-        sudo('pkill chef-client')
+        # We only want chef-solo, kill chef-client and remove it from init process
+        sudo('update-rc.d -f chef-client remove')
+        with settings(hide('warnings'), warn_only=True):
+            output = sudo('service chef-client stop')
+        if output.failed:
+            # Probably an older distro
+            sudo('/etc/init.d/chef-client stop')
 
 
 def _add_rpm_repos():

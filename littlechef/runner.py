@@ -95,8 +95,8 @@ def deploy_chef(gems="no", ask="yes", version="0.9"):
             ", ".join(chef_versions)))
     distro_type, distro = solo.check_distro()
     if ask == "yes":
-        message = '\nAre you sure you want to install Chef'
-        message += 'at the node {0}'.format(env.host_string)
+        message = '\nAre you sure you want to install Chef {0}'.format(version)
+        message += ' at the node {0}'.format(env.host_string)
         if gems == "yes":
             message += ', using gems for "{0}"?'.format(distro)
         else:
@@ -105,9 +105,9 @@ def deploy_chef(gems="no", ask="yes", version="0.9"):
             abort('Aborted by user')
     else:
         if gems == "yes":
-            method = ' using gems for "{0}"'.format(distro)
+            method = 'using gems for "{0}"'.format(distro)
         else:
-            method = ' {0} using "{1}" packages'.format(version, distro)
+            method = '{0} using "{1}" packages'.format(version, distro)
         print("Deploying Chef {0}...".format(method))
 
     solo.install(distro_type, distro, gems, version)

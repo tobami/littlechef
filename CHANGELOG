@@ -3,6 +3,12 @@ LittleChef Changelog
 ====================
 
 
+Version 0.6.3 to be released
+----------------------------------------
+* FIX: cook should not require a kitchen to run "cook -v"
+* FIX: Toby fixed the Debian package installation to run unattended again
+
+
 Version 0.6.2 June 15, 2011
 ----------------------------------------
 * FIX: Fixed data_bags_patch.rb not being installed sometimes
