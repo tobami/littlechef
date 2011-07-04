@@ -3,7 +3,7 @@ LittleChef Changelog
 ====================
 
 
-Version 0.6.3 July 1, 2011
+Version 0.6.4 July 1, 2011
 ----------------------------------------
 * NEW: Chef 0.10.x is now default for Debian package installation.
         That was already the case for the other methods
