@@ -80,7 +80,10 @@ def print_node(node, detailed=False):
 
 
 def get_recipes_in_cookbook(name):
-    """Gets the name of all recipes present in a cookbook"""
+    """Gets the name of all recipes present in a cookbook
+    Returns a list of dictionaries
+
+    """
     recipes = []
     path = None
     cookbook_exists = False
@@ -145,13 +148,15 @@ def get_recipes_in_node(node):
 
 
 def get_recipes():
-    """Gets all recipes found in the cookbooks/ directory"""
+    """Gets all recipes found in the cookbook directories"""
+    dirnames = set()
+    for path in cookbook_paths:
+        dirnames.update([d for d in os.listdir(path) if os.path.isdir(
+                            os.path.join(path, d)) and not d.startswith('.')])
     recipes = []
-    for dirname in sorted(
-        [d for d in os.listdir('cookbooks') if os.path.isdir(
-            os.path.join('cookbooks', d)) and not d.startswith('.')]):
+    for dirname in dirnames:
         recipes.extend(get_recipes_in_cookbook(dirname))
-    return recipes
+    return sorted(recipes, key=lambda x: x['name'])
 
 
 def print_recipe(recipe):
