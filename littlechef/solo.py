@@ -182,7 +182,7 @@ def _apt_install(distro, version):
         command += " | debconf-set-selections"
         sudo(command)
         with settings(hide('warnings'), warn_only=True):
-            output = sudo('apt-get --yes install chef')
+            output = sudo('apt-get --yes install ucf chef')
             if output.failed:
                 print(colors.red("Error while executing 'apt-get install chef':"))
                 abort(output)
