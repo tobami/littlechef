@@ -2,7 +2,7 @@
 LittleChef Changelog
 ====================
 
-Next version
+Version 0.6.5 July 5, 2011
 ----------------------------------------
 * FIX: list_recipes didn't show cookbooks that were *only* present in site-cookbooks
 * FIX: install ucf before the chef Debian package, as it is missing in Debian Squeeze minimal

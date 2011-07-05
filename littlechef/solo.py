@@ -150,13 +150,13 @@ def _apt_install(distro, version):
             if wget_is_installed.failed:
                 # Install wget
                 print "Installing wget..."
-                # we may not be able to install wget withtout 'apt-get update' first
+                # we may not be able to install wget without updating first
                 sudo('apt-get update')
                 output = sudo('apt-get --yes install wget')
                 if output.failed:
                     print(colors.red("Error while installing wget:"))
                     abort(output.lstrip("\\n"))
-        # Add Opscode debia repo
+        # Add Opscode Debian repo
         print("Setting up Opscode repository...")
         if version == "0.9":
             version = ""
@@ -169,7 +169,7 @@ def _apt_install(distro, version):
         # Add repository GPG key
         gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"
         sudo('wget -qO - {0} | sudo apt-key add -'.format(gpg_key))
-        # Load packages from new repository
+        # Load package list from new repository
         with settings(hide('warnings'), warn_only=True):
             output = sudo('apt-get update')
             if output.failed:
@@ -187,12 +187,12 @@ def _apt_install(distro, version):
                 print(colors.red("Error while executing 'apt-get install chef':"))
                 abort(output)
 
-        # We only want chef-solo, kill chef-client and remove it from init process
+        # We only want chef-solo, stop chef-client and remove it from init
         sudo('update-rc.d -f chef-client remove')
         with settings(hide('warnings'), warn_only=True):
             output = sudo('service chef-client stop')
         if output.failed:
-            # Probably an older distro
+            # Probably an older distro without the newer "service"
             sudo('/etc/init.d/chef-client stop')
 
 
