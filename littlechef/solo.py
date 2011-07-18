@@ -28,6 +28,7 @@ from littlechef.settings import node_work_path, cookbook_paths
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 def install(distro_type, distro, gems, version):
+    """Calls the appropriate installation function for the given distro"""
     with credentials():
         if distro_type == "debian":
             if gems == "yes":

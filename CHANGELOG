@@ -2,6 +2,13 @@
 LittleChef Changelog
 ====================
 
+Unreleased
+----------------------------------------
+* NEW #46: Markus implemented node synching using rsync instead of data upload, 
+    substantially speeding up node configuration runs. All cookbooks are now synchronized,
+    instead of only those needed by the configuration run
+
+
 Version 0.6.5 July 5, 2011
 ----------------------------------------
 * FIX: list_recipes didn't show cookbooks that were *only* present in site-cookbooks

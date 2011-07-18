@@ -19,7 +19,7 @@ It all starts in the **kitchen**, which you should keep under version control:
 * `roles/`: Where Chef [Roles][] are defined
 * `data_bags/`: Chef [Data Bags][]. Note that search for data bags doesn't work yet with Chef Solo
 
-Whenever you apply a recipe to a node, all needed cookbooks (including dependencies), all roles and all databags are gzipped and uploaded to that node, to the `/var/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Whenever you apply a recipe to a node, all cookbooks, all roles and all databags are rsynced to that node, to the `/tmp/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings sanity to cookbook development.
 

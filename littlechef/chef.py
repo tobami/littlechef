@@ -17,7 +17,6 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 """
 import os
 import simplejson as json
-import time
 
 from fabric.api import *
 from fabric.contrib.files import append, exists
@@ -65,6 +64,7 @@ def _synchronize_node():
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
     """
+    print "Synchronizing cookbooks, roles and data bags..."
     rsync_project(
         node_work_path, './',
         exclude=(
@@ -73,7 +73,8 @@ def _synchronize_node():
             '/cache/', '/site-cookbooks/data_bag_lib/' # ignore data generated
                                                        # by littlechef
         ),
-        delete=True
+        delete=True,
+        extra_opts="-q",
     )
     _add_data_bag_patch()
 
@@ -103,7 +104,7 @@ def _configure_node(configfile):
     # Always configure Chef Solo
     solo.configure()
 
-    print "\n== Cooking ==\n"
+    print colors.yellow("\n== Cooking ==")
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(
             'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
