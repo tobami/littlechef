@@ -129,7 +129,7 @@ def _gem_apt_install():
         sudo('apt-get update')
     prefix = "DEBIAN_FRONTEND=noninteractive"
     packages = "ruby ruby-dev libopenssl-ruby irb build-essential wget"
-    packages += " ssl-cert"
+    packages += " ssl-cert rsync"
     sudo('{0} apt-get --yes install {1}'.format(prefix, packages))
     _gem_install()
 
@@ -138,7 +138,7 @@ def _gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget')
+        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync')
     _gem_install()
 
 
@@ -155,6 +155,16 @@ def _apt_install(distro, version):
                 output = sudo('apt-get --yes install wget')
                 if output.failed:
                     print(colors.red("Error while installing wget:"))
+                    abort(output.lstrip("\\n"))
+            rsync_is_installed = sudo('which rsync')
+            if rsync_is_installed.failed:
+                # Install rsync
+                print "Installing rsync..."
+                # we may not be able to install rsync without updating first
+                sudo('apt-get update')
+                output = sudo('apt-get --yes install rsync')
+                if output.failed:
+                    print(colors.red("Error while installing rsync:"))
                     abort(output.lstrip("\\n"))
         # Add Opscode Debian repo
         print("Setting up Opscode repository...")
