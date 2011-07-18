@@ -16,4 +16,4 @@
 cookbook_paths = ['site-cookbooks', 'cookbooks']
 
 # Node's Chef Solo working directory for storing cookbooks, roles, etc.
-node_work_path = '/var/chef-solo'
+node_work_path = '/tmp/chef-solo'

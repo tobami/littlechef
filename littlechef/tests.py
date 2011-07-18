@@ -103,13 +103,6 @@ class TestChef(BaseTest):
             # It should *NOT* have "testrole" assigned
             self.assertEquals(data['run_list'], ["recipe[subversion]"])
 
-    def test_build_node(self):
-        """Should build cookbooks dependencies"""
-        env.host_string = 'testnode'
-        cookbooks = chef._build_node(lib.get_node(env.host_string))
-        self.assertEquals(cookbooks, ['subversion'])
-        #TODO: add more cookbooks with dependencies, add apache2
-
 
 if __name__ == "__main__":
     unittest.main()

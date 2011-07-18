@@ -23,6 +23,7 @@ from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric import colors
 from fabric.utils import abort
+from fabric.contrib.project import rsync_project
 
 from littlechef import lib
 from littlechef import solo
@@ -52,83 +53,28 @@ def _save_config(node):
 
 def sync_node(node):
     """Buils, synchronizes and configures a node"""
-    cookbooks = _build_node(node)
     with lib.credentials():
-        _synchronize_node(cookbooks)
+        _synchronize_node()
         # Everything was configured alright, so save the node configuration
         filepath = _save_config(node)
         _configure_node(filepath)
 
 
-def _build_node(node):
-    """Builds a list with all needed cookbooks and their dependencies"""
-    cookbooks = []
-    # Fetch cookbooks needed for recipes
-    for recipe in lib.get_recipes_in_node(node):
-        recipe = recipe.split('::')[0]
-        if recipe not in cookbooks:
-            cookbooks.append(recipe)
-
-    # Fetch cookbooks needed for role recipes
-    for role in lib.get_roles_in_node(node):
-        try:
-            with open('roles/' + role + '.json', 'r') as f:
-                try:
-                    roles = json.loads(f.read())
-                except json.decoder.JSONDecodeError as e:
-                    msg = 'Little Chef found the following error in your'
-                    msg += ' "{0}" role file:\n                {1}'.format(
-                        role, str(e))
-                    abort(msg)
-                # Reuse _get_recipes_in_node to extract recipes in a role
-                for recipe in lib.get_recipes_in_node(roles):
-                    recipe = recipe.split('::')[0]
-                    if recipe not in cookbooks:
-                        cookbooks.append(recipe)
-        except IOError:
-            abort("Role '{0}' not found".format(role))
-
-    # Fetch dependencies
-    warnings = []
-    for cookbook in cookbooks:
-        for recipe in lib.get_recipes_in_cookbook(cookbook):
-            for dep in recipe['dependencies']:
-                if dep not in cookbooks:
-                    try:
-                        lib.get_cookbook_path(dep)
-                        cookbooks.append(dep)
-                    except IOError:
-                        if dep not in warnings:
-                            warnings.append(dep)
-                            print "Warning: Possible error because of missing",
-                            print "dependency for cookbook {0}".format(
-                                recipe['name'])
-                            print "         Cookbook '{0}' not found".format(
-                                dep)
-                            time.sleep(1)
-    return cookbooks
-
-
-def _synchronize_node(cookbooks):
+def _synchronize_node():
     """Performs the Synchronize step of a Chef run:
-    Uploads needed cookbooks, all roles and all databags to a node"""
-    # Clean up node
-    for path in ['roles'] + cookbook_paths:
-        with hide('stdout', 'running'):
-            sudo('rm -rf {0}/{1}'.format(node_work_path, path))
-
-    cookbooks_by_path = {}
-    for cookbook in cookbooks:
-        for cookbook_path in cookbook_paths:
-            path = os.path.join(cookbook_path, cookbook)
-            if os.path.exists(path):
-                cookbooks_by_path[path] = cookbook
-    print "Uploading roles, data bags and cookbooks:"
-    print " ({0})".format(", ".join(c for c in cookbooks))
-    to_upload = [p for p in cookbooks_by_path.keys()]
-    to_upload.append('roles')
-    to_upload.append('data_bags')
-    _upload_and_unpack(to_upload)
+    Uploads all cookbooks, all roles and all databags to a node and add the
+    patch for data bags
+    """
+    rsync_project(
+        node_work_path, './',
+        exclude=(
+            '/auth.cfg', # might contain users credentials
+            '*.svn', '.bzr*', '.git*', '.hg*', # ignore vcs data
+            '/cache/', '/site-cookbooks/data_bag_lib/' # ignore data generated
+                                                       # by littlechef
+        ),
+        delete=True
+    )
     _add_data_bag_patch()
 
 
@@ -177,48 +123,3 @@ def _configure_node(configfile):
         else:
             print(colors.green("\nSUCCESS: Node correctly configured"))
 
-
-def _upload_and_unpack(source):
-    """Packs the given directories, uploads the tar.gz to the node
-    and unpacks it in the node_work_path (typically '/var/chef-solo') directory
-    """
-    with hide('stdout', 'running'):
-        # Local archive relative path
-        local_archive = 'temp.tar.gz'
-        # Remote archive absolute path
-        remote_archive = '/root/{0}'.format(local_archive)
-        # Remove existing temporary directory
-        local('(chmod -R u+rwX tmp; rm -rf tmp) > /dev/null 2>&1')
-        # Create temporary directory
-        local('mkdir tmp')
-        # Copy selected sources into temporary directory
-        for item in source:
-            local('mkdir -p tmp/{0}'.format(os.path.dirname(item)))
-            local('cp -R {0} tmp/{1}'.format(item, item))
-        # Set secure permissions on copied sources
-        local('chmod -R u=rX,go= tmp')
-        # Create archive locally
-        prefix = "COPYFILE_DISABLE=true"
-        local(
-            'cd tmp && {0} tar czf ../{1} --exclude-vcs .'.format(
-                prefix, local_archive))
-        # Upload archive to remote
-        put(local_archive, remote_archive, use_sudo=True, mode=400)
-        # Remove local copy of archive and directory
-        local('rm {0}'.format(local_archive))
-        local('chmod -R u+w tmp')
-        local('rm -rf tmp')
-        if not exists(node_work_path):
-            # Report error with remote paths
-            msg = "the {0} directory was".format(node_work_path)
-            msg += " not found at the node. Is Chef correctly installed?"
-            msg += "\nYou can deploy chef-solo by typing:\n"
-            msg += "  cook node:{0} deploy_chef".format(env.host)
-            abort(msg)
-        with cd(node_work_path):
-            # Install the remote copy of archive
-            sudo('tar xzf {0}'.format(remote_archive))
-            # Fix ownership
-            sudo('chown -R root:root {0}'.format(node_work_path))
-            # Remove the remote copy of archive
-            sudo('rm {0}'.format(remote_archive))
