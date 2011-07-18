@@ -36,13 +36,13 @@ class BaseTest(unittest.TestCase):
         """Simulate we are inside a kitchen"""
         # Orient ourselves
         os.chdir(littlechef_src)
-        for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+        for d in ['nodes', 'roles', 'cookbooks', 'site-cookbooks', 'data_bags']:
             shutil.copytree(join(littlechef_tests, '{0}'.format(d)), d)
         shutil.copy(join(littlechef_tests, 'auth.cfg'), littlechef_src)
 
     def tearDown(self):
         os.chdir(littlechef_src)
-        for d in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+        for d in ['nodes', 'roles', 'cookbooks', 'site-cookbooks', 'data_bags']:
             shutil.rmtree(d)
         if exists('tmp_node.json'):
             os.remove('tmp_node.json')
