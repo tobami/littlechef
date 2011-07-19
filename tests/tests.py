@@ -6,10 +6,8 @@ from os.path import join, sep, normpath, abspath, split
 
 
 # Set some convenience variables
-import littlechef
-littlechef_src = split(normpath(abspath(littlechef.__file__)))[0]
-littlechef_top = normpath(join(littlechef_src, '..'))
-littlechef_tests = join(littlechef_top, 'tests')
+test_path = split(normpath(abspath(__file__)))[0]
+littlechef_top = normpath(join(test_path, '..'))
 
 if platform.system() == 'Windows':
     cook = join(littlechef_top, 'cook.cmd')
@@ -24,7 +22,7 @@ class BaseTest(unittest.TestCase):
         """Change to the test directory"""
         self.set_location()
 
-    def set_location(self, location=littlechef_tests):
+    def set_location(self, location=test_path):
         """Change directories to a known location"""
         os.chdir(location)
 
@@ -93,7 +91,7 @@ class TestCookbook(BaseTest):
 
     def test_no_metadata(self):
         """Should abort if cookbook has no metadata.json"""
-        bad_cookbook = join(littlechef_tests, 'cookbooks', 'bad_cookbook')
+        bad_cookbook = join(test_path, 'cookbooks', 'bad_cookbook')
         os.mkdir(bad_cookbook)
         try:
             resp, error = self.execute([cook, 'list_recipes'])

@@ -18,14 +18,14 @@ import shutil
 import json
 from os.path import join, split, sep, normpath, abspath, exists
 
-from fabric.api import *
+from fabric.api import env
 
 import chef
 import lib
 import runner
 
 
-# Set paths
+# Set some convenience path variables
 littlechef_src = split(normpath(abspath(__file__)))[0]
 littlechef_top = normpath(join(littlechef_src, '..'))
 littlechef_tests = join(littlechef_top, 'tests')
