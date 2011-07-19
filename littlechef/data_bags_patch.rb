@@ -76,19 +76,35 @@ if Chef::Config[:solo]
 
   class Chef
     class Recipe
-      def search(bag_name, query=nil, sort=nil, start=0, rows=1000)
+      def search(bag_name, query=nil, sort=nil, start=0, rows=1000, &block)
+        if !sort.nil?
+          raise "Sorting search results is not supported"
+        end
         @_query = make_query(query)
         if @_query.nil?
           raise "Query #{query} is not supported"
         end
-        result = []
+        if block.nil?
+          result = []
+        else
+          pos = 0
+        end
         data_bag(bag_name.to_s).each do |bag_item_id|
           bag_item = data_bag_item(bag_name.to_s, bag_item_id)
           if @_query.match(bag_item)
-            result << bag_item
+            if block.nil?
+              result << bag_item
+            else
+              if (pos >= start and pos < (start + rows))
+                yield bag_item
+              end
+              pos += 1
+            end
           end
         end
-        return result.slice(start, rows)
+        if block.nil?
+          return result.slice(start, rows)
+        end
       end
       
       def make_query(query)
