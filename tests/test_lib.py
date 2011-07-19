@@ -1,4 +1,3 @@
-#Copyright 2010-2011 Miquel Torres <tobami@googlemail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -14,65 +13,48 @@
 #
 import unittest
 import os
-import shutil
 import json
-from os.path import join, split, sep, normpath, abspath, exists
 
 from fabric.api import env
 
-import chef
-import lib
-import runner
+import sys
+env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
+sys.path.insert(0, env_path)
+
+from littlechef import runner, chef, lib
 
 
-# Set some convenience path variables
-littlechef_src = split(normpath(abspath(__file__)))[0]
-littlechef_top = normpath(join(littlechef_src, '..'))
-littlechef_tests = join(littlechef_top, 'tests')
+littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
+littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
 
 class BaseTest(unittest.TestCase):
-    def setUp(self):
-        """Simulate we are inside a kitchen"""
-        # Orient ourselves
-        os.chdir(littlechef_src)
-        for d in ['nodes', 'roles', 'cookbooks', 'site-cookbooks', 'data_bags']:
-            shutil.copytree(join(littlechef_tests, '{0}'.format(d)), d)
-        shutil.copy(join(littlechef_tests, 'auth.cfg'), littlechef_src)
-
     def tearDown(self):
-        os.chdir(littlechef_src)
-        for d in ['nodes', 'roles', 'cookbooks', 'site-cookbooks', 'data_bags']:
-            shutil.rmtree(d)
-        if exists('tmp_node.json'):
+        if os.path.exists('tmp_node.json'):
             os.remove('tmp_node.json')
-        os.remove('auth.cfg')
 
 
 class TestRunner(BaseTest):
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to a directory which is not a kitchen
+        # NOTE: when used as a library chdir has no effect anyway
+        # We need absolute paths for the kitchen
         os.chdir(littlechef_top)
         self.assertRaises(SystemExit, runner._readconfig)
 
-    def test_readconfig(self):
-        """Should read auth.cfg and properly configure variables"""
-        runner._readconfig()
-        self.assertEquals(env.password, 'testpass')
 
-
-class TestLib(BaseTest):
+class TestLib(unittest.TestCase):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
         expected = {'run_list': []}
         self.assertEquals(lib.get_node('Idon"texist'), expected)
         expected = {'run_list': ['recipe[subversion]']}
-        self.assertEquals(lib.get_node('testnode'), expected)
+        self.assertEquals(lib.get_node('testnode1'), expected)
 
     def test_list_nodes(self):
         """Should list all configured nodes"""
-        expected = [{'name': 'testnode', 'run_list': ['recipe[subversion]']}]
+        expected = [{'name': 'testnode1', 'run_list': ['recipe[subversion]']}]
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_list_recipes(self):
@@ -87,18 +69,22 @@ class TestChef(BaseTest):
     def test_save_config(self):
         """Should create a tmp_node.json and a nodes/testnode2.json config file
         """
-        env.host_string = 'testnode2'
+        # Save a new node
+        env.host_string = 'testnode3'
         run_list = ["role[testrole]"]
         chef._save_config({"run_list": run_list})
-        self.assertTrue(exists(join('nodes', 'testnode2.json')))
-        with open(join('nodes', 'testnode2.json'), 'r') as f:
+        file_path = os.path.join('nodes', 'testnode3.json')
+        self.assertTrue(os.path.exists(file_path))
+        with open(file_path, 'r') as f:
             data = json.loads(f.read())
-            self.assertEquals(data['run_list'], run_list)
+        os.remove(file_path)  # Clean up
+        self.assertEquals(data['run_list'], run_list)
+
         # It should't overwrite existing config files
-        env.host_string = 'testnode'  # This node exists
+        env.host_string = 'testnode1'  # This node exists
         run_list = ["role[testrole]"]
         chef._save_config({"run_list": run_list})
-        with open(join('nodes', 'testnode.json'), 'r') as f:
+        with open(os.path.join('nodes', 'testnode1.json'), 'r') as f:
             data = json.loads(f.read())
             # It should *NOT* have "testrole" assigned
             self.assertEquals(data['run_list'], ["recipe[subversion]"])
@@ -106,11 +92,16 @@ class TestChef(BaseTest):
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""
         chef._build_node_data_bag()
-        self.assertTrue(exists(join('data_bags', 'node', 'testnode.json')))
-        with open(join('data_bags', 'node', 'testnode.json'), 'r') as f:
+        item_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        self.assertTrue(os.path.exists(item_path))
+        with open(item_path, 'r') as f:
             data = json.loads(f.read())
-            self.assertTrue('id' in data and data['id'] == 'testnode')
-            self.assertTrue('name' in data and data['name'] == 'testnode')
+            self.assertTrue('id' in data and data['id'] == 'testnode1')
+            self.assertTrue('name' in data and data['name'] == 'testnode1')
+
+        # Clean up
+        chef._remove_node_data_bag()
+        self.assertFalse(os.path.exists(item_path))
 
 
 if __name__ == "__main__":
