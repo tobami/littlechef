@@ -1,6 +1,54 @@
-# Taken from Vagrant's patch: https://gist.github.com/867960
 # based on Brian Akins's patch: http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
 if Chef::Config[:solo]
+  
+  class Query
+    def initialize( query )
+      @query = query
+    end
+    
+    def match( item )
+      return false
+    end
+  end
+  
+  class NilQuery < Query
+    def match( item )
+      return true
+    end
+  end
+    
+  class FieldQuery < Query
+    
+    def initialize( query )
+      @field, @query = query.split(":", 2)
+    end
+    
+    def match( item )
+      value = item[@field]
+      result = (!value.nil? && value.include?(@query))
+      return result
+    end
+  end
+    
+  class WildCardFieldQuery < FieldQuery
+    
+    def initialize( query )
+      super      
+      @query = @query.chop
+    end
+    
+    def match( item )
+      value = item[@field]
+      if value.nil?
+        return false
+      elsif value.is_a?(String)
+        return value.start_with?(@query)
+      else
+        return value.any?{ |x| x.start_with?(@query) }
+      end
+    end
+  end
+  
   class Chef
     module Mixin
       module Language
@@ -28,14 +76,35 @@ if Chef::Config[:solo]
 
   class Chef
     class Recipe
-      def search(bag_name, query=nil)
-        Chef::Log.warn("Simplistic search patch, ignoring query of %s" % [query]) unless query.nil?
+      def search(bag_name, query=nil, sort=nil, start=0, rows=1000)
+        @_query = make_query(query)
+        if @_query.nil?
+          raise "Query #{query} is not supported"
+        end
+        result = []
         data_bag(bag_name.to_s).each do |bag_item_id|
           bag_item = data_bag_item(bag_name.to_s, bag_item_id)
-          yield bag_item
+          if @_query.match(bag_item)
+            result << bag_item
+          end
+        end
+        return result.slice(start, rows)
+      end
+      
+      def make_query(query)
+        if query.nil? or query === "*:*"
+          return NilQuery.new(query)
+        elsif query.split(":", 2).length == 2
+          field, query_string = query.split(":", 2)
+          if query_string.end_with?("*")
+            return WildCardFieldQuery.new(query)
+          else
+            return FieldQuery.new(query)
+          end
+        else
+          return nil
         end
       end
-
     end
   end
 
