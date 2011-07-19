@@ -1,6 +1,28 @@
 # based on Brian Akins's patch: http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
 if Chef::Config[:solo]
   
+        
+  def make_query(query)
+    if query.nil? or query === "*:*"
+      return NilQuery.new(query)
+    elsif query.include?(" AND ")
+      return AndQuery.new(query.split(" AND ").collect{ |x| make_query(x) })
+    elsif query.include?(" OR ")
+      return OrQuery.new(query.split(" OR ").collect{ |x| make_query(x) })
+    elsif query.include?(" NOT ")
+      return NotQuery.new(query.split(" NOT ").collect{ |x| make_query(x) })
+    elsif query.split(":", 2).length == 2
+      field, query_string = query.split(":", 2)
+      if query_string.end_with?("*")
+        return WildCardFieldQuery.new(query)
+      else
+        return FieldQuery.new(query)
+      end
+    else
+      return nil
+    end
+  end
+  
   class Query
     def initialize( query )
       @query = query
@@ -8,6 +30,34 @@ if Chef::Config[:solo]
     
     def match( item )
       return false
+    end
+  end
+  
+  class NestedQuery
+    def initialize( conditions )
+      @conditions = conditions
+    end
+    
+    def match( item )
+      return false
+    end
+  end
+  
+  class AndQuery < NestedQuery
+    def match( item )
+      return @conditions.all?{ |x| x.match(item) }
+    end
+  end
+  
+  class NotQuery < AndQuery
+    def match( item )
+      return !super
+    end
+  end
+  
+  class OrQuery < NestedQuery
+    def match( item )
+      return @conditions.any?{ |x| x.match(item) }
     end
   end
   
@@ -104,21 +154,6 @@ if Chef::Config[:solo]
         end
         if block.nil?
           return result.slice(start, rows)
-        end
-      end
-      
-      def make_query(query)
-        if query.nil? or query === "*:*"
-          return NilQuery.new(query)
-        elsif query.split(":", 2).length == 2
-          field, query_string = query.split(":", 2)
-          if query_string.end_with?("*")
-            return WildCardFieldQuery.new(query)
-          else
-            return FieldQuery.new(query)
-          end
-        else
-          return nil
         end
       end
     end
