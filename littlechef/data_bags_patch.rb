@@ -5,7 +5,8 @@ if Chef::Config[:solo]
   def make_query(query)
     if query.nil? or query === "*:*"
       return NilQuery.new(query)
-    elsif query.include?(" AND ")
+    query.gsub!("[* TO *]", "*")
+    if query.include?(" AND ")
       return AndQuery.new(query.split(" AND ").collect{ |x| make_query(x) })
     elsif query.include?(" OR ")
       return OrQuery.new(query.split(" OR ").collect{ |x| make_query(x) })
