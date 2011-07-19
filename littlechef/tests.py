@@ -103,6 +103,15 @@ class TestChef(BaseTest):
             # It should *NOT* have "testrole" assigned
             self.assertEquals(data['run_list'], ["recipe[subversion]"])
 
+    def test_build_node_data_bag(self):
+        """Should create a node data bag with one item per node"""
+        chef._build_node_data_bag()
+        self.assertTrue(exists(join('data_bags', 'node', 'testnode.json')))
+        with open(join('data_bags', 'node', 'testnode.json'), 'r') as f:
+            data = json.loads(f.read())
+            self.assertTrue('id' in data and data['id'] == 'testnode')
+            self.assertTrue('name' in data and data['name'] == 'testnode')
+
 
 if __name__ == "__main__":
     unittest.main()

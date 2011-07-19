@@ -16,6 +16,7 @@
 See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 """
 import os
+import shutil
 import simplejson as json
 
 from fabric.api import *
@@ -46,7 +47,6 @@ def _save_config(node):
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4))
-            f.write('\n')
     return 'tmp_node.json'
 
 
@@ -64,6 +64,7 @@ def _synchronize_node():
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
     """
+    _build_node_data_bag()
     print "Synchronizing cookbooks, roles and data bags..."
     rsync_project(
         node_work_path, './',
@@ -76,7 +77,35 @@ def _synchronize_node():
         delete=True,
         extra_opts="-q",
     )
+    _remove_node_data_bag()
     _add_data_bag_patch()
+
+
+def _build_node_data_bag():
+    """Builds one 'node' data bag item per file found in the 'nodes' directory
+
+    Attributes for a node item:
+        'id': It adds data bag 'id' using the filename minus the .json extension
+        'name': same as 'id'
+        all attributes found in nodes/<item>.json file
+
+    """
+    nodes = lib.get_nodes()
+    node_data_bag_path = os.path.join('data_bags', 'node')
+    _remove_node_data_bag()
+    os.makedirs(node_data_bag_path)
+    for node in nodes:
+        node['id'] = node['name']
+        with open(os.path.join(
+                    'data_bags', 'node', node['name'] + '.json'), 'w') as f:
+            f.write(json.dumps(node))
+
+
+def _remove_node_data_bag():
+    """Removes generated 'node' data_bag"""
+    node_data_bag_path = os.path.join('data_bags', 'node')
+    if os.path.exists(node_data_bag_path):
+        shutil.rmtree(node_data_bag_path)
 
 
 def _add_data_bag_patch():
