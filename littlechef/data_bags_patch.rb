@@ -1,10 +1,18 @@
 # based on Brian Akins's patch: http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
 if Chef::Config[:solo]
   
+  def match_value(value, match)
+    if value.is_a?(Array)
+      return value.any?{ |x| match_value(x, match) }
+    else
+      return value.to_s == match
+    end
+  end
         
   def make_query(query)
     if query.nil? or query === "*:*"
       return NilQuery.new(query)
+    end
     query.gsub!("[* TO *]", "*")
     if query.include?(" AND ")
       return AndQuery.new(query.split(" AND ").collect{ |x| make_query(x) })
@@ -34,13 +42,9 @@ if Chef::Config[:solo]
     end
   end
   
-  class NestedQuery
+  class NestedQuery < Query
     def initialize( conditions )
       @conditions = conditions
-    end
-    
-    def match( item )
-      return false
     end
   end
   
@@ -69,22 +73,23 @@ if Chef::Config[:solo]
   end
     
   class FieldQuery < Query
-    
     def initialize( query )
       @field, @query = query.split(":", 2)
     end
     
     def match( item )
       value = item[@field]
-      result = (!value.nil? && value.include?(@query))
-      return result
+      if value.nil?
+        return false
+      end
+      return match_value(value, @query)
     end
   end
     
   class WildCardFieldQuery < FieldQuery
     
     def initialize( query )
-      super      
+      super
       @query = @query.chop
     end
     
