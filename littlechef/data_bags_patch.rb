@@ -1,6 +1,26 @@
+#Copyright 2011 Markus Korn <thekorn@gmx.de>
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+#
 # based on Brian Akins's patch: http://lists.opscode.com/sympa/arc/chef/2011-02/msg00000.html
+
 if Chef::Config[:solo]
   
+  # Checks if a given `value` is equal to `match`
+  # If value is an Array, then `match` is checked against each of the value's
+  # members, and true is returned if any of the members matches.
+  # The comparison is string based, means: if value is not an Array then value
+  # gets converted into a string (using .to_s) and then checked.
   def match_value(value, match)
     if value.is_a?(Array)
       return value.any?{ |x| match_value(x, match) }
@@ -9,29 +29,46 @@ if Chef::Config[:solo]
     end
   end
         
+  # Factory function to parse the query string into a `Query` object
+  # Returns `nil` if the query is not supported.
   def make_query(query)
     if query.nil? or query === "*:*"
       return NilQuery.new(query)
     end
+    
     query.gsub!("[* TO *]", "*")
+    if query.count("()") == 2 and query.start_with?("(") and query.end_with?(")")
+      query.tr!("()", "")
+    end
+    
     if query.include?(" AND ")
       return AndQuery.new(query.split(" AND ").collect{ |x| make_query(x) })
     elsif query.include?(" OR ")
       return OrQuery.new(query.split(" OR ").collect{ |x| make_query(x) })
     elsif query.include?(" NOT ")
       return NotQuery.new(query.split(" NOT ").collect{ |x| make_query(x) })
-    elsif query.split(":", 2).length == 2
+    end
+      
+    if query.start_with?("NOT")
+      negation = true
+      query = query[3..-1]    # strip leading NOT
+    else
+      negation = false
+    end
+    
+    if query.split(":", 2).length == 2
       field, query_string = query.split(":", 2)
       if query_string.end_with?("*")
-        return WildCardFieldQuery.new(query)
+        return WildCardFieldQuery.new(query, negation)
       else
-        return FieldQuery.new(query)
+        return FieldQuery.new(query, negation)
       end
     else
       return nil
     end
   end
   
+  # BaseClass for all queries
   class Query
     def initialize( query )
       @query = query
@@ -42,53 +79,74 @@ if Chef::Config[:solo]
     end
   end
   
+  # BaseClass for all queries with AND, OR or NOT conditions
   class NestedQuery < Query
     def initialize( conditions )
       @conditions = conditions
     end
   end
   
+  # AndQuery matches if all sub-queries match
   class AndQuery < NestedQuery
     def match( item )
       return @conditions.all?{ |x| x.match(item) }
     end
   end
   
-  class NotQuery < AndQuery
+  # NotQuery matches if the *leftmost* condition matches, but the others don't
+  class NotQuery < NestedQuery
     def match( item )
-      return !super
+      base_condition = @conditions[0]
+      last_conditions = @conditions[1..-1] || []
+      return base_condition.match(item) & last_conditions.all?{ |x| !x.match(item) }
     end
   end
   
+  # OrQuery matches if any of the sub-queries match
   class OrQuery < NestedQuery
     def match( item )
       return @conditions.any?{ |x| x.match(item) }
     end
   end
   
+  # NilQuery always matches
   class NilQuery < Query
     def match( item )
       return true
     end
   end
     
+  # FieldQuery looks for a certain attribute in the item to match and checks
+  # the value of this attribute for equality.
+  # If `negation` is true the oposite result will be returned.
   class FieldQuery < Query
-    def initialize( query )
+    def initialize( query, negation=false )
       @field, @query = query.split(":", 2)
+      @negation = negation
+      @field.strip!
     end
     
     def match( item )
       value = item[@field]
       if value.nil?
-        return false
+        result = false
       end
-      return match_value(value, @query)
+      result = match_value(value, @query)
+      if @negation
+        return !result
+      else
+        return result
+      end
     end
   end
     
+  # WildCardFieldQuery is exactly like FieldQuery, but allows trailing stars.
+  # Instead of checking for exact matches it just checks if the value begins
+  # with a certain string, or (in case of an Array) any of its items value
+  # begins with a string.
   class WildCardFieldQuery < FieldQuery
     
-    def initialize( query )
+    def initialize( query, negation=false )
       super
       @query = @query.chop
     end
@@ -96,11 +154,20 @@ if Chef::Config[:solo]
     def match( item )
       value = item[@field]
       if value.nil?
-        return false
+        result = false
       elsif value.is_a?(String)
-        return value.start_with?(@query)
+        if value.strip().empty?
+          result = true
+        else
+          result = value.start_with?(@query)
+        end
       else
-        return value.any?{ |x| x.start_with?(@query) }
+        result = value.any?{ |x| x.start_with?(@query) }
+      end
+      if @negation
+        return !result
+      else
+        return result
       end
     end
   end
@@ -108,6 +175,8 @@ if Chef::Config[:solo]
   class Chef
     module Mixin
       module Language
+        # Hook into Chef which reads all items in a given `bag` and converts
+        # them into one single Hash
         def data_bag(bag)
           @solo_data_bags = {} if @solo_data_bags.nil?
           unless @solo_data_bags[bag]
@@ -121,6 +190,8 @@ if Chef::Config[:solo]
           @solo_data_bags[bag].keys
         end
 
+        # Hook into Chef which returns the ruby representation of a given
+        # data_bag item
         def data_bag_item(bag, item)
           data_bag(bag) unless ( !@solo_data_bags.nil? && @solo_data_bags[bag])
           @solo_data_bags[bag][item]
@@ -132,6 +203,14 @@ if Chef::Config[:solo]
 
   class Chef
     class Recipe
+      
+      # Overwrite the search method of recipes to operate locally by using
+      # data found in data_bags.
+      # Only very basic lucene syntax is supported and also sorting the result
+      # is not implemented, if this search method does not support a given query
+      # an exception is raised.
+      # This search() method returns a block iterator or an Array, depending
+      # on how this method is called.
       def search(bag_name, query=nil, sort=nil, start=0, rows=1000, &block)
         if !sort.nil?
           raise "Sorting search results is not supported"
@@ -140,29 +219,28 @@ if Chef::Config[:solo]
         if @_query.nil?
           raise "Query #{query} is not supported"
         end
-        if block.nil?
-          result = []
-        else
+        if block_given?
           pos = 0
+        else
+          result = []
         end
         data_bag(bag_name.to_s).each do |bag_item_id|
           bag_item = data_bag_item(bag_name.to_s, bag_item_id)
           if @_query.match(bag_item)
-            if block.nil?
-              result << bag_item
-            else
+            if block_given?
               if (pos >= start and pos < (start + rows))
                 yield bag_item
               end
               pos += 1
+            else
+              result << bag_item
             end
           end
         end
-        if block.nil?
+        if !block_given?
           return result.slice(start, rows)
         end
       end
     end
   end
-
 end
