@@ -1,8 +1,21 @@
+#
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+#
 import unittest
 import subprocess
 import os
 import platform
-from os.path import join, sep, normpath, abspath, split
+from os.path import join, normpath, abspath, split
 
 
 # Set some convenience variables
@@ -54,7 +67,7 @@ class TestConfig(BaseTest):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([cook, '-v'])
         self.assertEquals(error, "")
-        self.assertTrue('LittleChef 0.6.' in resp)
+        self.assertTrue('LittleChef 0.7.' in resp)
 
     def test_list_commands(self):
         """Should output a list of available commands"""
@@ -114,23 +127,23 @@ class TestNode(BaseTest):
     def test_list_nodes(self):
         """Should list all nodes"""
         resp, error = self.execute([cook, 'list_nodes'])
-        self.assertTrue('testnode' in resp)
+        self.assertTrue('testnode1' in resp)
         self.assertTrue('Recipes: subversion' in resp)
 
     def test_list_nodes_detailed(self):
         """Should show a detailed list of all nodes"""
         resp, error = self.execute([cook, 'list_nodes_detailed'])
-        self.assertTrue('testnode' in resp)
+        self.assertTrue('testnode1' in resp)
         self.assertTrue('Recipe: subversion' in resp)
 
     def test_list_nodes_with_recipe(self):
         """Should list all nodes with a recipe in the run list"""
         resp, error = self.execute([cook, 'list_nodes_with_recipe:subversion'])
-        self.assertTrue('testnode' in resp)
+        self.assertTrue('testnode1' in resp)
         self.assertTrue('Recipes: subversion' in resp)
 
         resp, error = self.execute([cook, 'list_nodes_with_recipe:apache2'])
-        self.assertFalse('testnode' in resp)
+        self.assertFalse('testnode1' in resp)
 
 
 if __name__ == "__main__":
