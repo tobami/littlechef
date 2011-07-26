@@ -1,0 +1,5 @@
+{
+    "run_list": [
+        "role[all_you_can_eat]"
+    ]
+}

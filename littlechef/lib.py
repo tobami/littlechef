@@ -137,6 +137,13 @@ def get_recipes_in_cookbook(name):
     return recipes
 
 
+def get_recipes_in_role(rolename):
+    """Gets all recipes defined in a role's run_list"""
+    recipes = []
+    role = _get_role(rolename)
+    recipes.extend(get_recipes_in_node(role))
+    return recipes
+
 def get_recipes_in_node(node):
     """Gets the name of all recipes present in the run_list of a node"""
     recipes = []
@@ -166,6 +173,11 @@ def print_recipe(recipe):
     print "  version:      {0}".format(recipe['version'])
     print "  dependencies: {0}".format(", ".join(recipe['dependencies']))
     print "  attributes:   {0}".format(", ".join(recipe['attributes']))
+
+
+def get_roles_in_role(rolename):
+    """Gets all roles defined in a role's run_list"""
+    return get_roles_in_node(_get_role(rolename))
 
 
 def get_roles_in_node(node):

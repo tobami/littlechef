@@ -54,20 +54,25 @@ class TestLib(unittest.TestCase):
 
     def test_list_nodes(self):
         """Should list all configured nodes"""
-        expected = [{'name': 'testnode1', 'run_list': ['recipe[subversion]']}]
+        expected = [{'name': 'testnode1', 'run_list': ['recipe[subversion]']},
+                    {'name': 'testnode2', 'run_list': ['role[all_you_can_eat]']}]
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_list_recipes(self):
         recipes = lib.get_recipes()
-        self.assertEquals(len(recipes), 3)
+        self.assertEquals(len(recipes), 5)
+        self.assertEquals(recipes[1]['name'], 'subversion')
         self.assertEquals(recipes[1]['description'],
+            'Includes the client recipe. Modified by site-cookbooks')
+        self.assertEquals(recipes[2]['name'], 'subversion::client')
+        self.assertEquals(recipes[2]['description'],
             'Subversion Client installs subversion and some extra svn libs')
-        self.assertEquals(recipes[2]['name'], 'subversion::server')
+        self.assertEquals(recipes[3]['name'], 'subversion::server')
 
 
 class TestChef(BaseTest):
     def test_save_config(self):
-        """Should create a tmp_node.json and a nodes/testnode2.json config file
+        """Should create a tmp_node.json and a nodes/testnode3.json config file
         """
         # Save a new node
         env.host_string = 'testnode3'
@@ -96,9 +101,21 @@ class TestChef(BaseTest):
         self.assertTrue(os.path.exists(item_path))
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
-            self.assertTrue('id' in data and data['id'] == 'testnode1')
-            self.assertTrue('name' in data and data['name'] == 'testnode1')
-
+        self.assertTrue('id' in data and data['id'] == 'testnode1')
+        self.assertTrue('name' in data and data['name'] == 'testnode1')
+        self.assertTrue(
+            'recipes' in data and data['recipes'] == ['subversion'])
+        self.assertTrue(
+            'recipes' in data and data['role'] == [])
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        self.assertTrue(os.path.exists(item_path))
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('id' in data and data['id'] == 'testnode2')
+        self.assertTrue('recipes' in data)
+        self.assertEquals(data['recipes'], [u'subversion', u'man', u'vim'])
+        self.assertTrue('recipes' in data)
+        self.assertEquals(data['role'], [u'base', u'all_you_can_eat'])
         # Clean up
         chef._remove_node_data_bag()
         self.assertFalse(os.path.exists(item_path))

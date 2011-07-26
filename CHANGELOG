@@ -4,10 +4,10 @@ LittleChef Changelog
 
 Unreleased
 ----------------------------------------
-* NEW #46: Markus implemented node synching using rsync instead of data upload, 
+* NEW #46: Markus implemented node synching using rsync instead of data upload,
     substantially speeding up node configuration runs. All cookbooks are now synchronized,
     instead of only those needed by the configuration run
-* NEW #16: Markus reimplemented search support for data_bags.
+* NEW #16: Markus implemented search support for data_bags
 
 
 Version 0.6.5 July 5, 2011

@@ -96,6 +96,18 @@ def _build_node_data_bag():
     os.makedirs(node_data_bag_path)
     for node in nodes:
         node['id'] = node['name']
+        # Build extended role list
+        node['role'] = lib.get_roles_in_node(node)
+        for role in node['role']:
+            node['role'].extend(lib.get_roles_in_role(role))
+        node['role'] = list(set(node['role']))
+        # Build extended recipe list
+        node['recipes'] = lib.get_recipes_in_node(node)
+        # Add recipes found inside each roles in the extended role list
+        for role in node['role']:
+            node['recipes'].extend(lib.get_recipes_in_role(role))
+        node['recipes'] = list(set(node['recipes']))
+        # Save node data bag item
         with open(os.path.join(
                     'data_bags', 'node', node['name'] + '.json'), 'w') as f:
             f.write(json.dumps(node))

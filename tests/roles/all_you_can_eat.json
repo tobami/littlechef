@@ -1,12 +1,13 @@
 {
-    "name": "App",
+    "name": "all_you_can_eat",
     "default_attributes": { },
     "override_attributes": { },
     "json_class": "Chef::Role",
     "description": "An example aplication role than needs the subversion recipe",
     "chef_type": "role",
     "run_list": [
+        "recipe[man]",
         "recipe[subversion]",
-        "recipe[vim]"
+        "role[base]"
     ]
 }
