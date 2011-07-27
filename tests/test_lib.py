@@ -115,7 +115,8 @@ class TestChef(BaseTest):
         self.assertTrue('recipes' in data)
         self.assertEquals(data['recipes'], [u'subversion', u'man', u'vim'])
         self.assertTrue('recipes' in data)
-        self.assertEquals(data['role'], [u'base', u'all_you_can_eat'])
+        self.assertEquals(data['role'], [u'all_you_can_eat'])
+        self.assertEquals(data['roles'], [u'base', u'all_you_can_eat'])
         # Clean up
         chef._remove_node_data_bag()
         self.assertFalse(os.path.exists(item_path))

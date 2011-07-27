@@ -98,13 +98,14 @@ def _build_node_data_bag():
         node['id'] = node['name']
         # Build extended role list
         node['role'] = lib.get_roles_in_node(node)
+        node['roles'] = node['role'][:]
         for role in node['role']:
-            node['role'].extend(lib.get_roles_in_role(role))
-        node['role'] = list(set(node['role']))
+            node['roles'].extend(lib.get_roles_in_role(role))
+        node['roles'] = list(set(node['roles']))
         # Build extended recipe list
         node['recipes'] = lib.get_recipes_in_node(node)
         # Add recipes found inside each roles in the extended role list
-        for role in node['role']:
+        for role in node['roles']:
             node['recipes'].extend(lib.get_recipes_in_role(role))
         node['recipes'] = list(set(node['recipes']))
         # Save node data bag item
