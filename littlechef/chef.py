@@ -122,15 +122,18 @@ def _remove_node_data_bag():
 
 
 def _add_data_bag_patch():
-    """Adds data_bag_lib cookbook, which provides a library to read data bags
+    """ Adds data_bag_lib cookbook, which provides a library to read and search
+    data bags.
     """
     # Create extra cookbook dir
     lib_path = os.path.join(
                 node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
     sudo('mkdir -p {0}'.format(lib_path))
     # Create remote data bags patch
-    put(os.path.join(basedir, 'data_bags_patch.rb'),
+    put(os.path.join(basedir, 'data_bags.rb'),
         os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
+    put(os.path.join(basedir, 'search.rb'),
+        os.path.join(lib_path, 'search.rb'), use_sudo=True)
 
 
 def _configure_node(configfile):
