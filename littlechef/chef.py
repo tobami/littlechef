@@ -33,14 +33,14 @@ from littlechef.settings import node_work_path, cookbook_paths
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 
-def _save_config(node):
+def _save_config(node, force=False):
     """Saves node configuration
-    if no nodes/hostname.json exists, it creates one
+    if no nodes/hostname.json exists, or force=True, it creates one
     it also saves to tmp_node.json
     """
     filepath = os.path.join("nodes/", env.host_string + ".json")
     files_to_create = ['tmp_node.json']
-    if not os.path.exists(filepath):
+    if not os.path.exists(filepath) or force:
         # Only save to nodes/ if there is not already a file
         print "Saving node configuration to {0}...".format(filepath)
         files_to_create.append(filepath)
@@ -51,13 +51,23 @@ def _save_config(node):
 
 
 def sync_node(node):
-    """Buils, synchronizes and configures a node"""
+    """Builds, synchronizes and configures a node.
+    It also injects the ipaddress to the node's config file if not already
+    existent.
+    """
     with lib.credentials():
         # Always configure Chef Solo
         solo.configure()
         _synchronize_node()
+        force = False
+        if "ipaddress" not in node:
+            with settings(hide('stdout', 'stderr'), warn_only=True):
+                output = sudo('ohai ipaddress')
+                if output.succeeded:
+                    node['ipaddress'] = json.loads(output)[0]
+                    force = True
         # Everything was configured alright, so save the node configuration
-        filepath = _save_config(node)
+        filepath = _save_config(node, force)
         _configure_node(filepath)
 
 
