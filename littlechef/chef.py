@@ -50,6 +50,16 @@ def _save_config(node, force=False):
     return 'tmp_node.json'
 
 
+def _get_ipaddress(node):
+    if "ipaddress" not in node:
+        with settings(hide('stdout'), warn_only=True):
+            output = sudo('ohai ipaddress')
+        if output.succeeded:
+            node['ipaddress'] = json.loads(output)[0]
+            return True
+    return False
+
+
 def sync_node(node):
     """Builds, synchronizes and configures a node.
     It also injects the ipaddress to the node's config file if not already
@@ -59,15 +69,8 @@ def sync_node(node):
         # Always configure Chef Solo
         solo.configure()
         _synchronize_node()
-        force = False
-        if "ipaddress" not in node:
-            with settings(hide('stdout', 'stderr'), warn_only=True):
-                output = sudo('ohai ipaddress')
-                if output.succeeded:
-                    node['ipaddress'] = json.loads(output)[0]
-                    force = True
         # Everything was configured alright, so save the node configuration
-        filepath = _save_config(node, force)
+        filepath = _save_config(node, _get_ipaddress(node))
         _configure_node(filepath)
 
 
@@ -140,7 +143,8 @@ def _add_data_bag_patch():
     # Create extra cookbook dir
     lib_path = os.path.join(
                 node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
-    sudo('mkdir -p {0}'.format(lib_path))
+    with hide('running', 'stdout'):
+        sudo('mkdir -p {0}'.format(lib_path))
     # Create remote data bags patch
     put(os.path.join(basedir, 'data_bags.rb'),
         os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
@@ -154,11 +158,11 @@ def _configure_node(configfile):
     remote_file = '/root/{0}'.format(configfile.split("/")[-1])
     # Ensure secure permissions
     put(configfile, remote_file, use_sudo=True, mode=400)
-    sudo('chown root:root {0}'.format(remote_file)),
-    sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
+    with hide('stdout'):
+        sudo('chown root:root {0}'.format(remote_file)),
+        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
     # Remove local temporary node file
     os.remove(configfile)
-
     print colors.yellow("\n== Cooking ==")
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(
