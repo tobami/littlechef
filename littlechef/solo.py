@@ -67,7 +67,7 @@ def configure():
             context=data, use_sudo=True, mode=0400)
         remote_username = run('whoami').strip()
         sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
-        sudo('chown -R {0}.{0} {1}'.format(remote_username, node_work_path))
+        sudo('chown -R {0} {1}'.format(remote_username, node_work_path))
 
 
 def check_distro():

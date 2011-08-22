@@ -8,6 +8,10 @@ Unreleased
     substantially speeding up node configuration runs. All cookbooks are now synchronized,
     instead of only those needed by the configuration run
 * NEW #16: Markus implemented search support for data_bags
+* NEW #16: Automatically add a node data bag, which allows node search.
+    It contains everything defined in the node/ file, plus "recipes"
+    (expanded recipe list), "role" (roles in the run_list) and
+    "roles" (expanded role list)
 
 
 Version 0.6.5 July 5, 2011

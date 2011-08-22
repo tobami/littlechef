@@ -4,9 +4,9 @@ With LittleChef you will be able to get started more quickly cooking with [Chef]
 
 ## Overview
 
-You may think of this like a pocket Chef. No need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things.
+You may think of this like a pocket Chef. No need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things. Installing LittleChef to your work computer is all you need to get you started.
 
-Installing LittleChef to your work computer is all you need to get you started.
+It also adds features to Chef Solo that are currently only available for Chef Server users: data bags, data bag search, and node search support.
 
 ### How it all works
 
@@ -17,11 +17,15 @@ It all starts in the **kitchen**, which you should keep under version control:
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined
-* `data_bags/`: Chef [Data Bags][]. Note that search for data bags doesn't work yet with Chef Solo
+* `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported.
 
 Whenever you apply a recipe to a node, all cookbooks, all roles and all databags are rsynced to that node, to the `/tmp/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
 The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings sanity to cookbook development.
+
+### Data bags ###
+
+### Search ###
 
 ## Installation
 

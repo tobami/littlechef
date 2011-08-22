@@ -53,6 +53,8 @@ def _save_config(node):
 def sync_node(node):
     """Buils, synchronizes and configures a node"""
     with lib.credentials():
+        # Always configure Chef Solo
+        solo.configure()
         _synchronize_node()
         # Everything was configured alright, so save the node configuration
         filepath = _save_config(node)
@@ -146,8 +148,6 @@ def _configure_node(configfile):
     sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
     # Remove local temporary node file
     os.remove(configfile)
-    # Always configure Chef Solo
-    solo.configure()
 
     print colors.yellow("\n== Cooking ==")
     with settings(hide('warnings', 'running'), warn_only=True):

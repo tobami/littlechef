@@ -144,6 +144,7 @@ def get_recipes_in_role(rolename):
     recipes.extend(get_recipes_in_node(role))
     return recipes
 
+
 def get_recipes_in_node(node):
     """Gets the name of all recipes present in the run_list of a node"""
     recipes = []
