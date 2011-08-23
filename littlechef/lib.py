@@ -90,8 +90,11 @@ def get_recipes_in_cookbook(name):
     metadata_exists = False
     for cookbook_path in cookbook_paths:
         path = os.path.join(cookbook_path, name)
+        path_exists = os.path.exists(path)
         # cookbook exists if present in any of the cookbook paths
-        cookbook_exists = cookbook_exists or os.path.exists(path)
+        cookbook_exists = cookbook_exists or path_exists
+        if not path_exists:
+            continue
         # Now try to open metadata.json
         try:
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
@@ -111,7 +114,7 @@ def get_recipes_in_cookbook(name):
                         'version': cookbook.get('version'),
                         'dependencies': cookbook.get('dependencies',
                                                         {}).keys(),
-                        'attributes': cookbook.get('attributes', {}).keys(),
+                        'attributes': cookbook.get('attributes', {}),
                         })
                 # When a recipe has no default recipe (libraries?),
                 # add one so that it is listed
@@ -122,7 +125,7 @@ def get_recipes_in_cookbook(name):
                         'version': cookbook.get('version'),
                         'dependencies': cookbook.get('dependencies',
                                                         {}).keys(),
-                        'attributes': cookbook.get('attributes', {}).keys()
+                        'attributes': cookbook.get('attributes', {})
                     })
             # Cookbook metadata.json was found, don't try next cookbook path
             # because metadata.json in site-cookbooks has preference

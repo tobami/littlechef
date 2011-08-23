@@ -54,8 +54,13 @@ class TestLib(unittest.TestCase):
 
     def test_list_nodes(self):
         """Should list all configured nodes"""
-        expected = [{'name': 'testnode1', 'run_list': ['recipe[subversion]']},
-                    {'name': 'testnode2', 'run_list': ['role[all_you_can_eat]']}]
+        expected = [
+            {'name': 'testnode1', 'run_list': ['recipe[subversion]']},
+            {'name': 'testnode2',
+                'subversion': {'password': 'node_password', 'user': 'node_user'},
+                'run_list': ['role[all_you_can_eat]']}
+        ]
+
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_list_recipes(self):
@@ -120,6 +125,58 @@ class TestChef(BaseTest):
         # Clean up
         chef._remove_node_data_bag()
         self.assertFalse(os.path.exists(item_path))
+
+    def test_attribute_merge_cookbook_default(self):
+        """Should have the value found in recipe/attributes/default.rb"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertTrue(data['subversion']['repo_name'] == 'repo')
+
+    def test_attribute_merge_site_cookbook_default(self):
+        """Should have the value found in 
+        site_cookbooks/xx/recipe/attributes/default.rb
+
+        """
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertTrue(data['subversion']['repo_dir'] == '/srv/svn2')
+
+
+    def test_attribute_merge_role_default(self):
+        """Should have the value found in the roles default attributes"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertTrue(data['subversion']['repo_server'] == 'role_default_repo_server')
+        self.assertTrue('other_attr' in data)
+        self.assertTrue(data['other_attr']['other_key'] == 'nada')
+
+
+    def test_attribute_merge_node_normal(self):
+        """Should have the value found in the node attributes"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertTrue(data['subversion']['user'] == 'node_user')
+
+    def test_attribute_merge_role_override(self):
+        """Should have the value found in the roles override attributes"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertTrue(data['subversion']['password'] == 'role_override_pass')
 
 
 if __name__ == "__main__":

@@ -1,50 +1,108 @@
 {
-  "name": "subversion",
-  "description": "Installs subversion",
-  "long_description": "",
-  "maintainer": "Opscode, Inc.",
-  "maintainer_email": "cookbooks@opscode.com",
-  "license": "Apache 2.0",
-  "platforms": {
-    "redhat": [
-
-    ],
-    "centos": [
-
-    ],
-    "fedora": [
-
-    ],
-    "ubuntu": [
-
-    ],
-    "debian": [
-
-    ]
-  },
   "dependencies": {
-    "apache2": [
+    "apache2": ">= 0.0.0"
+  },
+  "name": "subversion",
+  "maintainer_email": "cookbooks@opscode.com",
+  "attributes": {
+    "subversion/password": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
 
-    ]
+      ],
+      "default": "subversion",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "Subversion password",
+      "description": "Password for the subversion user to use for checkout"
+    },
+    "subversion/repo_dir": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "default": "/srv/svn2",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "Subversion Repo directory",
+      "description": "Path where the svn checkout will be made"
+    },
+    "subversion/user": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "default": "subversion",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "Subversion user",
+      "description": "Name of subversion user to use for checkout"
+    },
+    "subversion/repo_name": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "default": "repo",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "Subversion repository name",
+      "description": "Name of the subversion repository"
+    },
+    "subversion/server_name": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "default": "svn",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "Subversion server name",
+      "description": "Name for the subversion server to use for checkout"
+    }
   },
-  "recommendations": {
-  },
+  "license": "Apache 2.0",
   "suggestions": {
   },
-  "conflicting": {
+  "platforms": {
+    "debian": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "ubuntu": ">= 0.0.0",
+    "redhat": ">= 0.0.0"
   },
-  "providing": {
+  "maintainer": "Opscode, Inc.",
+  "long_description": "",
+  "version": "0.8.4",
+  "recommendations": {
   },
-  "replacing": {
-  },
-  "attributes": {
+  "recipes": {
+    "subversion::client": "Subversion Client installs subversion and some extra svn libs",
+    "subversion": "Includes the client recipe. Modified by site-cookbooks",
+    "subversion::server": "Subversion Server (Apache2 mod_dav_svn)"
   },
   "groupings": {
   },
-  "recipes": {
-    "subversion": "Includes the client recipe. Modified by site-cookbooks",
-    "subversion::client": "Subversion Client installs subversion and some extra svn libs",
-    "subversion::server": "Subversion Server (Apache2 mod_dav_svn)"
+  "conflicting": {
   },
-  "version": "0.8.4"
+  "replacing": {
+  },
+  "description": "Installs subversion",
+  "providing": {
+  }
 }

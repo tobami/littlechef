@@ -1,7 +1,19 @@
 {
     "name": "all_you_can_eat",
-    "default_attributes": { },
-    "override_attributes": { },
+    "default_attributes": {
+        "subversion": {
+            "repo_server": "role_default_repo_server",
+            "user": "role_default_user"
+        },
+        "other_attr": {
+            "other_key": "nada"
+        }
+    },
+    "override_attributes": {
+        "subversion": {
+            "password": "role_override_pass"
+        }
+    },
     "json_class": "Chef::Role",
     "description": "An example aplication role than needs the subversion recipe",
     "chef_type": "role",

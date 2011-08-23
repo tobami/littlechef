@@ -96,6 +96,79 @@ def _synchronize_node():
     _add_data_bag_patch()
 
 
+def build_dct(dic, keys, value):
+    """Builds a dictionary with arbitrary depth out of a key list"""
+    key = keys.pop(0)
+    if len(keys):
+        dic.setdefault(key, {})
+        build_dct(dic[key], keys, value)
+    else:
+        dic[key] = value
+
+def update_dct(dic1, dic2):
+    """Merges two dictionaries recursively
+    dic2 will have preference over dic1
+
+    """
+    for key, val in dic2.items():
+        if isinstance(val, dict):
+            dic1.setdefault(key, {})
+            update_dct(dic1[key], val)
+        else:
+            dic1[key] = val
+
+
+def _merge_attributes(node, all_recipes, all_roles):
+    """Merges attributes from cookbooks, node and roles
+
+    Chef Attribute precedence:
+    http://wiki.opscode.com/display/chef/Attributes#Attributes-AttributeTypeandPrecedence
+    LittleChef implements, in precedence order:
+        - Cookbook default
+        - Role default
+        - Node normal
+        - Role override
+
+    NOTE: In order for cookbook attributes to be read, they need to be
+        correctly defined in its metadata.json
+    """
+    # Get cookbooks from extended recipes
+    attributes = {}
+    for recipe in node['recipes']:
+        # Find this recipe
+        for r in all_recipes:
+            if recipe == r['name']:
+                for attr in r['attributes']:
+                    build_dct(
+                        attributes,
+                        attr.split("/"),
+                        r['attributes'][attr]['default'])
+
+    # Get default role attributes
+    for role in node['roles']:
+        for r in all_roles:
+            if role == r['name']:
+                update_dct(attributes, r['default_attributes'])
+
+    # Get normal node attributes
+    non_attribute_fields = [
+        'id', 'name', 'role', 'roles', 'recipes', 'run_list', 'ipaddress']
+    node_attributes = {}
+    for key in node:
+        if key in non_attribute_fields:
+            continue
+        node_attributes[key] = node[key]
+    update_dct(attributes, node_attributes)
+
+    # Get override role attributes
+    for role in node['roles']:
+        for r in all_roles:
+            if role == r['name']:
+                update_dct(attributes, r['override_attributes'])
+    node.update(attributes)
+    return node
+
+
 def _build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
 
@@ -109,6 +182,8 @@ def _build_node_data_bag():
     node_data_bag_path = os.path.join('data_bags', 'node')
     _remove_node_data_bag()
     os.makedirs(node_data_bag_path)
+    all_recipes = lib.get_recipes()
+    all_roles = lib.get_roles()
     for node in nodes:
         node['id'] = node['name']
         # Build extended role list
@@ -123,6 +198,8 @@ def _build_node_data_bag():
         for role in node['roles']:
             node['recipes'].extend(lib.get_recipes_in_role(role))
         node['recipes'] = list(set(node['recipes']))
+        # Add attributes
+        node = _merge_attributes(node, all_recipes, all_roles)
         # Save node data bag item
         with open(os.path.join(
                     'data_bags', 'node', node['name'] + '.json'), 'w') as f:
