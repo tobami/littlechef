@@ -142,7 +142,7 @@ def _merge_attributes(node, all_recipes, all_roles):
                     build_dct(
                         attributes,
                         attr.split("/"),
-                        r['attributes'][attr]['default'])
+                        r['attributes'][attr].get('default'))
 
     # Get default role attributes
     for role in node['roles']:
