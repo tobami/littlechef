@@ -139,10 +139,11 @@ def _merge_attributes(node, all_recipes, all_roles):
         for r in all_recipes:
             if recipe == r['name']:
                 for attr in r['attributes']:
-                    build_dct(
-                        attributes,
-                        attr.split("/"),
-                        r['attributes'][attr].get('default'))
+                    if r['attributes'][attr].get('type') == "hash":
+                        value = {}
+                    else:
+                        value = r['attributes'][attr].get('default')
+                    build_dct(attributes, attr.split("/"), value)
 
     # Get default role attributes
     for role in node['roles']:
