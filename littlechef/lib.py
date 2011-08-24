@@ -219,7 +219,7 @@ def get_roles():
                 path = os.path.join(
                     root[len('roles/'):], filename[:-len('.json')])
                 roles.append(_get_role(path))
-    return roles
+    return sorted(roles, key=lambda x: x['fullname'])
 
 
 def print_role(role, detailed=True):
