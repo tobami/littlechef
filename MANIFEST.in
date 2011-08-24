@@ -4,3 +4,4 @@ include NOTICE
 include littlechef/data_bags.rb
 include littlechef/search.rb
 include littlechef/solo.rb
+include littlechef/parser.rb

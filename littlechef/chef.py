@@ -224,10 +224,9 @@ def _add_data_bag_patch():
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Create remote data bags patch
-    put(os.path.join(basedir, 'data_bags.rb'),
-        os.path.join(lib_path, 'data_bags.rb'), use_sudo=True)
-    put(os.path.join(basedir, 'search.rb'),
-        os.path.join(lib_path, 'search.rb'), use_sudo=True)
+    for filename in ('data_bags.rb', 'search.rb', 'parser.rb'):
+        put(os.path.join(basedir, filename),
+            os.path.join(lib_path, filename), use_sudo=True)
 
 
 def _configure_node(configfile):
