@@ -82,7 +82,7 @@ class TestChef(BaseTest):
         # Save a new node
         env.host_string = 'testnode3'
         run_list = ["role[testrole]"]
-        chef._save_config({"run_list": run_list})
+        chef.save_config({"run_list": run_list})
         file_path = os.path.join('nodes', 'testnode3.json')
         self.assertTrue(os.path.exists(file_path))
         with open(file_path, 'r') as f:
@@ -93,7 +93,7 @@ class TestChef(BaseTest):
         # It should't overwrite existing config files
         env.host_string = 'testnode1'  # This node exists
         run_list = ["role[testrole]"]
-        chef._save_config({"run_list": run_list})
+        chef.save_config({"run_list": run_list})
         with open(os.path.join('nodes', 'testnode1.json'), 'r') as f:
             data = json.loads(f.read())
             # It should *NOT* have "testrole" assigned

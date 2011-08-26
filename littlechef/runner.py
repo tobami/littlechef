@@ -163,6 +163,30 @@ def configure():
     chef.sync_node(node)
 
 
+@hosts('setup')
+def get_ips():
+    """Ping all nodes and update their 'ipaddress' field"""
+    import subprocess
+    for node in lib.get_nodes():
+        env.host_string = node['name']
+        proc = subprocess.Popen(['ping', '-c', '1', node['name']],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        resp, error = proc.communicate()
+        if not error:
+            lines = resp.split("\n")
+            ip = lines[0].split()[2].lstrip("(").rstrip(")")
+            if not ip:
+                print "Warning: could not get IP address from node {0}".format(
+                    node['name'])
+                continue
+            print "Node {0} has IP {1}. Saved.".format(node['name'], ip)
+            del node['name']
+            node['ipaddress'] = ip
+            chef.save_config(node, ip)
+        else:
+            print "Warning: could not ping node {0}".format(node['name'])
+
+
 @hosts('api')
 def list_nodes():
     """List all configured nodes"""

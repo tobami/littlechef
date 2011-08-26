@@ -33,7 +33,7 @@ from littlechef.settings import node_work_path, cookbook_paths
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 
-def _save_config(node, force=False):
+def save_config(node, force=False):
     """Saves node configuration
     if no nodes/hostname.json exists, or force=True, it creates one
     it also saves to tmp_node.json
@@ -51,6 +51,7 @@ def _save_config(node, force=False):
 
 
 def _get_ipaddress(node):
+    """If the node has not the key 'ipaddress' set, get the value with ohai"""
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
             output = sudo('ohai ipaddress')
@@ -70,7 +71,7 @@ def sync_node(node):
         solo.configure()
         _synchronize_node()
         # Everything was configured alright, so save the node configuration
-        filepath = _save_config(node, _get_ipaddress(node))
+        filepath = save_config(node, _get_ipaddress(node))
         _configure_node(filepath)
 
 

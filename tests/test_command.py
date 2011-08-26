@@ -74,7 +74,7 @@ class TestConfig(BaseTest):
         resp, error = self.execute([cook, '-l'])
         self.assertEquals(error, "")
         self.assertTrue('using Chef without a Chef Server' in resp)
-        self.assertEquals(len(resp.split('\n')), 20)
+        self.assertEquals(len(resp.split('\n')), 21)
 
 
 class TestCookbook(BaseTest):
