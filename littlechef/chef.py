@@ -87,14 +87,14 @@ def _synchronize_node():
         exclude=(
             '/auth.cfg', # might contain users credentials
             '*.svn', '.bzr*', '.git*', '.hg*', # ignore vcs data
-            '/cache/', '/site-cookbooks/data_bag_lib/' # ignore data generated
-                                                       # by littlechef
+            '/cache/', '/site-cookbooks/chef_solo_search_lib/' # ignore data generated
+                                                               # by littlechef
         ),
         delete=True,
         extra_opts="-q",
     )
     _remove_node_data_bag()
-    _add_data_bag_patch()
+    _add_search_patch()
 
 
 def build_dct(dic, keys, value):
@@ -187,7 +187,8 @@ def _build_node_data_bag():
     all_recipes = lib.get_recipes()
     all_roles = lib.get_roles()
     for node in nodes:
-        node['id'] = node['name']
+        node['id'] = node['name'].split('.')[0]
+        node['fqdn'] = node['name']
         # Build extended role list
         node['role'] = lib.get_roles_in_node(node)
         node['roles'] = node['role'][:]
@@ -204,7 +205,7 @@ def _build_node_data_bag():
         node = _merge_attributes(node, all_recipes, all_roles)
         # Save node data bag item
         with open(os.path.join(
-                    'data_bags', 'node', node['name'] + '.json'), 'w') as f:
+                    'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
 
 
@@ -215,17 +216,17 @@ def _remove_node_data_bag():
         shutil.rmtree(node_data_bag_path)
 
 
-def _add_data_bag_patch():
-    """ Adds data_bag_lib cookbook, which provides a library to read and search
+def _add_search_patch():
+    """ Adds chef_solo_search_lib cookbook, which provides a library to read and search
     data bags.
     """
     # Create extra cookbook dir
     lib_path = os.path.join(
-                node_work_path, cookbook_paths[0], 'data_bag_lib', 'libraries')
+                node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Create remote data bags patch
-    for filename in ('data_bags.rb', 'search.rb', 'parser.rb'):
+    for filename in ('search.rb', 'parser.rb'):
         put(os.path.join(basedir, filename),
             os.path.join(lib_path, filename), use_sudo=True)
 

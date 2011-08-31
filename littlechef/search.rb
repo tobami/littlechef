@@ -33,7 +33,6 @@ if Chef::Config[:solo]
     end
   end
   
-  require_relative 'data_bags.rb'
   require_relative 'parser.rb'
   
   class Chef

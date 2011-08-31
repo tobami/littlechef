@@ -58,7 +58,8 @@ class TestLib(unittest.TestCase):
             {'name': 'testnode1', 'run_list': ['recipe[subversion]']},
             {'name': 'testnode2',
                 'subversion': {'password': 'node_password', 'user': 'node_user'},
-                'run_list': ['role[all_you_can_eat]']}
+                'run_list': ['role[all_you_can_eat]']},
+            {'name': 'testnode3.mydomain.com', 'run_list': ['recipe[subversion]']},
         ]
 
         self.assertEquals(lib.get_nodes(), expected)
@@ -77,13 +78,13 @@ class TestLib(unittest.TestCase):
 
 class TestChef(BaseTest):
     def test_save_config(self):
-        """Should create a tmp_node.json and a nodes/testnode3.json config file
+        """Should create a tmp_node.json and a nodes/testnode4.json config file
         """
         # Save a new node
-        env.host_string = 'testnode3'
+        env.host_string = 'testnode4'
         run_list = ["role[testrole]"]
         chef.save_config({"run_list": run_list})
-        file_path = os.path.join('nodes', 'testnode3.json')
+        file_path = os.path.join('nodes', 'testnode4.json')
         self.assertTrue(os.path.exists(file_path))
         with open(file_path, 'r') as f:
             data = json.loads(f.read())
@@ -122,6 +123,21 @@ class TestChef(BaseTest):
         self.assertTrue('recipes' in data)
         self.assertEquals(data['role'], [u'all_you_can_eat'])
         self.assertEquals(data['roles'], [u'base', u'all_you_can_eat'])
+        # Clean up
+        chef._remove_node_data_bag()
+        self.assertFalse(os.path.exists(item_path))
+        
+    def test_build_node_data_bag_nonalphanumeric(self):
+        """Should create a node data bag when node name contains non-alphanumerical
+        characters"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode3.json')
+        self.assertTrue(os.path.exists(item_path))
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('id' in data and data['id'] == 'testnode3')
+        self.assertTrue('name' in data and data['name'] == 'testnode3.mydomain.com')
+        self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
         # Clean up
         chef._remove_node_data_bag()
         self.assertFalse(os.path.exists(item_path))
