@@ -31,6 +31,18 @@ class Chef
   end
 end
 
+def build_flat_hash(hsh, prefix="")
+  result = {}
+  hsh.each_pair do |key, value|
+    if value.kind_of?(Hash)
+      result.merge!(build_flat_hash(value, "#{prefix}#{key}_"))
+    else
+      result[prefix+key] = value
+    end
+  end
+  result
+end
+
 module Lucene
 
   class Term < Treetop::Runtime::SyntaxNode
@@ -80,6 +92,9 @@ module Lucene
   
   class FieldName < Treetop::Runtime::SyntaxNode
     def match( item )
+      if self.text_value.count("_") > 0
+        item.merge!(build_flat_hash(item))
+      end
       if self.text_value.end_with?("*")
         part = self.text_value.chomp("*")
         item.keys.collect{ |key| key.start_with?(part)? key: nil}.compact
