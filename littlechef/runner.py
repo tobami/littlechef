@@ -93,7 +93,10 @@ def deploy_chef(gems="no", ask="yes", version="0.10"):
     if version not in chef_versions:
         abort('Wrong Chef version specified. Valid versions are {0}'.format(
             ", ".join(chef_versions)))
-    distro_type, distro = solo.check_distro()
+    if distro_type is None and distro is None:
+        distro_type, distro = solo.check_distro()
+    elif distro_type is None or distro is None:
+        abort('Must specify both or neither of distro_type and distro')
     if ask == "yes":
         message = '\nAre you sure you want to install Chef {0}'.format(version)
         message += ' at the node {0}'.format(env.host_string)
