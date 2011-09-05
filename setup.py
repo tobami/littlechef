@@ -22,7 +22,7 @@ setup(
     install_requires=['fabric>=1.0.2', 'simplejson'],
     packages=['littlechef'],
     package_data={
-        'littlechef': ['search.rb', 'solo.rb', 'parser.rb']
+        'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
     },
     scripts=['cook'],
     test_suite='nose.collector',
