@@ -26,8 +26,8 @@ The result is that you can play as often with your recipes and nodes as you want
 #### Data bag Search ####
 
 Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by dynamically synching a [cookbook library that implements search][].
-
-The following will work: `search(:users, "married:true AND age:35")`
+Thus, most examples in the [search wiki page][] are now possible, including the
+following example: `search(:users, "married:true AND age:35")`
 
 #### Node Search ####
 
@@ -36,9 +36,7 @@ with the data from each node defined in nodes/, but with the attribute values be
 result from merging cookbook, node and role attributes, following the standard
 [Chef attribute preference rules][].
 
-Thus, most examples in the [search wiki page][] are now possible. A notable exception
-is 'chef_environment', as environments are not supported by Chef Solo. You can use
-role based environments instead, and just use the attribute environment, like this:  
+A notable exception is node['chef_environment'], as environments are not supported by Chef Solo. You can use role based environments instead, and just use the 'attribute' environment, like this:  
 `munin_servers = search(:node, "role:#{node['munin']['server_role']} AND environment:#{node['environment']}")`
 
 ## Installation
@@ -187,7 +185,7 @@ Happy cooking!
   [Roles]: http://wiki.opscode.com/display/chef/Roles
   [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags
   [cookbook library that implements search]: https://github.com/edelight/chef-solo-search
-  [Chef attribute preference]: http://wiki.opscode.com/display/chef/Attributes#Attributes-SettingAttributes
+  [Chef attribute preference rules]: http://wiki.opscode.com/display/chef/Attributes#Attributes-SettingAttributes
   [search wiki page]: http://wiki.opscode.com/display/chef/Search
   [Opscode repository]: http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html

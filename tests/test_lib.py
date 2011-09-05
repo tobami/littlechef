@@ -138,6 +138,7 @@ class TestChef(BaseTest):
         self.assertTrue('id' in data and data['id'] == 'testnode3')
         self.assertTrue('name' in data and data['name'] == 'testnode3.mydomain.com')
         self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
+        self.assertTrue('hostname' in data and data['hostname'] == 'testnode3.mydomain.com')
         # Clean up
         chef._remove_node_data_bag()
         self.assertFalse(os.path.exists(item_path))

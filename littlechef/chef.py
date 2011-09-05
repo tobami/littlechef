@@ -196,6 +196,7 @@ def _build_node_data_bag():
     for node in nodes:
         node['id'] = node['name'].split('.')[0]
         node['fqdn'] = node['name']
+        node['hostname'] = node['name']
         # Build extended role list
         node['role'] = lib.get_roles_in_node(node)
         node['roles'] = node['role'][:]
