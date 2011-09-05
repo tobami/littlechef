@@ -65,7 +65,7 @@ def configure(current_node=None):
         data = {
             'node_work_path': node_work_path,
             'cookbook_paths_list': cookbook_paths_list,
-            'environment': current_node.get('environment', '_default')
+            'environment': current_node.get('chef_environment', '_default')
         }
         with hide('running', 'stdout'):
             upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',

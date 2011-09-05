@@ -62,15 +62,11 @@ module Lucene
     # simple field -> value matches, supporting tailing '*'-wildcards in keys
     # as well as in values
     def match( item )
-      if self.elements[0].text_value == "chef_environment"
-        raise "searching by the chef_environment node attribute is not supported, use a custom 'environment' attribute instead"
+      keys = self.elements[0].match(item)
+      if keys.nil?
+        false
       else
-        keys = self.elements[0].match(item)
-        if keys.nil?
-          false
-        else
-          keys.any?{ |key| self.elements[1].match(item[key]) }
-        end
+        keys.any?{ |key| self.elements[1].match(item[key]) }
       end
     end
   end
