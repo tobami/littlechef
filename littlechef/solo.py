@@ -46,8 +46,9 @@ def install(distro_type, distro, gems, version):
             abort('wrong distro type: {0}'.format(distro_type))
 
 
-def configure():
+def configure(current_node=None):
     """Deploy chef-solo specific files"""
+    current_node = current_node or {}
     with credentials():
         # Ensure that config directories exist
         cache_dir = "{0}/cache".format(node_work_path)
@@ -61,8 +62,11 @@ def configure():
         cookbook_paths_list = '[{0}]'.format(', '.join(
             ['"{0}/{1}"'.format(node_work_path, x) \
                 for x in reversed_cookbook_paths]))
-        data = {'node_work_path': node_work_path,
-            'cookbook_paths_list': cookbook_paths_list}
+        data = {
+            'node_work_path': node_work_path,
+            'cookbook_paths_list': cookbook_paths_list,
+            'environment': current_node.get('environment', '_default')
+        }
         with hide('running', 'stdout'):
             upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
                 context=data, use_sudo=True, mode=0400)

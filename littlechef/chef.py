@@ -67,9 +67,9 @@ def sync_node(node):
     existent.
     """
     with lib.credentials():
+        current_node = _synchronize_node()
         # Always configure Chef Solo
-        solo.configure()
-        _synchronize_node()
+        solo.configure(current_node)
         # Everything was configured alright, so save the node configuration
         filepath = save_config(node, _get_ipaddress(node))
         _configure_node(filepath)
@@ -79,8 +79,11 @@ def _synchronize_node():
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
+        
+    Returns the node object of the node which is about to be configured, or None
+    if this node object cannot be found.
     """
-    _build_node_data_bag()
+    current_node = _build_node_data_bag()
     print "Synchronizing cookbooks, roles and data bags..."
     rsync_project(
         node_work_path, './',
@@ -95,6 +98,7 @@ def _synchronize_node():
     )
     _remove_node_data_bag()
     _add_search_patch()
+    return current_node
 
 
 def build_dct(dic, keys, value):
@@ -178,8 +182,11 @@ def _build_node_data_bag():
         'id': It adds data bag 'id' using the filename minus the .json extension
         'name': same as 'id'
         all attributes found in nodes/<item>.json file
-
+        
+    Returns the node object of the node which is about to be configured, or None
+    if this node object cannot be found.
     """
+    current_node = None
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
     _remove_node_data_bag()
@@ -207,6 +214,9 @@ def _build_node_data_bag():
         with open(os.path.join(
                     'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
+        if node['name'] == env.host_string:
+            current_node = node
+    return current_node
 
 
 def _remove_node_data_bag():
@@ -226,7 +236,7 @@ def _add_search_patch():
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Create remote data bags patch
-    for filename in ('search.rb', 'parser.rb'):
+    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
         put(os.path.join(basedir, filename),
             os.path.join(lib_path, filename), use_sudo=True)
 
