@@ -25,9 +25,13 @@ The result is that you can play as often with your recipes and nodes as you want
 
 #### Data bag Search ####
 
-Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by dynamically synching a [cookbook library that implements search][].
+Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by dynamically synching a [cookbook library that implements search][], 
+(in addition to allowing `chef_environment` be set as an attribute).
 Thus, most examples in the [search wiki page][] are now possible, including the
 following example: `search(:users, "married:true AND age:35")`
+
+#### Environments ####
+Chef Solo does not support Environments, but as mentioned above, the cookbook library LittleChef adds allows to set the "chef_environment" attribute in a role or node.
 
 #### Node Search ####
 
@@ -36,8 +40,7 @@ with the data from each node defined in nodes/, but with the attribute values be
 result from merging cookbook, node and role attributes, following the standard
 [Chef attribute preference rules][].
 
-A notable exception is node['chef_environment'], as environments are not supported by Chef Solo. You can use role based environments instead, and just use the 'attribute' environment, like this:  
-`munin_servers = search(:node, "role:#{node['munin']['server_role']} AND environment:#{node['environment']}")`
+`munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
 
 ## Installation
 

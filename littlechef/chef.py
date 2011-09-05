@@ -179,10 +179,13 @@ def _build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
 
     Attributes for a node item:
-        'id': It adds data bag 'id' using the filename minus the .json extension
-        'name': same as 'id'
+        'id': It adds data bag 'id' using the first part of the filename
+            (until it finds a period) minus the .json extension
+        'name': same as the filename
+        'fqdn': same as the filename (as LittleChef filenames should be fqdns)
+        'hostname': same as the filename
         all attributes found in nodes/<item>.json file
-        
+
     Returns the node object of the node which is about to be configured, or None
     if this node object cannot be found.
     """

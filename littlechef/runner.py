@@ -85,7 +85,7 @@ def node(host):
         env.hosts = [host]
 
 
-def deploy_chef(gems="no", ask="yes", version="0.10"):
+def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None, distro=None):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
