@@ -31,7 +31,7 @@ Thus, most examples in the [search wiki page][] are now possible, including the
 following example: `search(:users, "married:true AND age:35")`
 
 #### Environments ####
-Chef Solo does not support Environments, but as mentioned above, the cookbook library LittleChef adds allows to set the "chef_environment" attribute in a role or node.
+Chef Solo does not support Environments, but as mentioned above, the cookbook library LittleChef adds allows to set the `chef_environment` attribute in a role or node.
 
 #### Node Search ####
 
@@ -40,7 +40,9 @@ with the data from each node defined in nodes/, but with the attribute values be
 result from merging cookbook, node and role attributes, following the standard
 [Chef attribute preference rules][].
 
-`munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
+```ruby
+munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
+```
 
 ## Installation
 
