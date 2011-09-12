@@ -74,15 +74,35 @@ def new_kitchen():
 
 
 @hosts('setup')
-def node(host):
-    """Select a node"""
-    if host == 'all':
+def node(*nodes):
+    """Selects and configures a list of nodes. 'all' configures all nodes"""
+    if not len(nodes) or nodes[0] == '':
+        abort('No node was given')
+    elif nodes[0] == 'all':
+        # Fetch all nodes and add them to env.hosts
         for node in lib.get_nodes():
             env.hosts.append(node['name'])
         if not len(env.hosts):
-            abort('No nodes found')
+            abort('No nodes found in /nodes/')
     else:
-        env.hosts = [host]
+        # A list of nodes was given
+        env.hosts = nodes
+    env.all_hosts = list(env.hosts)
+
+    # Check whether the "recipe" or "role" command was given
+    execute = True
+    for arg in sys.argv:
+        if 'recipe:' in arg or 'role:' in arg:
+            execute = False
+    # If user didn't type recipe:X or role:Y just run configure
+    if execute:
+        for hostname in env.hosts:
+            env.host = hostname
+            env.host_string = hostname
+            lib.print_header("Configuring {0}".format(env.host))
+            # Read node data and configure node
+            node = lib.get_node(env.host)
+            chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None, distro=None):
@@ -126,7 +146,7 @@ def recipe(recipe):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
     lib.print_header(
-        "Executing recipe '{0}' on node {1}".format(recipe, env.host_string))
+        "Applying recipe '{0}' on node {1}".format(recipe, env.host_string))
 
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
@@ -143,27 +163,13 @@ def role(role):
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
     lib.print_header(
-        "Applying role '{0}' to node {1}".format(role, env.host_string))
+        "Applying role '{0}' to {1}".format(role, env.host_string))
 
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
+    print "data:", data
     data["run_list"] = ["role[{0}]".format(role)]
     chef.sync_node(data)
-
-
-def configure():
-    """Configure node using existing config file"""
-    # Check that a node has been selected
-    if not env.host_string:
-        msg = 'no node specified\n'
-        msg += 'Usage:\n  cook node:MYNODE configure'
-        msg += '\n  cook node:all configure'
-        abort(msg)
-    lib.print_header("Configuring {0}".format(env.host_string))
-
-    # Read node data and configure node
-    node = lib.get_node(env.host_string)
-    chef.sync_node(node)
 
 
 @hosts('setup')

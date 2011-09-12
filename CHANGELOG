@@ -16,6 +16,10 @@ Unreleased
     Chef Solo
 * NEW #55: Markus added a library file that allows to set "chef_environment" in a
     role or node attribute
+* NEW #54: Multi-node execution: a list of nodes to be configured can now be given.
+    Order will be preserved
+* NEW: Removed "configure" command. It will be assumed to be the default action if
+    no other command is given. Just typing "fix node:X" will configure node X
 
 
 Version 0.6.5 July 5, 2011

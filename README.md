@@ -137,9 +137,9 @@ Note: Don't cook outside of a kitchen!
 * `cook -l`: Show a list of all available orders
 * `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
 * `cook node:MYNODE role:MYROLE`: The same as above but role-based
-* `cook node:MYNODE configure`: Configures a pre-configured node
-* `cook node:all configure`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
-* `cook debug node:MYNODE configure`: You can start all your commands with `cook debug` to see all Chef Solo debugging information
+* `cook node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
+* `cook node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
+* `cook debug node:MYNODE`: You can start all your commands with `cook debug` to see all Chef Solo debugging information
 
 Once a node has a config file, the command you will be using most often is `cook node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 

@@ -77,6 +77,46 @@ class TestConfig(BaseTest):
         self.assertEquals(len(resp.split('\n')), 21)
 
 
+class TestRunner(BaseTest):
+    def test_no_node_given(self):
+        """Should abort when no node is given"""
+        resp, error = self.execute([cook, 'node:'])
+        self.assertTrue("Fatal error: No node was given" in error)
+
+    def test_one_node(self):
+        """Should try to configure the given node"""
+        resp, error = self.execute([cook, 'node:testnode2'])
+        self.assertTrue("== Configuring testnode2 ==" in resp)
+        # Will try to configure testnode2 and will fail DNS lookup
+        self.assertTrue("tal error: Name lookup failed for testnode2" in error)
+
+    def test_several_nodes(self):
+        """Should try to configure two nodes"""
+        resp, error = self.execute([cook, 'node:testnode2,testnode1'])
+        self.assertTrue("== Configuring testnode2 ==" in resp)
+        # Will try to configure *first* testnode2 and will fail DNS lookup
+        self.assertTrue("tal error: Name lookup failed for testnode2" in error)
+
+    def test_all_nodes(self):
+        """Should try to configure all nodes"""
+        resp, error = self.execute([cook, 'node:all'])
+        self.assertTrue("== Configuring testnode1 ==" in resp)
+        # Will try to configure all nodes and will fail DNS lookup of testnode1
+        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+
+    def test_recipe(self):
+        """Should configure node with the given recipe"""
+        resp, error = self.execute([cook, 'node:testnode1', 'recipe:subversion'])
+        self.assertTrue("plying recipe 'subversion' on node testnode1" in resp)
+        #self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+
+    def test_role(self):
+        """Should configure node with the given role"""
+        resp, error = self.execute([cook, 'node:testnode1', 'role:base'])
+        self.assertTrue("== Applying role 'base' to testnode1 ==" in resp)
+        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+
+
 class TestCookbook(BaseTest):
     def test_list_recipes(self):
         """Should list available recipes"""
@@ -116,14 +156,14 @@ class TestCookbook(BaseTest):
         self.assertTrue(expected in error)
 
 
-class TestRole(BaseTest):
+class TestListRoles(BaseTest):
     def test_list_roles(self):
         """Should list all roles"""
         resp, error = self.execute([cook, 'list_roles'])
         self.assertTrue('base' in resp and 'example aplication' in resp)
 
 
-class TestNode(BaseTest):
+class TestListNodes(BaseTest):
     def test_list_nodes(self):
         """Should list all nodes"""
         resp, error = self.execute([cook, 'list_nodes'])
