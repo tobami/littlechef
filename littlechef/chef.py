@@ -66,18 +66,19 @@ def sync_node(node):
     It also injects the ipaddress to the node's config file if not already
     existent.
     """
-    current_node = _build_node_data_bag()
     with lib.credentials():
+        # Get merged attributes
+        current_node = _build_node_data_bag()
         # Always configure Chef Solo
         solo.configure(current_node)
-        _synchronize_node()
-        _remove_node_data_bag()
         # Everything was configured alright, so save the node configuration
         filepath = save_config(node, _get_ipaddress(node))
-        _configure_node(filepath)
+        _synchronize_node(filepath)
+        _remove_node_data_bag()
+        _configure_node()
 
 
-def _synchronize_node():
+def _synchronize_node(configfile):
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
@@ -85,7 +86,15 @@ def _synchronize_node():
     Returns the node object of the node which is about to be configured, or None
     if this node object cannot be found.
     """
-    print "Synchronizing cookbooks, roles and data bags..."
+    print "Synchronizing node, cookbooks, roles and data bags..."
+    # First upload node.json
+    remote_file = '/etc/chef/node.json'
+    put(configfile, remote_file, use_sudo=True, mode=400)
+    with hide('stdout'):
+        sudo('chown root:root {0}'.format(remote_file)),
+    # Remove local temporary node file
+    os.remove(configfile)
+    # Synchronize kitchen
     rsync_project(
         node_work_path, './',
         exclude=(
@@ -244,18 +253,9 @@ def _add_search_patch():
             os.path.join(lib_path, filename), use_sudo=True)
 
 
-def _configure_node(configfile):
+def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    print "Uploading node.json..."
-    remote_file = '/root/{0}'.format(configfile.split("/")[-1])
-    # Ensure secure permissions
-    put(configfile, remote_file, use_sudo=True, mode=400)
-    with hide('stdout'):
-        sudo('chown root:root {0}'.format(remote_file)),
-        sudo('mv {0} /etc/chef/node.json'.format(remote_file)),
-    # Remove local temporary node file
-    os.remove(configfile)
-    print colors.yellow("\n== Cooking ==")
+    print("\nCooking...")
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(
             'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
@@ -265,7 +265,7 @@ def _configure_node(configfile):
                     colors.red(
                         "\nFAILED: Chef Solo is not installed on this node"))
                 print(
-                    "Type 'cook nodes:{0} deploy_chef' to install it".format(
+                    "Type 'fix nodes:{0} deploy_chef' to install it".format(
                         env.host))
                 abort("")
             else:

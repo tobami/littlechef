@@ -6,9 +6,9 @@ except ImportError:
 import platform
 
 
-scripts = ['cook']
+scripts = ['fix']
 if platform.system() == 'Windows':
-    scripts += ['cook.cmd']
+    scripts += ['fix.cmd']
 
 setup(
     name="littlechef",
@@ -18,13 +18,13 @@ setup(
     author_email="tobami@googlemail.com",
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/archives/master",
-    keywords=["chef", "devops"],
+    keywords=["chef", "devops", "operations", "sysadmin"],
     install_requires=['fabric>=1.0.2', 'simplejson'],
     packages=['littlechef'],
     package_data={
         'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
     },
-    scripts=['cook'],
+    scripts=['fix'],
     test_suite='nose.collector',
     classifiers=[
         "Programming Language :: Python",
@@ -45,13 +45,11 @@ cookbooks and its dependencies are gzipped and uploaded to that node. A
 node.json file gets created on the fly and uploaded, and Chef Solo gets
 executed at the remote node, using node.json as the node configuration and the
 pre-installed solo.rb for Chef Solo configuration. Cookbooks, data bags and roles
-are configured to be found at (/var/chef-solo/).
+are configured to be found at (/tmp/chef-solo/).
 
 The result is that you can play as often with your recipes and nodes as you
 want, without having to worry about a central Chef repository, Chef server nor
-anything else. You can make small changes to your cookbooks and test them again
-and again without having to commit the changes. LittleChef brings sanity
-to cookbook development.
+anything else. You are immediately ready to cook.
 
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 """

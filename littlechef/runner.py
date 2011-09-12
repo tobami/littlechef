@@ -293,9 +293,9 @@ def _readconfig():
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
     if not in_a_kitchen:
         msg = "Couldn't find {0}. ".format(missing_str(missing))
-        msg += "Are you are executing 'cook' outside of a kitchen?\n"\
+        msg += "Are you are executing 'fix' outside of a kitchen?\n"\
                "To create a new kitchen in the current directory "\
-               " type 'cook new_kitchen'"
+               " type 'fix new_kitchen'"
         abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("auth.cfg")
@@ -349,7 +349,7 @@ def _readconfig():
         abort('You need to define a password or a keypair-file in auth.cfg.')
 
 
-# Only read config if cook is being used and we are not creating a new kitchen
+# Only read config if fix is being used and we are not creating a new kitchen
 import littlechef
 if littlechef.COOKING:
     # Called from command line

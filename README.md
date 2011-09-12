@@ -68,8 +68,6 @@ pip will then take care of the extra Python dependencies
 You can install LittleChef directly from the PyPI:  
 `pip install littlechef`
 
-Note: your distribution may have a `cook` package that also provides a `cook` executable. If you have installed it, you need to remove it to avoid collisions with LittleChef's executable.
-
 ## Usage
 
 ### Disclaimer
@@ -81,7 +79,7 @@ Careful what you do with your nodes!:
 
 ### Local Setup
 
-`cook new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `auth.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
+`fix new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `auth.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
 
 ### Authentication
 
@@ -116,17 +114,17 @@ For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
 The best way is to use the packages from the [Opscode repository][]:  
-`cook node:MYNODE deploy_chef`
+`fix node:MYNODE deploy_chef`
 
 LittleChef will try to autodetect the distro type and version of that node, and will use the appropriate installation method and packages.
 
 You can also install Chef Solo with gems and/or without asking for confirmation:  
-`cook node:MYNODE deploy_chef:gems=yes,ask=no`
+`fix node:MYNODE deploy_chef:gems=yes,ask=no`
 
 Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux and Gentoo.
 
 When using the Debian repository, you need to take into account that Opscode has separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
-`cook node:MYNODE deploy_chef:version=0.9`
+`fix node:MYNODE deploy_chef:version=0.9`
 
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method, removing the gem first might be a good idea.
 
@@ -134,30 +132,30 @@ Note that if you already have Chef Solo installed on your nodes, you won't need 
 
 Note: Don't cook outside of a kitchen!
 
-* `cook -l`: Show a list of all available orders
-* `cook node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
-* `cook node:MYNODE role:MYROLE`: The same as above but role-based
-* `cook node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
-* `cook node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
-* `cook debug node:MYNODE`: You can start all your commands with `cook debug` to see all Chef Solo debugging information
+* `fix -l`: Show a list of all available orders
+* `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
+* `fix node:MYNODE role:MYROLE`: The same as above but role-based
+* `fix node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
+* `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
+* `fix debug node:MYNODE`: You can start all your commands with `fix debug` to see all Chef Solo debugging information
 
-Once a node has a config file, the command you will be using most often is `cook node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
+Once a node has a config file, the command you will be using most often is `fix node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
 ### Consulting the inventory
 
-* `cook list_nodes`: Lists all configured nodes, showing its associated recipes and roles
-* `cook list_nodes_detailed`: Same as above, but it also shows allattributes
-* `cook list_nodes_with_recipe:MYRECIPE`: The same as above but itonly lists nodes which have associated the recipe `MYRECIPE`
-* `cook list_nodes_with_role:MYROLE`: The same as above but it onlylists nodes which have associated the role `MYROLE`
-* `cook list_recipes`: Lists all available recipes
-* `cook list_recipes_detailed`: Same as above, but shows description,version, dependencies and attributes
-* `cook list_roles`: Lists all available roles
-* `cook list_roles_detailed`: Same as above, but shows description and attributes
+* `fix list_nodes`: Lists all configured nodes, showing its associated recipes and roles
+* `fix list_nodes_detailed`: Same as above, but it also shows allattributes
+* `fix list_nodes_with_recipe:MYRECIPE`: The same as above but itonly lists nodes which have associated the recipe `MYRECIPE`
+* `fix list_nodes_with_role:MYROLE`: The same as above but it onlylists nodes which have associated the role `MYROLE`
+* `fix list_recipes`: Lists all available recipes
+* `fix list_recipes_detailed`: Same as above, but shows description,version, dependencies and attributes
+* `fix list_roles`: Lists all available roles
+* `fix list_roles_detailed`: Same as above, but shows description and attributes
 
 ### Using LittleChef as a library
 
 You can import littlechef.py into your own Python project. The following
-script is equivalent to using the `cook` orders:
+script is equivalent to using the `fix` orders:
 
 ```python
 from littlechef import runner as lc

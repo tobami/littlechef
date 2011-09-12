@@ -5,7 +5,7 @@ import os
 
 
 # Messages
-NO_ORDER = "No order given. Type 'cook -l' for a list of orders\n"
+NO_ORDER = "No order given. Type 'fix -l' for a list of orders\n"
 VERSION = 'LittleChef {0}'
 INSTALL_ERROR = "LittleChef was not correctly installed: "\
               "Couldn't import littlechef.py"
@@ -25,13 +25,13 @@ except ImportError:
 if not sys.argv:
     print(NO_ORDER)
 else:
-    if (os.path.basename(sys.argv[0]).startswith('cook')):
-        # In windows, the first argument may be just "cook"
-        cook_cmd = sys.argv[0]
+    if (os.path.basename(sys.argv[0]).startswith('fix')):
+        # In windows, the first argument may be just "fix"
+        fix_cmd = sys.argv[0]
     else:
-        cook_cmd = None
-    if len(sys.argv) == 1 and cook_cmd:
-        # All that is in sys.argv is the cook command.
+        fix_cmd = None
+    if len(sys.argv) == 1 and fix_cmd:
+        # All that is in sys.argv is the fix command.
         print(NO_ORDER)
     else:
         # Check for version, that overrides everything else.
@@ -40,7 +40,7 @@ else:
                 print(VERSION.format(littlechef.version))
                 sys.exit(0)
         # Otherwise, insert our fabfile at the correct place
-        if cook_cmd:
+        if fix_cmd:
             sys.argv[1:1] = ['-f', file_path]
         else:
             sys.argv[0:0] = ['-f', file_path]
