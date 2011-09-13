@@ -73,7 +73,8 @@ class TestConfig(BaseTest):
         """Should output a list of available commands"""
         resp, error = self.execute([fix, '-l'])
         self.assertEquals(error, "")
-        self.assertTrue('using Chef without a Chef Server' in resp)
+        expected = "LittleChef: Configuration Management using Chef Solo"
+        self.assertTrue(expected in resp)
         self.assertEquals(len(resp.split('\n')), 20)
 
 

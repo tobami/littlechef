@@ -92,7 +92,7 @@ def configure(current_node=None):
 def check_distro():
     """Check that the given distro is supported and return the distro type"""
     debian_distros = ['wheezy', 'squeeze', 'lenny']
-    ubuntu_distros = ['maverick', 'lucid', 'karmic', 'jaunty', 'hardy']
+    ubuntu_distros = ['natty', 'maverick', 'lucid', 'karmic']
     rpm_distros = ['centos', 'rhel', 'sl']
 
     with credentials(
