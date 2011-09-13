@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-import re
 import os
 
 
@@ -11,15 +10,17 @@ INSTALL_ERROR = "LittleChef was not correctly installed: "\
               "Couldn't import littlechef.py"
 
 ## Try to import package and set the fabfile path ##
-file_path = None
+fabfile = None
 try:
-    import littlechef # Needed later for version
-    # Get fabfile full path
-    from littlechef import runner # Checks that we are able to import module
-    file_path = re.sub(r'\.pyc$', '.py', runner.__file__)
+    import littlechef
+    # Get directory for imported littlechef
+    dirname = os.path.dirname(os.path.abspath(littlechef.__file__))
+    # Build path to the fabfile for fabric
+    fabfile = os.path.join(dirname, 'runner.py')
 except ImportError:
     print(INSTALL_ERROR)
     sys.exit(1)
+
 
 ## Process args list and call fabric main() ##
 if not sys.argv:
@@ -41,11 +42,11 @@ else:
                 sys.exit(0)
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
-            sys.argv[1:1] = ['-f', file_path]
+            sys.argv[1:1] = ['-f', fabfile]
         else:
-            sys.argv[0:0] = ['-f', file_path]
+            sys.argv[0:0] = ['-f', fabfile]
         # Pass control over to fabric
         # Fabric should now import runner with COOKING = True
         littlechef.COOKING = True
-        import fabric.main
-        fabric.main.main()
+        from fabric import main
+        main.main()
