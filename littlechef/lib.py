@@ -74,7 +74,7 @@ def print_node(node, detailed=False):
     # Node attributes
     print "  Node attributes:"
     for attribute in node.keys():
-        if attribute == "run_list" or attribute == "littlechef":
+        if attribute == "run_list" or attribute == "name":
             continue
         print "    {0}: {1}".format(attribute, node[attribute])
 

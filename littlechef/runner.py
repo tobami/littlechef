@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-"""LittleChef: Configuration Management using Chef without a Chef Server"""
+"""LittleChef: Configuration Management using Chef Solo"""
 import ConfigParser
 import os
 import sys

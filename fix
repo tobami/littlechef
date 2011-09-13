@@ -13,16 +13,15 @@ INSTALL_ERROR = "LittleChef was not correctly installed: "\
 fabfile = None
 try:
     import littlechef
-    # Get directory for imported littlechef
+    # Get absolute directory for imported littlechef package
     dirname = os.path.dirname(os.path.abspath(littlechef.__file__))
-    # Build path to the fabfile for fabric
+    # Build path to the runner fabfile to pass to fabric
     fabfile = os.path.join(dirname, 'runner.py')
 except ImportError:
     print(INSTALL_ERROR)
     sys.exit(1)
 
-
-## Process args list and call fabric main() ##
+## Process args list and call fabric's main() ##
 if not sys.argv:
     print(NO_ORDER)
 else:
