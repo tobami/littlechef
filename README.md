@@ -126,6 +126,9 @@ Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Sc
 When using the Debian repository, you need to take into account that Opscode has separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
 `fix node:MYNODE deploy_chef:version=0.9`
 
+Also, if you still want to keep the chef-client around in debian, use the `stop_client`
+option: `fix node:MYNODE deploy_chef:stop_client=no`
+
 Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method, removing the gem first might be a good idea.
 
 ### Cooking
@@ -139,7 +142,7 @@ Note: Don't cook outside of a kitchen!
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
 * `fix debug node:MYNODE`: You can start all your commands with `fix debug` to see all Chef Solo debugging information
 
-Once a node has a config file, the command you will be using most often is `fix node:MYNODE configure`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
+Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
 ### Consulting the inventory
 

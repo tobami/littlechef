@@ -27,14 +27,14 @@ from littlechef.settings import node_work_path, cookbook_paths
 # Path to local patch
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
-def install(distro_type, distro, gems, version):
+def install(distro_type, distro, gems, version, stop_client):
     """Calls the appropriate installation function for the given distro"""
     with credentials():
         if distro_type == "debian":
             if gems == "yes":
                 _gem_apt_install()
             else:
-                _apt_install(distro, version)
+                _apt_install(distro, version, stop_client)
         elif distro_type == "rpm":
             if gems == "yes":
                 _gem_rpm_install()
@@ -50,10 +50,25 @@ def configure(current_node=None):
     """Deploy chef-solo specific files"""
     current_node = current_node or {}
     with credentials():
-        # Ensure that config directories exist
+        # Ensure that the /tmp/chef-solo/cache directory exist
         cache_dir = "{0}/cache".format(node_work_path)
         if not exists(cache_dir):
-            sudo('mkdir -p {0}'.format(cache_dir))
+            with settings(hide('running', 'stdout'), warn_only=True):
+                output = sudo('mkdir -p {0}'.format(cache_dir))
+            if output.failed:
+                abort(
+                    "Could not create {0} dir. Do you have sudo rights?".format(
+                        node_work_path))
+        # Change ownership of /tmp/chef-solo/ so that we can rsync
+        with hide('running', 'stdout'):
+            with settings(warn_only=True):
+                output = sudo(
+                    'chown -R {0} {1}'.format(env.user, node_work_path))
+            if output.failed:
+                abort(
+                    "Could not modify {0} dir. Do you have sudo rights?".format(
+                        node_work_path))
+        # Set up chef solo configuration
         if not exists('/etc/chef'):
             sudo('mkdir -p /etc/chef')
         # Set parameters and upload solo.rb template
@@ -69,13 +84,9 @@ def configure(current_node=None):
         }
         with hide('running', 'stdout'):
             upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
-                context=data, use_sudo=True, mode=0400)
+                context=data, use_sudo=True, backup=False, mode=0400)
         with hide('stdout'):
             sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
-        with hide('running', 'stdout'):
-            remote_username = run('whoami').strip()
-        with hide('running', 'stdout'):
-            sudo('chown -R {0} {1}'.format(remote_username, node_work_path))
 
 
 def check_distro():
@@ -153,7 +164,7 @@ def _gem_rpm_install():
     _gem_install()
 
 
-def _apt_install(distro, version):
+def _apt_install(distro, version, stop_client='yes'):
     """Install Chef for debian based distros"""
     with settings(hide('stdout', 'running')):
         with settings(hide('warnings'), warn_only=True):
@@ -202,19 +213,23 @@ def _apt_install(distro, version):
         command = "echo chef chef/chef_server_url select ''"
         command += " | debconf-set-selections"
         sudo(command)
+        # Install package
         with settings(hide('warnings'), warn_only=True):
             output = sudo('apt-get --yes install ucf chef')
             if output.failed:
                 print(colors.red("Error while executing 'apt-get install chef':"))
                 abort(output)
-
-        # We only want chef-solo, stop chef-client and remove it from init
-        sudo('update-rc.d -f chef-client remove')
-        with settings(hide('warnings'), warn_only=True):
-            output = sudo('service chef-client stop')
-        if output.failed:
-            # Probably an older distro without the newer "service"
-            sudo('/etc/init.d/chef-client stop')
+        if stop_client == 'yes':
+            # We only want chef-solo, stop chef-client and remove it from init
+            sudo('update-rc.d -f chef-client remove')
+            with settings(hide('warnings'), warn_only=True):
+                # The logrotate entry will force restart of chef-client
+                sudo('rm /etc/logrotate.d/chef')
+            with settings(hide('warnings'), warn_only=True):
+                output = sudo('service chef-client stop')
+            if output.failed:
+                # Probably an older distro without the newer "service" command
+                sudo('/etc/init.d/chef-client stop')
 
 
 def _add_rpm_repos():

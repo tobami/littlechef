@@ -89,12 +89,11 @@ def node(*nodes):
         env.hosts = nodes
     env.all_hosts = list(env.hosts)
 
-    # Check whether the "recipe" or "role" command was given
+    # Check whether another command was given in addition to "node:"
     execute = True
-    for arg in sys.argv:
-        if 'recipe:' in arg or 'role:' in arg:
-            execute = False
-    # If user didn't type recipe:X or role:Y just run configure
+    if 'node:' not in sys.argv[-1]:
+        execute = False
+    # If user didn't type recipe:X, role:Y or deploy_chef, just run configure
     if execute:
         for hostname in env.hosts:
             env.host = hostname
@@ -105,7 +104,8 @@ def node(*nodes):
             chef.sync_node(node)
 
 
-def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None, distro=None):
+def deploy_chef(gems="no", ask="yes", version="0.10",
+    distro_type=None, distro=None, stop_client=True):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
@@ -133,7 +133,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None, distro=N
             method = '{0} using "{1}" packages'.format(version, distro)
         print("Deploying Chef {0}...".format(method))
 
-    solo.install(distro_type, distro, gems, version)
+    solo.install(distro_type, distro, gems, version, stop_client)
     solo.configure()
 
 
@@ -167,7 +167,6 @@ def role(role):
 
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
-    print "data:", data
     data["run_list"] = ["role[{0}]".format(role)]
     chef.sync_node(data)
 

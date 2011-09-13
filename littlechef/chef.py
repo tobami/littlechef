@@ -98,10 +98,11 @@ def _synchronize_node(configfile):
     rsync_project(
         node_work_path, './',
         exclude=(
-            '/auth.cfg', # might contain users credentials
-            '*.svn', '.bzr*', '.git*', '.hg*', # ignore vcs data
-            '/cache/', '/site-cookbooks/chef_solo_search_lib/' # ignore data generated
-                                                               # by littlechef
+            '/auth.cfg',  # might contain user credentials
+            '*.svn', '.bzr*', '.git*', '.hg*',  # ignore vcs data
+            '/cache/',
+            '/site-cookbooks/chef_solo_search_lib/'  # ignore data generated
+                                                     # by littlechef
         ),
         delete=True,
         extra_opts="-q",
