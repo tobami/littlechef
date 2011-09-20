@@ -30,16 +30,16 @@ littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
 class BaseTest(unittest.TestCase):
     def tearDown(self):
-        if os.path.exists('tmp_node.json'):
-            os.remove('tmp_node.json')
+        for nodename in ['tmp_testnode1', 'tmp_testnode2', 'tmp_testnode4']:
+            if os.path.exists(nodename + '.json'):
+                os.remove(nodename + '.json')
 
 
 class TestRunner(BaseTest):
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to a directory which is not a kitchen
-        # NOTE: when used as a library chdir has no effect anyway
-        # We need absolute paths for the kitchen
+        # NOTE: We need absolute paths for the kitchen
         os.chdir(littlechef_top)
         self.assertRaises(SystemExit, runner._readconfig)
 
@@ -77,8 +77,13 @@ class TestLib(unittest.TestCase):
 
 
 class TestChef(BaseTest):
+    def tearDown(self):
+        chef._remove_node_data_bag()
+        super(TestChef, self).tearDown()
+
     def test_save_config(self):
-        """Should create a tmp_node.json and a nodes/testnode4.json config file
+        """Should create a tmp_testnode4.json and a nodes/testnode4.json config file
+
         """
         # Save a new node
         env.host_string = 'testnode4'
@@ -123,10 +128,7 @@ class TestChef(BaseTest):
         self.assertTrue('recipes' in data)
         self.assertEquals(data['role'], [u'all_you_can_eat'])
         self.assertEquals(data['roles'], [u'base', u'all_you_can_eat'])
-        # Clean up
-        chef._remove_node_data_bag()
-        self.assertFalse(os.path.exists(item_path))
-        
+
     def test_build_node_data_bag_nonalphanumeric(self):
         """Should create a node data bag when node name contains non-alphanumerical
         characters"""
@@ -137,11 +139,25 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('id' in data and data['id'] == 'testnode3')
         self.assertTrue('name' in data and data['name'] == 'testnode3.mydomain.com')
+
+    def test_automatic_attributes(self):
+        """Should add Chef's automatic attributes"""
+        chef._build_node_data_bag()
+        # Check node with single word fqdn
+        testnode1_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        with open(testnode1_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode1')
+        self.assertTrue('hostname' in data and data['hostname'] == 'testnode1')
+        self.assertTrue('domain' in data and data['domain'] == '')
+
+        # Check node with complex fqdn
+        testnode3_path = os.path.join('data_bags', 'node', 'testnode3.json')
+        with open(testnode3_path, 'r') as f:
+            data = json.loads(f.read())
         self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
-        self.assertTrue('hostname' in data and data['hostname'] == 'testnode3.mydomain.com')
-        # Clean up
-        chef._remove_node_data_bag()
-        self.assertFalse(os.path.exists(item_path))
+        self.assertTrue('hostname' in data and data['hostname'] == 'testnode3')
+        self.assertTrue('domain' in data and data['domain'] == 'mydomain.com')
 
     def test_attribute_merge_cookbook_default(self):
         """Should have the value found in recipe/attributes/default.rb"""
@@ -164,7 +180,6 @@ class TestChef(BaseTest):
         self.assertTrue('subversion' in data)
         self.assertTrue(data['subversion']['repo_dir'] == '/srv/svn2')
 
-
     def test_attribute_merge_role_default(self):
         """Should have the value found in the roles default attributes"""
         chef._build_node_data_bag()
@@ -175,7 +190,6 @@ class TestChef(BaseTest):
         self.assertTrue(data['subversion']['repo_server'] == 'role_default_repo_server')
         self.assertTrue('other_attr' in data)
         self.assertTrue(data['other_attr']['other_key'] == 'nada')
-
 
     def test_attribute_merge_node_normal(self):
         """Should have the value found in the node attributes"""

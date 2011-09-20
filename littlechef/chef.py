@@ -39,7 +39,8 @@ def save_config(node, force=False):
     it also saves to tmp_node.json
     """
     filepath = os.path.join("nodes/", env.host_string + ".json")
-    files_to_create = ['tmp_node.json']
+    tmp_filename = 'tmp_{0}.json'.format(env.host_string)
+    files_to_create = [tmp_filename]
     if not os.path.exists(filepath) or force:
         # Only save to nodes/ if there is not already a file
         print "Saving node configuration to {0}...".format(filepath)
@@ -47,7 +48,7 @@ def save_config(node, force=False):
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4))
-    return 'tmp_node.json'
+    return tmp_filename
 
 
 def _get_ipaddress(node):
@@ -132,7 +133,17 @@ def update_dct(dic1, dic2):
             dic1[key] = val
 
 
-def _merge_attributes(node, all_recipes, all_roles):
+def _add_automatic_attributes(node):
+    """Adds some of Chef's automatic attributes:
+        http://wiki.opscode.com/display/chef/Recipes#Recipes-CommonAutomaticAttributes
+
+    """
+    node['fqdn'] = node['name']
+    node['hostname'] = node['fqdn'].split('.')[0]
+    node['domain'] = ".".join(node['fqdn'].split('.')[1:])
+
+
+def _add_merged_attributes(node, all_recipes, all_roles):
     """Merges attributes from cookbooks, node and roles
 
     Chef Attribute precedence:
@@ -145,6 +156,7 @@ def _merge_attributes(node, all_recipes, all_roles):
 
     NOTE: In order for cookbook attributes to be read, they need to be
         correctly defined in its metadata.json
+
     """
     # Get cookbooks from extended recipes
     attributes = {}
@@ -181,7 +193,6 @@ def _merge_attributes(node, all_recipes, all_roles):
             if role == r['name']:
                 update_dct(attributes, r['override_attributes'])
     node.update(attributes)
-    return node
 
 
 def _build_node_data_bag():
@@ -197,6 +208,7 @@ def _build_node_data_bag():
 
     Returns the node object of the node which is about to be configured, or None
     if this node object cannot be found.
+
     """
     current_node = None
     nodes = lib.get_nodes()
@@ -207,22 +219,25 @@ def _build_node_data_bag():
     all_roles = lib.get_roles()
     for node in nodes:
         node['id'] = node['name'].split('.')[0]
-        node['fqdn'] = node['name']
-        node['hostname'] = node['name']
+
         # Build extended role list
         node['role'] = lib.get_roles_in_node(node)
         node['roles'] = node['role'][:]
         for role in node['role']:
             node['roles'].extend(lib.get_roles_in_role(role))
         node['roles'] = list(set(node['roles']))
+
         # Build extended recipe list
         node['recipes'] = lib.get_recipes_in_node(node)
         # Add recipes found inside each roles in the extended role list
         for role in node['roles']:
             node['recipes'].extend(lib.get_recipes_in_role(role))
         node['recipes'] = list(set(node['recipes']))
-        # Add attributes
-        node = _merge_attributes(node, all_recipes, all_roles)
+
+        # Add node attributes
+        _add_merged_attributes(node, all_recipes, all_roles)
+        _add_automatic_attributes(node)
+
         # Save node data bag item
         with open(os.path.join(
                     'data_bags', 'node', node['id'] + '.json'), 'w') as f:

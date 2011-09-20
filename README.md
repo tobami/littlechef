@@ -38,7 +38,7 @@ Chef Solo does not support Environments, but as mentioned above, the cookbook li
 Node search is achieved by creating a "node" data bag on the fly for every run,
 with the data from each node defined in nodes/, but with the attribute values being the
 result from merging cookbook, node and role attributes, following the standard
-[Chef attribute preference rules][].
+[Chef attribute preference rules][]. Some [automatic attributes][] are also added.
 
 ```ruby
 munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
@@ -192,6 +192,7 @@ Happy cooking!
   [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags
   [cookbook library that implements search]: https://github.com/edelight/chef-solo-search
   [Chef attribute preference rules]: http://wiki.opscode.com/display/chef/Attributes#Attributes-SettingAttributes
+  [automatic attributes]: http://wiki.opscode.com/display/chef/Recipes#Recipes-CommonAutomaticAttributes
   [search wiki page]: http://wiki.opscode.com/display/chef/Search
   [Opscode repository]: http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
