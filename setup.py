@@ -28,7 +28,7 @@ setup(
     test_suite='nose.collector',
     classifiers=[
         "Programming Language :: Python",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable ",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
@@ -36,20 +36,15 @@ setup(
         'Topic :: System :: Systems Administration',
         ],
     long_description="""\
-Cook with Chef without Chef Server
+Cook with Chef without a Chef Server
 -------------------------------------
-With LittleChef you will get all you need to start cooking with Chef_.
+With LittleChef you will be able to get started more quickly cooking with Chef_, the excellent Configuration Management System.
 
-It works as follows: Whenever you apply a recipe to a node, all needed
-cookbooks and its dependencies are gzipped and uploaded to that node. A
-node.json file gets created on the fly and uploaded, and Chef Solo gets
-executed at the remote node, using node.json as the node configuration and the
-pre-installed solo.rb for Chef Solo configuration. Cookbooks, data bags and roles
-are configured to be found at (/tmp/chef-solo/).
+You will just need your local (preferably version controled) kitchen with all your
+cookbooks, roles data bags and nodes, which will get rsynced to a node each time
+you start a Chef Solo configuration run with the bundled 'fix' command.
 
-The result is that you can play as often with your recipes and nodes as you
-want, without having to worry about a central Chef repository, Chef server nor
-anything else. You are immediately ready to cook.
+It also adds features to Chef Solo that are currently only available for Chef Server users: data bag search, and node search.
 
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 """

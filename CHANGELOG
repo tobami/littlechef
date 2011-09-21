@@ -2,7 +2,7 @@
 LittleChef Changelog
 ====================
 
-Unreleased
+Version 1.0.0 September 21, 2011
 ----------------------------------------
 * NEW #46: Markus implemented node synching using rsync instead of data upload,
     substantially speeding up node configuration runs. All cookbooks are now
@@ -11,14 +11,19 @@ Unreleased
 * NEW #16: Automatically add a "node" data bag, which allows for node search.
     It contains everything defined in each nodes/mynode.json file, plus "recipes"
     (expanded recipe list), "role" (roles in the run_list),
-    "roles" (expanded role list) and merged attributes (from cookbook, node and roles)
+    "roles" (expanded role list), merged attributes (from cookbook, node and roles)
+    and some Chef automatic attributes
+* NEW: Add ipaddress attribute to a node after a configuration run. That way the IP
+    of that node will be available in the node data bag and thus in the node search
 * NEW #53: tow added a patch that allows to override distro detection when installing
     Chef Solo
 * NEW #55: Markus added a library file that allows to set "chef_environment" in a
     role or node attribute
+* NEW: Changed "cook" command to "fix", so that we don't collide with the executable
+    name of an existing package. This was done so that LittleChef can be distro-packaged
 * NEW #54: Multi-node execution: a list of nodes to be configured can now be given.
-    Order will be preserved
-* NEW: Removed "configure" command. It will be assumed to be the default action if
+    The nodes will be configured preserving order
+* NEW: Removed "configure" command. It will be assumed to be the desired action if
     no other command is given. Just typing "fix node:X" will configure node X
 
 

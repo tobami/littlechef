@@ -6,7 +6,7 @@ With LittleChef you will be able to get started more quickly cooking with [Chef]
 
 You may think of this like a pocket Chef that doesn't need a Chef Server. Just your
 local kitchen with all your cookbooks, roles data bags and nodes, which will get rsynced
-to a node each time you start a Chef Solo configuration run with the bundled 'fix'
+to a node each time you start a Chef Solo configuration run with the bundled `fix`
 command.
 
 It also adds features to Chef Solo that are currently only available for Chef Server users: data bag search, and node search.
@@ -16,17 +16,22 @@ It also adds features to Chef Solo that are currently only available for Chef Se
 It all starts in the **kitchen**, which you should keep under version control:
 
 * `auth.cfg`: Authentication information needed to be able to connect to the nodes
-* `nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You
-can manually edit them or even add new ones. The name of a node should be its fqdn
+* `nodes/`: After recipes are run on [Nodes][], their configuration is stored here in
+JSON format. You can manually edit them or even add new ones. The name of a node
+should be its FQDN
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
-* `roles/`: Where Chef [Roles][] are defined
+* `roles/`: Where Chef [Roles][] are defined in JSON
 * `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported
 
-Whenever you apply a recipe to a node, all cookbooks, roles and databags are rsynced to that node, to the `/tmp/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
+Whenever you start a Chef Solo configuration run with the local `fix` command, all
+cookbooks, roles and databags are rsynced to the `/tmp/chef-solo/` directory, together
+with the `/etc/chef/node.json` and `/etc/chef/solo.rb` files, and chef-solo is executed
+at the remote node.
 
-The result is that you can then configure your nodes exactly when and how you want by
-using the `fix` command, all without needing a Chef Server. And all your infrastructure, including your nodes, will be in code, revision controlled.
+The result is that you can configure your nodes exactly when and how you want, all
+without needing a Chef Server. And all your infrastructure, including your nodes, will
+be in code, revision controlled.
 
 #### Data bag Search ####
 
@@ -38,7 +43,7 @@ following example: `search(:users, "married:true AND age:35")`
 
 #### Environments ####
 
-Chef Solo does not support Environments, but, similarly as in the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
+Chef Solo does not support Environments, but, similarly to the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
 in a role or node.
 
 #### Node Search ####
