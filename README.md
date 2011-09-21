@@ -4,7 +4,10 @@ With LittleChef you will be able to get started more quickly cooking with [Chef]
 
 ## Overview
 
-You may think of this like a pocket Chef. No need to worry about installation, repository syncing, nor Chef Server authentication. You also won't have to remotely edit cookbooks, or commit little changes just to test things. Installing LittleChef to your work computer is all you need to get you started.
+You may think of this like a pocket Chef that doesn't need a Chef Server. Just your
+local kitchen with all your cookbooks, roles data bags and nodes, which will get rsynced
+to a node each time you start a Chef Solo configuration run with the bundled 'fix'
+command.
 
 It also adds features to Chef Solo that are currently only available for Chef Server users: data bag search, and node search.
 
@@ -13,25 +16,30 @@ It also adds features to Chef Solo that are currently only available for Chef Se
 It all starts in the **kitchen**, which you should keep under version control:
 
 * `auth.cfg`: Authentication information needed to be able to connect to the nodes
-* `nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You can manually   edit them or even add new ones. Note that LittleChef will use the file name as the hostname or IP to connect to the node
+* `nodes/`: After recipes are run on [Nodes][], their configuration is stored here. You
+can manually edit them or even add new ones. The name of a node should be its fqdn
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined
-* `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported.
+* `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported
 
 Whenever you apply a recipe to a node, all cookbooks, roles and databags are rsynced to that node, to the `/tmp/chef-solo/` directory. A node.json file gets created on the fly and uploaded, and Chef Solo gets executed at the remote node, using node.json as the node configuration and the pre-installed solo.rb for Chef Solo configuration.
 
-The result is that you can play as often with your recipes and nodes as you want, without having to worry about a central Chef repository, Chef server nor anything else. You can make small changes to your cookbooks and test them again and again without having to commit the changes. You commit to your repo only when you want. LittleChef brings sanity to cookbook development.
+The result is that you can then configure your nodes exactly when and how you want by
+using the `fix` command, all without needing a Chef Server. And all your infrastructure, including your nodes, will be in code, revision controlled.
 
 #### Data bag Search ####
 
-Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by dynamically synching a [cookbook library that implements search][], 
-(in addition to allowing `chef_environment` be set as an attribute).
+Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
+[cookbook library that implements search][].
+
 Thus, most examples in the [search wiki page][] are now possible, including the
 following example: `search(:users, "married:true AND age:35")`
 
 #### Environments ####
-Chef Solo does not support Environments, but as mentioned above, the cookbook library LittleChef adds allows to set the `chef_environment` attribute in a role or node.
+
+Chef Solo does not support Environments, but, similarly as in the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
+in a role or node.
 
 #### Node Search ####
 
@@ -147,11 +155,11 @@ Once a node has a config file, the command you will be using most often is `fix 
 ### Consulting the inventory
 
 * `fix list_nodes`: Lists all configured nodes, showing its associated recipes and roles
-* `fix list_nodes_detailed`: Same as above, but it also shows allattributes
-* `fix list_nodes_with_recipe:MYRECIPE`: The same as above but itonly lists nodes which have associated the recipe `MYRECIPE`
-* `fix list_nodes_with_role:MYROLE`: The same as above but it onlylists nodes which have associated the role `MYROLE`
+* `fix list_nodes_detailed`: Same as above, but it also shows all attributes
+* `fix list_nodes_with_recipe:MYRECIPE`: Lists nodes which have associated the recipe `MYRECIPE`
+* `fix list_nodes_with_role:MYROLE`: Shows nodes which have associated the role `MYROLE`
 * `fix list_recipes`: Lists all available recipes
-* `fix list_recipes_detailed`: Same as above, but shows description,version, dependencies and attributes
+* `fix list_recipes_detailed`: Same as above, but shows description, version, dependencies and attributes
 * `fix list_roles`: Lists all available roles
 * `fix list_roles_detailed`: Same as above, but shows description and attributes
 
