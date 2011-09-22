@@ -171,7 +171,7 @@ def _gem_rpm_install():
 
 
 def _gem_pacman_install():
-    """Install Chef from gems for apt based distros"""
+    """Install Chef from gems for pacman based distros"""
     with hide('stdout', 'running'):
         sudo('pacman -Syu --noconfirm')
     with show('running'):
