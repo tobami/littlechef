@@ -108,7 +108,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
     distro_type=None, distro=None, stop_client='yes'):
     """Install chef-solo on a node"""
     if not env.host_string:
-        abort('no node specified\nUsage: cook node:MYNODE deploy_chef')
+        abort('no node specified\nUsage: fix node:MYNODE deploy_chef')
     chef_versions = ["0.9", "0.10"]
     if version not in chef_versions:
         abort('Wrong Chef version specified. Valid versions are {0}'.format(
@@ -144,7 +144,7 @@ def recipe(recipe):
     """
     # Check that a node has been selected
     if not env.host_string:
-        abort('no node specified\nUsage: cook node:MYNODE recipe:MYRECIPE')
+        abort('no node specified\nUsage: fix node:MYNODE recipe:MYRECIPE')
     lib.print_header(
         "Applying recipe '{0}' on node {1}".format(recipe, env.host_string))
 
@@ -161,7 +161,7 @@ def role(role):
     """
     # Check that a node has been selected
     if not env.host_string:
-        abort('no node specified\nUsage: cook node:MYNODE role:MYROLE')
+        abort('no node specified\nUsage: fix node:MYNODE role:MYROLE')
     lib.print_header(
         "Applying role '{0}' to {1}".format(role, env.host_string))
 

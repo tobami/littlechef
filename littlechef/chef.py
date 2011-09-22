@@ -263,7 +263,7 @@ def _add_search_patch():
                 node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
-    # Create remote data bags patch
+    # Add search and environment patch to the node's cookbooks
     for filename in ('search.rb', 'parser.rb', 'environment.rb'):
         put(os.path.join(basedir, filename),
             os.path.join(lib_path, filename), use_sudo=True)
