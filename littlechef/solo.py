@@ -42,6 +42,8 @@ def install(distro_type, distro, gems, version, stop_client):
                 _rpm_install()
         elif distro_type == "gentoo":
             _emerge_install()
+        elif distro_type == "pacman":
+            _gem_pacman_install()
         else:
             abort('wrong distro type: {0}'.format(distro_type))
 
@@ -122,12 +124,16 @@ def check_distro():
         elif 'This is \\n.\\O (\\s \\m \\r) \\t' in output:
             distro = "Gentoo"
             distro_type = "gentoo"
+        elif 'Arch Linux \\r  (\\n) (\\l)' in output:
+            distro = "Arch Linux"
+            distro_type = "pacman"
         else:
             print "Currently supported distros are:"
             print "  Debian: " + ", ".join(debian_distros)
             print "  Ubuntu: " + ", ".join(ubuntu_distros)
             print "  RHEL: " + ", ".join(rpm_distros)
             print "  Gentoo"
+            print "  Arch Linux"
             abort("Unsupported distro '{0}'".format(output))
     return distro_type, distro
 
@@ -162,6 +168,15 @@ def _gem_rpm_install():
     with show('running'):
         sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync')
     _gem_install()
+
+
+def _gem_pacman_install():
+    """Install Chef from gems for apt based distros"""
+    with hide('stdout', 'running'):
+        sudo('pacman -Syu --noconfirm')
+    with show('running'):
+        sudo('pacman -S --noconfirm ruby base-devel wget rsync')
+    sudo('gem install --no-rdoc --no-ri chef')
 
 
 def _apt_install(distro, version, stop_client='yes'):
