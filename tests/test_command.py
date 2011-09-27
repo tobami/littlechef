@@ -81,7 +81,7 @@ class TestConfig(BaseTest):
         self.assertEquals(error, "")
         expected = "LittleChef: Configuration Management using Chef Solo"
         self.assertTrue(expected in resp)
-        self.assertEquals(len(resp.split('\n')), 20)
+        self.assertEquals(len(resp.split('\n')), 21)
 
 
 class TestRunner(BaseTest):
