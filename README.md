@@ -134,7 +134,7 @@ LittleChef will try to autodetect the distro type and version of that node, and 
 You can also install Chef Solo with gems and/or without asking for confirmation:  
 `fix node:MYNODE deploy_chef:gems=yes,ask=no`
 
-Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux and Gentoo.
+Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux, Gentoo, and Arch Linux.
 
 When using the Debian repository, you need to take into account that Opscode has separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
 `fix node:MYNODE deploy_chef:version=0.9`
