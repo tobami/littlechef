@@ -71,6 +71,10 @@ def new_kitchen():
             print >> authfh, "ssh-config = "
             print "auth.cfg file created..."
 
+@hosts('setup')
+def nodes_with_role(rolename):
+    nodes = lib.get_nodes_with_roles(rolename)
+    return node(*nodes)
 
 @hosts('setup')
 def node(*nodes):

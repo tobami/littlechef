@@ -74,6 +74,21 @@ class TestLib(unittest.TestCase):
         self.assertEquals(recipes[2]['description'],
             'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[3]['name'], 'subversion::server')
+        
+    def test_nodes_for_role(self):
+        """ Should return all nodes for a given rolename """
+        nodes = list(lib.get_nodes_with_roles('all_you_can_eat'))
+        self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0], 'testnode2')
+        nodes = list(lib.get_nodes_with_roles('all_*'))
+        self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0], 'testnode2')
+        nodes = list(lib.get_nodes_with_roles('all_'))
+        self.assertEquals(len(nodes), 0)
+        nodes = list(lib.get_nodes_with_roles('*'))
+        self.assertEquals(len(nodes), 1)
+        nodes = list(lib.get_nodes_with_roles(''))
+        self.assertEquals(len(nodes), 0)
 
 
 class TestChef(BaseTest):
@@ -207,7 +222,7 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertTrue(data['subversion']['password'] == 'role_override_pass')
+        self.assertTrue(data['subversion']['password'] == 'role_override_pass')        
 
 
 if __name__ == "__main__":
