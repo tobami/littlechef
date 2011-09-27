@@ -12,7 +12,7 @@ if platform.system() == 'Windows':
 
 setup(
     name="littlechef",
-    version=__import__('littlechef').version,
+    version=__import__('littlechef').__version__,
     description="Cook with Chef without a Chef Server",
     author="Miquel Torres",
     author_email="tobami@googlemail.com",

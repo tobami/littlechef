@@ -37,7 +37,7 @@ else:
         # Check for version, that overrides everything else.
         for arg in '-v', '-V', '--version':
             if arg in sys.argv: 
-                print(VERSION.format(littlechef.version))
+                print(VERSION.format(littlechef.__version__))
                 sys.exit(0)
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
@@ -46,6 +46,6 @@ else:
             sys.argv[0:0] = ['-f', fabfile]
         # Pass control over to fabric
         # Fabric should now import runner with COOKING = True
-        littlechef.COOKING = True
+        littlechef.__cooking__ = True
         from fabric import main
         main.main()

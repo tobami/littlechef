@@ -23,7 +23,6 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
-from littlechef.version import version
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
@@ -350,7 +349,7 @@ def _readconfig():
 
 # Only read config if fix is being used and we are not creating a new kitchen
 import littlechef
-if littlechef.COOKING:
+if littlechef.__cooking__:
     # Called from command line
     if 'new_kitchen' not in sys.argv:
         _readconfig()

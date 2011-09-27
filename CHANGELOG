@@ -2,6 +2,11 @@
 LittleChef Changelog
 ====================
 
+Next version
+----------------------------------------
+* FIX #57: Eivind added deploy_chef support for Arch Linux
+
+
 Version 1.0.0 September 21, 2011
 ----------------------------------------
 * NEW #46: Markus implemented node synching using rsync instead of data upload,

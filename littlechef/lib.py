@@ -47,7 +47,7 @@ def get_node(name):
     with open(node_path, 'r') as f:
         try:
             node = json.loads(f.read())
-        except json.decoder.JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             msg = 'LittleChef found the following error in'
             msg += ' "{0}":\n                {1}'.format(node_path, str(e))
             abort(msg)

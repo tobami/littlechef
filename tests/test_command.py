@@ -17,6 +17,12 @@ import os
 import platform
 from os.path import join, normpath, abspath, split
 
+import sys
+env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
+sys.path.insert(0, env_path)
+
+import littlechef
+
 
 # Set some convenience variables
 test_path = split(normpath(abspath(__file__)))[0]
@@ -57,17 +63,17 @@ class TestConfig(BaseTest):
         self.set_location(littlechef_top)
         # Call fix from the current directory above "tests/"
         resp, error = self.execute([fix, '-l'])
-        self.assertTrue("Fatal error" in error)
-        self.assertTrue("outside of a kitchen" in error)
-        self.assertEquals(resp, "")
+        self.assertTrue("Fatal error" in error, resp)
+        self.assertTrue("outside of a kitchen" in error, error)
+        self.assertEquals(resp, "", resp)
         # Return to test dir
         self.set_location()
 
     def test_version(self):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([fix, '-v'])
-        self.assertEquals(error, "")
-        self.assertTrue('LittleChef 1.0.' in resp)
+        self.assertEquals(error, "", error)
+        self.assertTrue('LittleChef {0}'.format(littlechef.__version__) in resp)
 
     def test_list_commands(self):
         """Should output a list of available commands"""
