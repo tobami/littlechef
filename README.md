@@ -153,6 +153,8 @@ Note: Don't cook outside of a kitchen!
 * `fix node:MYNODE role:MYROLE`: The same as above but role-based
 * `fix node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
+* `fix nodes\_with\_role:ROLE1`: Configures all nodes which have a certain role in their run_list.
+* `fix nodes\_with\_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list.
 * `fix debug node:MYNODE`: You can start all your commands with `fix debug` to see all Chef Solo debugging information
 
 Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
