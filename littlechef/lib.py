@@ -222,6 +222,23 @@ def get_roles():
     return sorted(roles, key=lambda x: x['fullname'])
 
 
+def get_nodes_with_roles(rolename):
+    """ Get all nodes which include a given role,
+    prefix-searches are also supported
+    """
+    prefix_search = rolename.endswith("*")
+    if prefix_search:
+        rolename = rolename.rstrip("*")
+    for n in get_nodes():
+        if prefix_search:
+            roles = get_roles_in_node(n)
+            if any(role.startswith(rolename) for role in roles):
+                yield n
+        else:
+            if rolename in get_roles_in_node(n):
+                yield n
+
+
 def print_role(role, detailed=True):
     """Pretty prints the given role"""
     if detailed:

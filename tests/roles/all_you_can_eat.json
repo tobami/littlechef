@@ -15,7 +15,7 @@
         }
     },
     "json_class": "Chef::Role",
-    "description": "An example aplication role than needs the subversion recipe",
+    "description": "An example application role than needs the subversion recipe",
     "chef_type": "role",
     "run_list": [
         "recipe[man]",
