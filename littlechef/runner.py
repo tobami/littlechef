@@ -74,7 +74,7 @@ def new_kitchen():
 @hosts('setup')
 def nodes_with_role(rolename):
     nodes = lib.get_nodes_with_roles(rolename)
-    return node(*nodes)
+    return node(*[n['name'] for n in nodes])
 
 @hosts('setup')
 def node(*nodes):
@@ -234,10 +234,8 @@ def list_nodes_with_recipe(recipe):
 @hosts('api')
 def list_nodes_with_role(role):
     """Show all nodes which have asigned a given role"""
-    for node in lib.get_nodes():
-        recipename = 'role[' + role + ']'
-        if recipename in node.get('run_list'):
-            lib.print_node(node)
+    for node in lib.get_nodes_with_roles(role):
+        lib.print_node(node)
 
 
 @hosts('api')

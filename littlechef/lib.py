@@ -233,10 +233,10 @@ def get_nodes_with_roles(rolename):
         if prefix_search:
             roles = get_roles_in_node(n)
             if any(role.startswith(rolename) for role in roles):
-                yield n['name']
+                yield n
         else:
             if rolename in get_roles_in_node(n):
-                yield n['name']
+                yield n
 
 
 def print_role(role, detailed=True):

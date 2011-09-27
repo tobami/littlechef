@@ -79,10 +79,11 @@ class TestLib(unittest.TestCase):
         """ Should return all nodes for a given rolename """
         nodes = list(lib.get_nodes_with_roles('all_you_can_eat'))
         self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0], 'testnode2')
+        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
         nodes = list(lib.get_nodes_with_roles('all_*'))
         self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0], 'testnode2')
+        self.assertEquals(nodes[0]['name'], 'testnode2')
         nodes = list(lib.get_nodes_with_roles('all_'))
         self.assertEquals(len(nodes), 0)
         nodes = list(lib.get_nodes_with_roles('*'))
