@@ -19,7 +19,7 @@ setup(
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/archives/master",
     keywords=["chef", "devops", "operations", "sysadmin"],
-    install_requires=['fabric>=1.0.2', 'simplejson'],
+    install_requires=['fabric>=1.0.2', 'simplejson>=2.1.0'],
     packages=['littlechef'],
     package_data={
         'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
