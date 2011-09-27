@@ -100,7 +100,7 @@ def get_recipes_in_cookbook(name):
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
                 try:
                     cookbook = json.loads(f.read())
-                except json.decoder.JSONDecodeError as e:
+                except json.JSONDecodeError as e:
                     msg = "Little Chef found the following error in your"
                     msg += " {0}.json file:\n  {1}".format(
                         os.path.join(path, 'metadata.json'), e)
@@ -202,7 +202,7 @@ def _get_role(rolename):
     with open(path, 'r') as f:
         try:
             role = json.loads(f.read())
-        except json.decoder.JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             msg = "Little Chef found the following error in your"
             msg += " {0}.json file:\n  {1}".format(rolename, str(e))
             abort(msg)

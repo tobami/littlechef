@@ -4,6 +4,8 @@ LittleChef Changelog
 
 Next version
 ----------------------------------------
+* NEW #58: Markus added operation "nodes_with_role", which configures all nodes with
+    the given role
 * FIX #57: Eivind added deploy_chef support for Arch Linux
 
 
