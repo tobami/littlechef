@@ -27,6 +27,7 @@ from littlechef.settings import node_work_path, cookbook_paths
 # Path to local patch
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
+
 def install(distro_type, distro, gems, version, stop_client):
     """Calls the appropriate installation function for the given distro"""
     with credentials():

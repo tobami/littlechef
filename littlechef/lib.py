@@ -112,8 +112,7 @@ def get_recipes_in_cookbook(name):
                         'name': recipe,
                         'description': cookbook['recipes'][recipe],
                         'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies',
-                                                        {}).keys(),
+                        'dependencies': cookbook.get('dependencies', {}).keys(),
                         'attributes': cookbook.get('attributes', {}),
                         })
                 # When a recipe has no default recipe (libraries?),
@@ -123,8 +122,7 @@ def get_recipes_in_cookbook(name):
                         'name': name,
                         'description': 'This cookbook has no default recipe',
                         'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies',
-                                                        {}).keys(),
+                        'dependencies': cookbook.get('dependencies', {}).keys(),
                         'attributes': cookbook.get('attributes', {})
                     })
             # Cookbook metadata.json was found, don't try next cookbook path

@@ -84,8 +84,8 @@ def _synchronize_node(configfile):
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
 
-    Returns the node object of the node which is about to be configured, or None
-    if this node object cannot be found.
+    Returns the node object of the node which is about to be configured,
+    or None if this node object cannot be found.
     """
     print "Synchronizing node, cookbooks, roles and data bags..."
     # First upload node.json
@@ -120,6 +120,7 @@ def build_dct(dic, keys, value):
     else:
         dic[key] = value
 
+
 def update_dct(dic1, dic2):
     """Merges two dictionaries recursively
     dic2 will have preference over dic1
@@ -130,6 +131,10 @@ def update_dct(dic1, dic2):
             dic1.setdefault(key, {})
             update_dct(dic1[key], val)
         else:
+            if val == "false":
+                val = False
+            elif val == "true":
+                val = True
             dic1[key] = val
 
 
@@ -290,4 +295,3 @@ def _configure_node():
                 abort("")
         else:
             print(colors.green("\nSUCCESS: Node correctly configured"))
-

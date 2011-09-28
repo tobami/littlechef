@@ -1,12 +1,15 @@
 """Cook with Chef without a Chef Server
 
-With LittleChef you will be able to get started more quickly cooking with Chef_, the excellent Configuration Management System.
+With LittleChef you will be able to get started more quickly cooking with
+Chef_, the excellent Configuration Management System.
 
-You will just need your local (preferably version controled) kitchen with all your
-cookbooks, roles data bags and nodes, which will get rsynced to a node each time
-you start a Chef Solo configuration run with the bundled 'fix' command.
+You will just need your local (preferably version controled) kitchen with all
+your cookbooks, roles data bags and nodes, which will get rsynced to a node
+each time you start a Chef Solo configuration run with the bundled 'fix'
+command.
 
-It also adds features to Chef Solo that are currently only available for Chef Server users: data bag search, and node search.
+It also adds features to Chef Solo that are currently only available for Chef
+Server users: data bag search, and node search.
 
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 

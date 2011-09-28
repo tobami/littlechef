@@ -7,6 +7,8 @@ Next version
 * NEW #58: Markus added operation "nodes_with_role", which configures all nodes with
     the given role
 * FIX #57: Eivind added deploy_chef support for Arch Linux
+* FIX: Transform "true" and "false" strings from into real True and False values
+    happens with default values from metadata.json attributes
 
 
 Version 1.0.0 September 21, 2011
