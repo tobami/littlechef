@@ -2,7 +2,7 @@
 LittleChef Changelog
 ====================
 
-Next version
+Version 1.0.1 September 28, 2011
 ----------------------------------------
 * NEW #58: Markus added operation "nodes_with_role", which configures all nodes with
     the given role
