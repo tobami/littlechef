@@ -31,10 +31,10 @@ def get_nodes():
     for filename in sorted([f for f in os.listdir('nodes/')
                                 if not os.path.isdir(f) and ".json" in f
                                     and not f.startswith('.')]):
-        hostname = ".".join(filename.split('.')[:-1])  # Remove .json from name
-        node = get_node(hostname)
+        fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
+        node = get_node(fqdn)
         # Add node name so that we can tell to which node the data belongs to
-        node['name'] = hostname
+        node['name'] = fqdn
         nodes.append(node)
     return nodes
 

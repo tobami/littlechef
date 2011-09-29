@@ -4,6 +4,20 @@
   "name": "vim",
   "maintainer_email": "cookbooks@opscode.com",
   "attributes": {
+    "vim/sucks": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "default": "true",
+      "type": "string",
+      "recipes": [
+
+      ],
+      "display_name": "VIM sucks?",
+      "description": "Describes whether VIM sucks"
+    }
   },
   "license": "Apache 2.0",
   "suggestions": {

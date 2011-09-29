@@ -118,6 +118,12 @@ def build_dct(dic, keys, value):
         dic.setdefault(key, {})
         build_dct(dic[key], keys, value)
     else:
+        # Transform cookbook default attribute strings into proper booleans
+        if value == "false":
+            value = False
+        elif value == "true":
+            value = True
+        # It's a leaf, assign value
         dic[key] = value
 
 
@@ -131,10 +137,6 @@ def update_dct(dic1, dic2):
             dic1.setdefault(key, {})
             update_dct(dic1[key], val)
         else:
-            if val == "false":
-                val = False
-            elif val == "true":
-                val = True
             dic1[key] = val
 
 
@@ -174,6 +176,8 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                         value = {}
                     else:
                         value = r['attributes'][attr].get('default')
+                    # Attribute dictionaries are defined as a single 
+                    # compound key. Split and build proper dict
                     build_dct(attributes, attr.split("/"), value)
 
     # Get default role attributes
@@ -197,19 +201,25 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r['override_attributes'])
+    # Merge back to the original node object
     node.update(attributes)
 
 
 def _build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
 
-    Attributes for a node item:
-        'id': It adds data bag 'id' using the first part of the filename
-            (until it finds a period) minus the .json extension
+    Automatic attributes for a node item:
+        'id': It adds data bag 'id', same as filename but with underscores
         'name': same as the filename
-        'fqdn': same as the filename (as LittleChef filenames should be fqdns)
-        'hostname': same as the filename
-        all attributes found in nodes/<item>.json file
+        'fqdn': same as the filename (LittleChef filenames should be fqdns)
+        'hostname': Uses the first part of the filename as the hostname
+            (until it finds a period) minus the .json extension
+        'domain': filename minus the first part of the filename (hostname)
+            minus the .json extension
+    In addition, it will contain the merged attributes from:
+        All default cookbook attributes corresponding to the node
+        All attributes found in nodes/<item>.json file
+        Default and override attributes from all roles
 
     Returns the node object of the node which is about to be configured, or None
     if this node object cannot be found.
@@ -223,7 +233,8 @@ def _build_node_data_bag():
     all_recipes = lib.get_recipes()
     all_roles = lib.get_roles()
     for node in nodes:
-        node['id'] = node['name'].split('.')[0]
+        # Dots are not allowed (only alphanumeric), substitute by underscores
+        node['id'] = node['name'].replace('.', '_')
 
         # Build extended role list
         node['role'] = lib.get_roles_in_node(node)

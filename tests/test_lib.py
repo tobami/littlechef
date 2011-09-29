@@ -30,7 +30,11 @@ littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
 class BaseTest(unittest.TestCase):
     def tearDown(self):
-        for nodename in ['tmp_testnode1', 'tmp_testnode2', 'tmp_testnode4']:
+        for nodename in [
+            'tmp_testnode1',
+            'tmp_testnode2',
+            'tmp_testnode3.mydomain.com',
+            'tmp_testnode4']:
             if os.path.exists(nodename + '.json'):
                 os.remove(nodename + '.json')
 
@@ -59,7 +63,8 @@ class TestLib(unittest.TestCase):
             {'name': 'testnode2',
                 'subversion': {'password': 'node_password', 'user': 'node_user'},
                 'run_list': ['role[all_you_can_eat]']},
-            {'name': 'testnode3.mydomain.com', 'run_list': ['recipe[subversion]']},
+            {'name': 'testnode3.mydomain.com',
+                'run_list': ['recipe[subversion]', 'recipe[vim]']},
         ]
 
         self.assertEquals(lib.get_nodes(), expected)
@@ -74,7 +79,7 @@ class TestLib(unittest.TestCase):
         self.assertEquals(recipes[2]['description'],
             'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[3]['name'], 'subversion::server')
-        
+
     def test_nodes_for_role(self):
         """ Should return all nodes for a given rolename """
         nodes = list(lib.get_nodes_with_roles('all_you_can_eat'))
@@ -149,11 +154,13 @@ class TestChef(BaseTest):
         """Should create a node data bag when node name contains non-alphanumerical
         characters"""
         chef._build_node_data_bag()
-        item_path = os.path.join('data_bags', 'node', 'testnode3.json')
+        # A node called testnode3.mydomain.com will have the data bag id
+        # 'testnode3', because dots are not allowed.
+        item_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
         self.assertTrue(os.path.exists(item_path))
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
-        self.assertTrue('id' in data and data['id'] == 'testnode3')
+        self.assertTrue('id' in data and data['id'] == 'testnode3_mydomain_com')
         self.assertTrue('name' in data and data['name'] == 'testnode3.mydomain.com')
 
     def test_automatic_attributes(self):
@@ -168,8 +175,9 @@ class TestChef(BaseTest):
         self.assertTrue('domain' in data and data['domain'] == '')
 
         # Check node with complex fqdn
-        testnode3_path = os.path.join('data_bags', 'node', 'testnode3.json')
+        testnode3_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
         with open(testnode3_path, 'r') as f:
+            print testnode3_path
             data = json.loads(f.read())
         self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
         self.assertTrue('hostname' in data and data['hostname'] == 'testnode3')
@@ -183,6 +191,15 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
         self.assertTrue(data['subversion']['repo_name'] == 'repo')
+
+    def test_attribute_merge_cookbook_boolean(self):
+        """Should have real boolean values for default cookbook attributes"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('vim' in data)
+        self.assertTrue(data['vim']['sucks'] is True)
 
     def test_attribute_merge_site_cookbook_default(self):
         """Should have the value found in 

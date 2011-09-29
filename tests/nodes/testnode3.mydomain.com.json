@@ -1,5 +1,6 @@
 {
     "run_list": [
-        "recipe[subversion]"
+        "recipe[subversion]",
+        "recipe[vim]"
     ]
 }
