@@ -249,7 +249,13 @@ def _apt_install(distro, version, stop_client='yes'):
 
 
 def _add_rpm_repos():
-    """Add EPEL and ELFF"""
+    """Add EPEL and ELFF RPM repositories
+    Opscode doesn't officially support an ELFF resporitory any longer:
+    http://wiki.opscode.com/display/chef/Installation+on+RHEL+and+CentOS+5+with+RPMs
+
+    Using http://rbel.frameos.org/
+
+    """
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
@@ -259,12 +265,12 @@ def _add_rpm_repos():
             installed = "package epel-release-5-4.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
-        # Install the ELFF Yum Repository.
+        # Install the FrameOS RBEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
-            repo_url = "http://download.elff.bravenet.com"
-            repo_path = "/5/i386/elff-release-5-3.noarch.rpm"
+            repo_url = "http://rbel.co/rbel5"
+            repo_path = ""
             output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
-            installed = "package elff-release-5-3.noarch is already installed"
+            installed = "package rbel5-release-1.0-2.el5.noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
 
@@ -273,7 +279,9 @@ def _rpm_install():
     """Install Chef for rpm based distros"""
     _add_rpm_repos()
     with show('running'):
-        # Install Chef Solo
+        # Ensure we have an up-to-date ruby, as we need >=1.8.7
+        sudo ('yum -y upgrade ruby*')
+        # Install Chef
         sudo('yum -y install chef')
 
 
