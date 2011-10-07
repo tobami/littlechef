@@ -2,6 +2,9 @@
 LittleChef Changelog
 ====================
 
+* FIX: Cristi fixed rpm installation by adding a new repository
+
+
 Version 1.0.1 September 28, 2011
 ----------------------------------------
 * NEW #58: Markus added operation "nodes_with_role", which configures all nodes with

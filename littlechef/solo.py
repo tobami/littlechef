@@ -249,7 +249,7 @@ def _apt_install(distro, version, stop_client='yes'):
 
 
 def _add_rpm_repos():
-    """Add EPEL and ELFF RPM repositories
+    """Add RPM repositories for Chef
     Opscode doesn't officially support an ELFF resporitory any longer:
     http://wiki.opscode.com/display/chef/Installation+on+RHEL+and+CentOS+5+with+RPMs
 
@@ -282,7 +282,7 @@ def _rpm_install():
         # Ensure we have an up-to-date ruby, as we need >=1.8.7
         sudo ('yum -y upgrade ruby*')
         # Install Chef
-        sudo('yum -y install chef')
+        sudo('yum -y install rubygem-chef')
 
 
 def _emerge_install():
