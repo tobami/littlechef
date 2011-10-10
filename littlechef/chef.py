@@ -169,8 +169,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     attributes = {}
     for recipe in node['recipes']:
         # Find this recipe
+        found = False
         for r in all_recipes:
             if recipe == r['name']:
+                found = True
                 for attr in r['attributes']:
                     if r['attributes'][attr].get('type') == "hash":
                         value = {}
@@ -179,6 +181,9 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                     # Attribute dictionaries are defined as a single 
                     # compound key. Split and build proper dict
                     build_dct(attributes, attr.split("/"), value)
+        if not found:
+            abort("Could not find recipe '{0}' for node '{1}'".format(
+                recipe, node['name']))
 
     # Get default role attributes
     for role in node['roles']:

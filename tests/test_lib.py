@@ -38,6 +38,9 @@ class BaseTest(unittest.TestCase):
             'tmp_testnode4']:
             if os.path.exists(nodename + '.json'):
                 os.remove(nodename + '.json')
+        extra_node = os.path.join("nodes", "testnode4" + '.json')
+        if os.path.exists(extra_node):
+            os.remove(extra_node)
         runner.env.chef_environment = None
         runner.env.hosts = []
         runner.env.all_hosts = []
@@ -108,7 +111,6 @@ class TestLib(unittest.TestCase):
             {'name': 'testnode3.mydomain.com',
                 'run_list': ['recipe[subversion]', 'recipe[vim]']},
         ]
-
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_list_recipes(self):
@@ -150,22 +152,21 @@ class TestChef(BaseTest):
         """
         # Save a new node
         env.host_string = 'testnode4'
-        run_list = ["role[testrole]"]
+        run_list = ["role[base]"]
         chef.save_config({"run_list": run_list})
         file_path = os.path.join('nodes', 'testnode4.json')
         self.assertTrue(os.path.exists(file_path))
         with open(file_path, 'r') as f:
             data = json.loads(f.read())
-        os.remove(file_path)  # Clean up
         self.assertEquals(data['run_list'], run_list)
 
         # It should't overwrite existing config files
         env.host_string = 'testnode1'  # This node exists
-        run_list = ["role[testrole]"]
+        run_list = ["role[base]"]
         chef.save_config({"run_list": run_list})
         with open(os.path.join('nodes', 'testnode1.json'), 'r') as f:
             data = json.loads(f.read())
-            # It should *NOT* have "testrole" assigned
+            # It should *NOT* have "base" assigned
             self.assertEquals(data['run_list'], ["recipe[subversion]"])
 
     def test_build_node_data_bag(self):
@@ -225,6 +226,13 @@ class TestChef(BaseTest):
         self.assertTrue('hostname' in data and data['hostname'] == 'testnode3')
         self.assertTrue('domain' in data and data['domain'] == 'mydomain.com')
 
+    def test_attribute_merge_cookbook_not_found(self):
+        """Should print a warning when merging a node and a cookbook is not found"""
+        # Save new node with a non-existing cookbook assigned
+        env.host_string = 'testnode4'
+        chef.save_config({"run_list": ["recipe[phantom_cookbook]"]})
+        self.assertRaises(SystemExit, chef._build_node_data_bag)
+
     def test_attribute_merge_cookbook_default(self):
         """Should have the value found in recipe/attributes/default.rb"""
         chef._build_node_data_bag()
@@ -254,6 +262,13 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
         self.assertTrue(data['subversion']['repo_dir'] == '/srv/svn2')
+
+    def test_attribute_merge_role_not_found(self):
+        """Should print a warning when an assigned role if not found"""
+        # Save new node with a non-existing cookbook assigned
+        env.host_string = 'testnode4'
+        chef.save_config({"run_list": ["role[phantom_role]"]})
+        self.assertRaises(SystemExit, chef._build_node_data_bag)
 
     def test_attribute_merge_role_default(self):
         """Should have the value found in the roles default attributes"""
