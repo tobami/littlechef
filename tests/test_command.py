@@ -84,6 +84,20 @@ class TestConfig(BaseTest):
         self.assertEquals(len(resp.split('\n')), 21)
 
 
+class TestEnvironment(BaseTest):
+    def test_no_value(self):
+        """Should error out when the env value is empty"""
+        resp, error = self.execute([fix, 'list_nodes', 'env:'])
+        self.assertEquals(resp, "")
+        self.assertTrue("Error: No environment was given" in error, error)
+
+    def test_valid_environment(self):
+        """Should set the chef_environment value when one is given"""
+        resp, error = self.execute([fix, 'list_nodes', 'env:staging'])
+        self.assertEquals(error, "", error)
+        self.assertTrue("Environment: staging" in resp, resp)
+
+
 class TestRunner(BaseTest):
     def test_no_node_given(self):
         """Should abort when no node is given"""
@@ -104,18 +118,19 @@ class TestRunner(BaseTest):
         # Will try to configure *first* testnode2 and will fail DNS lookup
         self.assertTrue("tal error: Name lookup failed for testnode2" in error)
 
-    def test_all_nodes(self):
-        """Should try to configure all nodes"""
-        resp, error = self.execute([fix, 'node:all'])
-        self.assertTrue("== Configuring testnode1 ==" in resp)
-        # Will try to configure all nodes and will fail DNS lookup of testnode1
-        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+    # TODO: This test will now prompt for user input
+    #def test_all_nodes(self):
+        #"""Should try to configure all nodes"""
+        #resp, error = self.execute([fix, 'node:all'])
+        #self.assertTrue("== Configuring testnode1 ==" in resp)
+        ## Will try to configure all nodes and will fail DNS lookup of testnode1
+        #self.assertTrue("tal error: Name lookup failed for testnode1" in error)
 
     def test_recipe(self):
         """Should configure node with the given recipe"""
         resp, error = self.execute([fix, 'node:testnode1', 'recipe:subversion'])
         self.assertTrue("plying recipe 'subversion' on node testnode1" in resp)
-        #self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
 
     def test_role(self):
         """Should configure node with the given role"""
@@ -168,6 +183,12 @@ class TestListRoles(BaseTest):
         """Should list all roles"""
         resp, error = self.execute([fix, 'list_roles'])
         self.assertTrue('base' in resp and 'example aplication' in resp)
+
+    def test_list_roles_detailed(self):
+        """Should show a detailed list of all roles"""
+        resp, error = self.execute([fix, 'list_roles_detailed'])
+        self.assertTrue('base' in resp and 'example aplication' in resp)
+        print resp
 
 
 class TestListNodes(BaseTest):

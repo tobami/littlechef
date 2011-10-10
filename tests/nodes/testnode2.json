@@ -1,4 +1,5 @@
 {
+    "chef_environment": "staging",
     "subversion": {
         "user": "node_user",
         "password": "node_password"

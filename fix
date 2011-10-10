@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 
@@ -39,6 +40,15 @@ else:
             if arg in sys.argv: 
                 print(VERSION.format(littlechef.__version__))
                 sys.exit(0)
+        for arg in sys.argv:
+            if "env:" in arg:
+                chef_environment = arg.split(":")[1]
+                if chef_environment == '':
+                    print("Error: No environment was given", file=sys.stderr)
+                    sys.exit(1)
+                else:
+                    littlechef.chef_environment = chef_environment
+                sys.argv.remove(arg)
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
             sys.argv[1:1] = ['-f', fabfile]

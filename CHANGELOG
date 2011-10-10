@@ -2,6 +2,10 @@
 LittleChef Changelog
 ====================
 
+
+Version 1.0.2 October 10, 2011
+----------------------------------------
+* NEW: Added the command option "env"
 * FIX: Cristi fixed rpm installation by adding a new repository
 
 

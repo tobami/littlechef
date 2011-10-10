@@ -24,6 +24,7 @@ sys.path.insert(0, env_path)
 from littlechef import runner, chef, lib
 
 
+runner.__testing__ =  True
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
 littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
@@ -37,6 +38,9 @@ class BaseTest(unittest.TestCase):
             'tmp_testnode4']:
             if os.path.exists(nodename + '.json'):
                 os.remove(nodename + '.json')
+        runner.env.chef_environment = None
+        runner.env.hosts = []
+        runner.env.all_hosts = []
 
 
 class TestRunner(BaseTest):
@@ -46,6 +50,44 @@ class TestRunner(BaseTest):
         # NOTE: We need absolute paths for the kitchen
         os.chdir(littlechef_top)
         self.assertRaises(SystemExit, runner._readconfig)
+
+    def test_nodes_with_role(self):
+        """Should return a list of nodes with the given role in the run_list"""
+        runner.nodes_with_role("all_you_can_eat")
+        self.assertEquals(runner.env.hosts, ['testnode2'])
+
+    def test_nodes_with_role_in_env(self):
+        """Should return a filtered list of nodes when an env is given"""
+        runner.env.chef_environment = "staging"
+        runner.nodes_with_role("all_you_can_eat")
+        self.assertEquals(runner.env.hosts, ['testnode2'])
+
+    def test_nodes_with_role_in_env_empty(self):
+        runner.env.chef_environment = "production"
+        self.assertRaises(SystemExit, runner.nodes_with_role, "all_you_can_eat")
+        self.assertEquals(runner.env.hosts, [])
+
+    def test_nodes_one(self):
+        """Should configure one node"""
+        runner.node('testnode1')
+        self.assertEquals(runner.env.hosts, ['testnode1'])
+
+    def test_nodes_several(self):
+        """Should configure several nodes"""
+        runner.node('testnode1', 'testnode2')
+        self.assertEquals(runner.env.hosts, ['testnode1', 'testnode2'])
+
+    def test_nodes_all(self):
+        """Should configure all nodes"""
+        runner.node('all')
+        self.assertEquals(runner.env.hosts,
+            ['testnode1', 'testnode2', 'testnode3.mydomain.com'])
+
+    def test_nodes_all_in_env(self):
+        """Should configure all nodes in a given environment"""
+        runner.env.chef_environment = "staging"
+        runner.node('all')
+        self.assertEquals(runner.env.hosts, ['testnode2'])
 
 
 class TestLib(unittest.TestCase):
@@ -60,7 +102,7 @@ class TestLib(unittest.TestCase):
         """Should list all configured nodes"""
         expected = [
             {'name': 'testnode1', 'run_list': ['recipe[subversion]']},
-            {'name': 'testnode2',
+            {'chef_environment': 'staging', 'name': 'testnode2',
                 'subversion': {'password': 'node_password', 'user': 'node_user'},
                 'run_list': ['role[all_you_can_eat]']},
             {'name': 'testnode3.mydomain.com',
@@ -80,20 +122,20 @@ class TestLib(unittest.TestCase):
             'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[3]['name'], 'subversion::server')
 
-    def test_nodes_for_role(self):
-        """ Should return all nodes for a given rolename """
-        nodes = list(lib.get_nodes_with_roles('all_you_can_eat'))
+    def test_nodes_with_role(self):
+        """Should return all nodes with a given role in their run_list"""
+        nodes = list(lib.get_nodes_with_role('all_you_can_eat'))
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0]['name'], 'testnode2')
         self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
-        nodes = list(lib.get_nodes_with_roles('all_*'))
+        nodes = list(lib.get_nodes_with_role('all_*'))
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0]['name'], 'testnode2')
-        nodes = list(lib.get_nodes_with_roles('all_'))
+        nodes = list(lib.get_nodes_with_role('all_'))
         self.assertEquals(len(nodes), 0)
-        nodes = list(lib.get_nodes_with_roles('*'))
+        nodes = list(lib.get_nodes_with_role('*'))
         self.assertEquals(len(nodes), 1)
-        nodes = list(lib.get_nodes_with_roles(''))
+        nodes = list(lib.get_nodes_with_role(''))
         self.assertEquals(len(nodes), 0)
 
 

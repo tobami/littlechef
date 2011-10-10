@@ -18,3 +18,5 @@ __version__ = "1.0.1"
 __author__ = "Miquel Torres <tobami@gmail.com>"
 
 __cooking__ = False
+
+chef_environment = None

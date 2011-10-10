@@ -34,6 +34,7 @@ import fabric
 fabric.state.output['running'] = False
 env.loglevel = "info"
 env.output_prefix = False
+__testing__ =  False
 
 
 @hosts('setup')
@@ -74,8 +75,23 @@ def new_kitchen():
 
 @hosts('setup')
 def nodes_with_role(rolename):
-    nodes = lib.get_nodes_with_roles(rolename)
-    return node(*[n['name'] for n in nodes])
+    """Sets a list of nodes that contain the given role in their run list
+    and calls node()
+
+    """
+    nodes_in_env = []
+    nodes = lib.get_nodes_with_role(rolename)
+    if env.chef_environment is None:
+        # Pass all nodes
+        nodes_in_env = [n['name'] for n in nodes]
+    else:
+        # Only nodes in environment
+        nodes_in_env = [n['name'] for n in nodes \
+                        if n.get('chef_environment') == env.chef_environment]
+    if not len(nodes_in_env):
+        print("No nodes found with role '{0}'".format(rolename))
+        sys.exit(0)
+    return node(*nodes_in_env)
 
 
 @hosts('setup')
@@ -86,17 +102,30 @@ def node(*nodes):
     elif nodes[0] == 'all':
         # Fetch all nodes and add them to env.hosts
         for node in lib.get_nodes():
-            env.hosts.append(node['name'])
+            if env.chef_environment is None or \
+                node.get('chef_environment') == env.chef_environment:
+                env.hosts.append(node['name'])
         if not len(env.hosts):
             abort('No nodes found in /nodes/')
+        message = "Are you sure you want to configure all nodes ({0})".format(
+            len(env.hosts))
+        if env.chef_environment:
+            message += " in the {0} environment".format(env.chef_environment)
+        message += "?"
+        if not __testing__:
+            if not confirm(message):
+                abort('Aborted by user')
     else:
         # A list of nodes was given
-        env.hosts = nodes
-    env.all_hosts = list(env.hosts)
+        env.hosts = list(nodes)
+    env.all_hosts = list(env.hosts)  # Shouldn't be needed
+    if len(env.hosts) > 1:
+        print "Configuring nodes: {0}...".format(", ".join(env.hosts))
 
     # Check whether another command was given in addition to "node:"
     execute = True
-    if 'node:' not in sys.argv[-1]:
+    if littlechef.__cooking__ and \
+        'node:' not in sys.argv[-1] and 'nodes_with_role:' not in sys.argv[-1]:
         execute = False
     # If user didn't type recipe:X, role:Y or deploy_chef, just run configure
     if execute:
@@ -106,7 +135,8 @@ def node(*nodes):
             lib.print_header("Configuring {0}".format(env.host))
             # Read node data and configure node
             node = lib.get_node(env.host)
-            chef.sync_node(node)
+            if not __testing__:
+                chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
@@ -138,8 +168,9 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
             method = '{0} using "{1}" packages'.format(version, distro)
         print("Deploying Chef {0}...".format(method))
 
-    solo.install(distro_type, distro, gems, version, stop_client)
-    solo.configure()
+    if not __testing__:
+        solo.install(distro_type, distro, gems, version, stop_client)
+        solo.configure()
 
 
 def recipe(recipe):
@@ -156,7 +187,8 @@ def recipe(recipe):
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
     data["run_list"] = ["recipe[{0}]".format(recipe)]
-    chef.sync_node(data)
+    if not __testing__:
+        chef.sync_node(data)
 
 
 def role(role):
@@ -173,7 +205,8 @@ def role(role):
     # Now create configuration and sync node
     data = lib.get_node(env.host_string)
     data["run_list"] = ["role[{0}]".format(role)]
-    chef.sync_node(data)
+    if not __testing__:
+        chef.sync_node(data)
 
 
 @hosts('setup')
@@ -236,7 +269,7 @@ def list_nodes_with_recipe(recipe):
 @hosts('api')
 def list_nodes_with_role(role):
     """Show all nodes which have asigned a given role"""
-    for node in lib.get_nodes_with_roles(role):
+    for node in lib.get_nodes_with_role(role):
         lib.print_node(node)
 
 
@@ -353,8 +386,12 @@ def _readconfig():
 
 # Only read config if fix is being used and we are not creating a new kitchen
 import littlechef
+env.chef_environment = littlechef.chef_environment
+
 if littlechef.__cooking__:
     # Called from command line
+    if env.chef_environment:
+        print("\nEnvironment: {0}".format(env.chef_environment))
     if 'new_kitchen' not in sys.argv:
         _readconfig()
 else:
