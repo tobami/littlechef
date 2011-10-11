@@ -182,8 +182,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                     # compound key. Split and build proper dict
                     build_dct(attributes, attr.split("/"), value)
         if not found:
-            abort("Could not find recipe '{0}' for node '{1}'".format(
-                recipe, node['name']))
+            _remove_node_data_bag()
+            error = "Could not find recipe '{0}' while ".format(recipe)
+            error += "building node data bag for '{0}'".format(node['name'])
+            abort(error)
 
     # Get default role attributes
     for role in node['roles']:
