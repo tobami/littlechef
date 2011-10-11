@@ -3,10 +3,11 @@ LittleChef Changelog
 ====================
 
 
-Version 1.0.2 October 10, 2011
+Version 1.0.2 October 11, 2011
 ----------------------------------------
-* NEW: Added the command option "env"
-* FIX: Cristi fixed rpm installation by adding a new repository
+* NEW #61: Added the command option "env"
+* NEW #60: Don't force to define a password if ssh-config is used
+* FIX #62: Cristi fixed rpm installation by adding a new repository
 
 
 Version 1.0.1 September 28, 2011
