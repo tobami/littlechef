@@ -309,7 +309,8 @@ def _configure_node():
                 abort("")
             else:
                 print(colors.red(
-                    "\nFAILED: A problem occurred while executing chef-solo"))
-                abort("")
+                    "\nFAILED: A problem occurred while executing chef-solo\n"))
+                import sys
+                sys.exit(1)
         else:
             print(colors.green("\nSUCCESS: Node correctly configured"))
