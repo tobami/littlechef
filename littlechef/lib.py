@@ -15,12 +15,16 @@
 """library for parsing and printing role, cookbook and node information"""
 import os
 import simplejson as json
+import subprocess
 
 from fabric import colors
 from fabric.api import env, settings
 from fabric.utils import abort
 
 from littlechef.settings import cookbook_paths
+
+
+knife_installed = True
 
 
 def get_nodes():
@@ -79,6 +83,41 @@ def print_node(node, detailed=False):
         print "    {0}: {1}".format(attribute, node[attribute])
 
 
+def _generate_metadata(path, cookbook_path, name):
+    """Checks whether metadata.rb has changed and regenerate metadata.json"""
+    global knife_installed
+    if not knife_installed:
+        return
+    metadata_path_rb = os.path.join(path, 'metadata.rb')
+    metadata_path_json = os.path.join(path, 'metadata.json')
+    if (os.path.exists(metadata_path_rb) and
+        os.stat(metadata_path_rb).st_mtime > \
+        os.stat(metadata_path_json).st_mtime):
+        try:
+            proc = subprocess.Popen(
+                ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            resp, error = proc.communicate()
+            if (error or 'FATAL:' in resp or
+                'Generating metadata for' not in resp):
+                msg = "Unkown error while generating metadata.json for "
+                msg += "{0}. Cookbook attributes may be out of date".format(
+                    path)
+                print(msg)
+                if env.loglevel == 'debug':
+                    print "\n".join(resp.split("\n")[:2])
+            else:
+                print("Generated metadata.json for {0}".format(path))
+        except OSError:
+            knife_installed = False
+            msg = "Warning: metadata.json for {0}".format(name)
+            msg += " in {0} is older that metadata.rb".format(cookbook_path)
+            msg += ", and cookbook attributes could be out of date\n"
+            msg += "If you locally install Chef's knife tool, LittleChef will"
+            msg += " regenerate metadata files automatically"
+            print(msg)
+
+
 def get_recipes_in_cookbook(name):
     """Gets the name of all recipes present in a cookbook
     Returns a list of dictionaries
@@ -95,6 +134,9 @@ def get_recipes_in_cookbook(name):
         cookbook_exists = cookbook_exists or path_exists
         if not path_exists:
             continue
+
+        _generate_metadata(path, cookbook_path, name)
+
         # Now try to open metadata.json
         try:
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
