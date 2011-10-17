@@ -98,8 +98,7 @@ def _generate_metadata(path, cookbook_path, name):
                 ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             resp, error = proc.communicate()
-            if (error or 'FATAL:' in resp or
-                'Generating metadata for' not in resp):
+            if ('FATAL:' in resp or 'Generating metadata for' not in resp):
                 msg = "Unkown error while generating metadata.json for "
                 msg += "{0}. Cookbook attributes may be out of date".format(
                     path)
