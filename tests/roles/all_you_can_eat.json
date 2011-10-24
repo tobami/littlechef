@@ -6,7 +6,11 @@
             "user": "role_default_user"
         },
         "other_attr": {
-            "other_key": "nada"
+            "other_key": "nada",
+            "deep_dict": {
+                "deep_key1": "role_value1",
+                "deep_key2": "role_value2"
+            }
         }
     },
     "override_attributes": {

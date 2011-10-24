@@ -4,6 +4,11 @@
         "user": "node_user",
         "password": "node_password"
     },
+    "other_attr": {
+        "deep_dict": {
+            "deep_key1": "node_value1"
+        }
+    },
     "run_list": [
         "role[all_you_can_eat]"
     ]

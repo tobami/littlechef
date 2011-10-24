@@ -105,9 +105,12 @@ class TestLib(unittest.TestCase):
         """Should list all configured nodes"""
         expected = [
             {'name': 'testnode1', 'run_list': ['recipe[subversion]']},
-            {'chef_environment': 'staging', 'name': 'testnode2',
+            {
+                'chef_environment': 'staging', 'name': 'testnode2',
+                'other_attr': {'deep_dict': {'deep_key1': 'node_value1'}},
                 'subversion': {'password': 'node_password', 'user': 'node_user'},
-                'run_list': ['role[all_you_can_eat]']},
+                'run_list': ['role[all_you_can_eat]']
+            },
             {'name': 'testnode3.mydomain.com',
                 'run_list': ['recipe[subversion]', 'recipe[vim]']},
         ]
@@ -277,9 +280,9 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertTrue(data['subversion']['repo_server'] == 'role_default_repo_server')
+        self.assertEquals(data['subversion']['repo_server'], 'role_default_repo_server')
         self.assertTrue('other_attr' in data)
-        self.assertTrue(data['other_attr']['other_key'] == 'nada')
+        self.assertEquals(data['other_attr']['other_key'], 'nada')
 
     def test_attribute_merge_node_normal(self):
         """Should have the value found in the node attributes"""
@@ -288,7 +291,7 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertTrue(data['subversion']['user'] == 'node_user')
+        self.assertEquals(data['subversion']['user'], 'node_user')
 
     def test_attribute_merge_role_override(self):
         """Should have the value found in the roles override attributes"""
@@ -297,8 +300,22 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertTrue(data['subversion']['password'] == 'role_override_pass')        
+        self.assertEquals(data['subversion']['password'], 'role_override_pass')
 
+    def test_attribute_merge_deep_dict(self):
+        """Should deep-merge a dict when it is defined in two different places"""
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('other_attr' in data)
+        expected = {
+            "deep_dict": {
+                "deep_key1": "node_value1",
+                "deep_key2": "role_value2"
+            }
+        }
+        self.assertTrue(data['other_attr']['deep_dict'], expected)
 
 if __name__ == "__main__":
     unittest.main()
