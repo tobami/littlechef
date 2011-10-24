@@ -15,6 +15,7 @@
 """LittleChef: Configuration Management using Chef Solo"""
 import ConfigParser
 import os
+import re
 import sys
 import simplejson as json
 
