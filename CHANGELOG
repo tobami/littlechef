@@ -2,12 +2,20 @@
 LittleChef Changelog
 ====================
 
+Version NEXT
+----------------------------------------
+
+*NEW #15 (partly): Automatic metadata.json regeneration from metadata.rb
+*FIX #67: Andrew fixed `get_ips` for OSX by adding a regex to parse IPs
+
 
 Version 1.0.2 October 11, 2011
 ----------------------------------------
 * NEW #61: Added the command option "env"
 * NEW #60: Don't force to define a password if ssh-config is used
-* FIX #62: Cristi fixed rpm installation by adding a new repository
+* FIX #62: Cristi fixed rpm installation by using the FrameOS RBEL repository
+* FIX: Automatic node data bag created items with the hostname as the name.
+    That can lead to name collitions. Now FQDN with underscores is used instead
 
 
 Version 1.0.1 September 28, 2011

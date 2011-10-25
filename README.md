@@ -57,6 +57,14 @@ result from merging cookbook, node and role attributes, following the standard
 munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
 ```
 
+#### metadata.rb and ruby roles ####
+
+LittleChef depends on the JSON versions of the cookbook metadata and roles to properly 
+merge attributes. You can still use the ruby versions, and generate the JSON versions
+when you make changes. If you have knife locally installed, it will even be done 
+automatically on every run if a changed metadata.rb is detected. Ruby roles are not
+yet automatically converted, but an implementation is planned.
+
 ## Installation
 
 ### Desktop support

@@ -143,6 +143,19 @@ class TestLib(unittest.TestCase):
         nodes = list(lib.get_nodes_with_role(''))
         self.assertEquals(len(nodes), 0)
 
+    def test_parse_ip(self):
+        """Should return an IP when the given text contains one IPv4"""
+        text = "127.0.0.1"
+        self.assertEquals(lib.parse_ip(text), "127.0.0.1")
+
+        text = "blabla(127.0.0.1)sdfasdf"
+        self.assertEquals(lib.parse_ip(text), "127.0.0.1")
+
+        text = "\nblabla 216.34.94.184 sdfasdf"
+        self.assertEquals(lib.parse_ip(text), "216.34.94.184")
+
+        text = "216.34.94"
+        self.assertEquals(lib.parse_ip(text), None)
 
 class TestChef(BaseTest):
     def tearDown(self):
