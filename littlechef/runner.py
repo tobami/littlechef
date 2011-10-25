@@ -15,6 +15,7 @@
 """LittleChef: Configuration Management using Chef Solo"""
 import ConfigParser
 import os
+import re
 import sys
 import simplejson as json
 
@@ -222,7 +223,9 @@ def get_ips():
         if not error:
             # Get lines from output and parse the first line to get the IP
             lines = resp.split("\n")
-            ip = lines[0].split()[2].lstrip("(").rstrip(")")
+            # IP Address Regex http://www.regular-expressions.info/examples.html
+            ip_matches = re.findall(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', lines[0])
+            ip = ip_matches[0] if ip_matches else None
             if not ip:
                 print "Warning: could not get IP address from node {0}".format(
                     node['name'])
