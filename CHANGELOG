@@ -5,8 +5,9 @@ LittleChef Changelog
 Version NEXT
 ----------------------------------------
 
-*NEW #15 (partly): Automatic metadata.json regeneration from metadata.rb
-*FIX #67: Andrew fixed `get_ips` for OSX by adding a regex to parse IPs
+* NEW #15 (partly): Automatic metadata.json regeneration from metadata.rb
+* NEW #63: deploy_chef support for CentOS/RHEL v6
+* FIX #67: Andrew fixed `get_ips` for OSX by adding a regex to parse IPs
 
 
 Version 1.0.2 October 11, 2011

@@ -14,6 +14,7 @@
 #
 """Chef Solo deployment"""
 import os
+import re
 
 from fabric.api import *
 from fabric import colors
@@ -256,21 +257,35 @@ def _add_rpm_repos():
     Using http://rbel.frameos.org/
 
     """
+    version_string = sudo('cat /etc/redhat-release')
+    try:
+        rhel_version = re.findall("\d[\d.]*", version_string)[0].split('.')[0]
+    except IndexError:
+        print "Warning: could not correctly detect the Red Hat version"
+        print "Defaulting to 5 packages"
+        rhel_version = "5"
+
+    epel_release = "epel-release-5-4.noarch"
+    if rhel_version == "6":
+        epel_release = "epel-release-6-5.noarch"
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
             repo_url = "http://download.fedora.redhat.com"
-            repo_path = "/pub/epel/5/i386/epel-release-5-4.noarch.rpm"
+            repo_path = "/pub/epel/{0}/i386/".format(rhel_version)
+            repo_path += "{0}.rpm".format(epel_release)
             output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
-            installed = "package epel-release-5-4.noarch is already installed"
+            installed = "package {0} is already installed".format(epel_release)
             if output.failed and installed not in output:
                 abort(output)
         # Install the FrameOS RBEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
-            repo_url = "http://rbel.co/rbel5"
-            repo_path = ""
+            repo_url = "http://rbel.co"
+            repo_path = "/rbel{0}".format(rhel_version)
             output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
-            installed = "package rbel5-release-1.0-2.el5.noarch is already installed"
+            installed = "package rbel{0}-release-1.0-2.el{0}".format(
+                        rhel_version)
+            installed += ".noarch is already installed"
             if output.failed and installed not in output:
                 abort(output)
 
