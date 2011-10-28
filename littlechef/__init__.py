@@ -20,3 +20,7 @@ __author__ = "Miquel Torres <tobami@gmail.com>"
 __cooking__ = False
 
 chef_environment = None
+
+REPORT = '/tmp/chef.log'
+enable_report = True
+

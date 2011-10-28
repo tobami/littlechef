@@ -28,10 +28,10 @@ from fabric.contrib.project import rsync_project
 from littlechef import lib
 from littlechef import solo
 from littlechef.settings import node_work_path, cookbook_paths
+from littlechef import REPORT, enable_report as ENABLE_REPORT
 
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
-
 
 def save_config(node, force=False):
     """Saves node configuration
@@ -296,8 +296,12 @@ def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
     print("\nCooking...")
     with settings(hide('warnings', 'running'), warn_only=True):
-        output = sudo(
-            'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel))
+        cmd = 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel)
+        if ENABLE_REPORT:
+            cmd += ' | tee {0}'.format(REPORT)
+        else:
+            sudo("rm -f {0}".format(REPORT))
+        output = sudo(cmd)
         if output.failed:
             if 'chef-solo: command not found' in output:
                 print(

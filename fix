@@ -40,6 +40,9 @@ else:
             if arg in sys.argv: 
                 print(VERSION.format(littlechef.__version__))
                 sys.exit(0)
+        if '--no-report' in sys.argv:
+            littlechef.enable_report = False
+            sys.argv.remove('--no-report')
         for arg in sys.argv:
             if "env:" in arg:
                 chef_environment = arg.split(":")[1]
@@ -48,7 +51,7 @@ else:
                     sys.exit(1)
                 else:
                     littlechef.chef_environment = chef_environment
-                sys.argv.remove(arg)
+                sys.argv.remove(arg)            
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
             sys.argv[1:1] = ['-f', fabfile]
