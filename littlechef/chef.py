@@ -302,7 +302,7 @@ def _configure_node():
         else:
             sudo("rm -f {0}".format(REPORT))
         output = sudo(cmd)
-        if output.failed:
+        if output.failed or "FATAL: Stacktrace dumped" in output:
             if 'chef-solo: command not found' in output:
                 print(
                     colors.red(
@@ -313,7 +313,7 @@ def _configure_node():
                 abort("")
             else:
                 print(colors.red(
-                    "\nFAILED: A problem occurred while executing chef-solo\n"))
+                    "\nFAILED: chef-solo could not finish configuring the node\n"))
                 import sys
                 sys.exit(1)
         else:
