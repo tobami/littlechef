@@ -28,10 +28,12 @@ from fabric.contrib.project import rsync_project
 from littlechef import lib
 from littlechef import solo
 from littlechef.settings import node_work_path, cookbook_paths
-from littlechef import REPORT, enable_report as ENABLE_REPORT
+from littlechef import LOGFILE, enable_report as ENABLE_LOGS
+
 
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
+
 
 def save_config(node, force=False):
     """Saves node configuration
@@ -92,7 +94,7 @@ def _synchronize_node(configfile):
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
     with hide('stdout'):
-        sudo('chown root:root {0}'.format(remote_file)),
+        sudo('chown root:root {0}'.format(remote_file))
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
@@ -178,7 +180,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                         value = {}
                     else:
                         value = r['attributes'][attr].get('default')
-                    # Attribute dictionaries are defined as a single 
+                    # Attribute dictionaries are defined as a single
                     # compound key. Split and build proper dict
                     build_dct(attributes, attr.split("/"), value)
         if not found:
@@ -295,26 +297,28 @@ def _add_search_patch():
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
     print("\nCooking...")
+    # Backup last report
     with settings(hide('warnings', 'running'), warn_only=True):
-        cmd = 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel)
-        if ENABLE_REPORT:
-            cmd += ' | tee {0}'.format(REPORT)
-        else:
-            sudo("rm -f {0}".format(REPORT))
+        sudo("mv {0} {0}.backup".format(LOGFILE))
+    # Build chef-solo command
+    cmd = 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel)
+    if ENABLE_LOGS:
+        cmd += ' | tee {0}'.format(LOGFILE)
+    with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(cmd)
-        if output.failed or "FATAL: Stacktrace dumped" in output:
-            if 'chef-solo: command not found' in output:
-                print(
-                    colors.red(
-                        "\nFAILED: Chef Solo is not installed on this node"))
-                print(
-                    "Type 'fix nodes:{0} deploy_chef' to install it".format(
-                        env.host))
-                abort("")
-            else:
-                print(colors.red(
-                    "\nFAILED: chef-solo could not finish configuring the node\n"))
-                import sys
-                sys.exit(1)
+    if output.failed or "FATAL: Stacktrace dumped" in output:
+        if 'chef-solo: command not found' in output:
+            print(
+                colors.red(
+                    "\nFAILED: Chef Solo is not installed on this node"))
+            print(
+                "Type 'fix nodes:{0} deploy_chef' to install it".format(
+                    env.host))
+            abort("")
         else:
-            print(colors.green("\nSUCCESS: Node correctly configured"))
+            print(colors.red(
+                "\nFAILED: chef-solo could not finish configuring the node\n"))
+            import sys
+            sys.exit(1)
+    else:
+        print(colors.green("\nSUCCESS: Node correctly configured"))

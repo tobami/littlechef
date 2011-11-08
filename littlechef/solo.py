@@ -295,7 +295,7 @@ def _rpm_install():
     _add_rpm_repos()
     with show('running'):
         # Ensure we have an up-to-date ruby, as we need >=1.8.7
-        sudo ('yum -y upgrade ruby*')
+        sudo('yum -y upgrade ruby*')
         # Install Chef
         sudo('yum -y install rubygem-chef')
 

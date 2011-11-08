@@ -14,13 +14,12 @@ Server users: data bag search, and node search.
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 
 """
-__version__ = "1.0.2"
+__version__ = "1.0.3b"
 __author__ = "Miquel Torres <tobami@gmail.com>"
 
 __cooking__ = False
 
 chef_environment = None
 
-REPORT = '/tmp/chef.log'
+LOGFILE = '/var/log/chef/chef-solo.log'
 enable_report = True
-

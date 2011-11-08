@@ -34,7 +34,7 @@ import fabric
 fabric.state.output['running'] = False
 env.loglevel = "info"
 env.output_prefix = False
-__testing__ =  False
+__testing__ = False
 
 
 @hosts('setup')
