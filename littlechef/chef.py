@@ -76,9 +76,12 @@ def sync_node(node):
         solo.configure(current_node)
         # Everything was configured alright, so save the node configuration
         filepath = save_config(node, _get_ipaddress(node))
-        _synchronize_node(filepath)
-        _remove_node_data_bag()
-        _configure_node()
+        try:
+            _synchronize_node(filepath)
+            _configure_node()
+        finally:
+            _remove_local_node_data_bag()
+            _node_cleanup()
 
 
 def _synchronize_node(configfile):
@@ -184,7 +187,6 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                     # compound key. Split and build proper dict
                     build_dct(attributes, attr.split("/"), value)
         if not found:
-            _remove_node_data_bag()
             error = "Could not find recipe '{0}' while ".format(recipe)
             error += "building node data bag for '{0}'".format(node['name'])
             abort(error)
@@ -237,7 +239,8 @@ def _build_node_data_bag():
     current_node = None
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
-    _remove_node_data_bag()
+    # In case there are leftovers
+    _remove_local_node_data_bag()
     os.makedirs(node_data_bag_path)
     all_recipes = lib.get_recipes()
     all_roles = lib.get_roles()
@@ -272,11 +275,26 @@ def _build_node_data_bag():
     return current_node
 
 
-def _remove_node_data_bag():
-    """Removes generated 'node' data_bag"""
+def _remove_local_node_data_bag():
+    """Removes generated 'node' data_bag locally"""
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
         shutil.rmtree(node_data_bag_path)
+
+
+def _remove_remote_node_data_bag():
+    """Removes generated 'node' data_bag from the remote node"""
+    node_data_bag_path = os.path.join(node_work_path, 'data_bags', 'node')
+    if exists(node_data_bag_path):
+        sudo("rm -rf {0}".format(node_data_bag_path))
+
+
+def _node_cleanup():
+    if env.loglevel is not "debug":
+        with hide('running', 'stdout'):
+            _remove_remote_node_data_bag()
+            with settings(warn_only=True):
+                sudo("rm '/etc/chef/node.json'")
 
 
 def _add_search_patch():

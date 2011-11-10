@@ -159,7 +159,7 @@ class TestLib(unittest.TestCase):
 
 class TestChef(BaseTest):
     def tearDown(self):
-        chef._remove_node_data_bag()
+        chef._remove_local_node_data_bag()
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
