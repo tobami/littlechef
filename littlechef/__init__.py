@@ -21,5 +21,5 @@ __cooking__ = False
 
 chef_environment = None
 
-LOGFILE = '/var/log/chef/chef-solo.log'
-enable_report = True
+LOGFILE = '/var/log/chef/solo.log'
+enable_logs = True
