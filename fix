@@ -41,8 +41,11 @@ else:
                 print(VERSION.format(littlechef.__version__))
                 sys.exit(0)
         if '--no-report' in sys.argv:
-            littlechef.enable_report = False
+            littlechef.enable_logs = False
             sys.argv.remove('--no-report')
+        if '--debug' in sys.argv:
+            littlechef.loglevel = 'debug'
+            sys.argv.remove('--debug')
         for arg in sys.argv:
             if "env:" in arg:
                 chef_environment = arg.split(":")[1]

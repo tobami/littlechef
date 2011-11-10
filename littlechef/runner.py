@@ -38,13 +38,6 @@ __testing__ = False
 
 
 @hosts('setup')
-def debug():
-    """Sets logging level to debug"""
-    print "Setting Chef Solo log level to 'debug'..."
-    env.loglevel = 'debug'
-
-
-@hosts('setup')
 def new_kitchen():
     """Create LittleChef directory structure (Kitchen)"""
     def _mkdir(d):
@@ -75,8 +68,8 @@ def new_kitchen():
 
 @hosts('setup')
 def nodes_with_role(rolename):
-    """Sets a list of nodes that contain the given role in their run list
-    and calls node()
+    """Sets a list of nodes that have the given role
+    in their run list and calls node()
 
     """
     nodes_in_env = []
@@ -386,6 +379,7 @@ def _readconfig():
 # Only read config if fix is being used and we are not creating a new kitchen
 import littlechef
 env.chef_environment = littlechef.chef_environment
+env.loglevel = littlechef.loglevel
 
 if littlechef.__cooking__:
     # Called from command line

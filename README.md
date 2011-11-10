@@ -57,6 +57,12 @@ result from merging cookbook, node and role attributes, following the standard
 munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
 ```
 
+#### Logs ####
+
+Chef Solo output for a configuration run will be found at the node's
+`/var/log/chef/solo.log`.
+and the previous configuration run will be moved to solo.log.1
+
 #### metadata.rb and ruby roles ####
 
 LittleChef depends on the JSON versions of the cookbook metadata and roles to properly 
@@ -156,6 +162,7 @@ Note that if you already have Chef Solo installed on your nodes, you won't need 
 
 Note: Don't cook outside of a kitchen!
 
+* `fix -v`: Shows the version number
 * `fix -l`: Show a list of all available orders
 * `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
 * `fix node:MYNODE role:MYROLE`: The same as above but role-based
@@ -165,7 +172,11 @@ Note: Don't cook outside of a kitchen!
 * `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list.
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list.
 * `fix nodes_with_role:ROLE1 env:MYENV`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
-* `fix debug node:MYNODE`: You can start all your commands with `fix debug` to see all Chef Solo debugging information
+* `fix --debug node:MYNODE`: You can start all your commands with `fix --debug` to see
+all Chef Solo debugging information. Also, the node file and node databag wont't be
+deleted from the node.
+* `fix --no-report node:MYNODE`: will prevent the logging of Chef Solo output to
+/var/log/chef/
 
 Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 

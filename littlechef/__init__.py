@@ -20,6 +20,7 @@ __author__ = "Miquel Torres <tobami@gmail.com>"
 __cooking__ = False
 
 chef_environment = None
+loglevel = "info"
 
 LOGFILE = '/var/log/chef/solo.log'
 enable_logs = True
