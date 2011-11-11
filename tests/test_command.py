@@ -85,15 +85,24 @@ class TestConfig(BaseTest):
 
 
 class TestEnvironment(BaseTest):
-    def test_no_value(self):
-        """Should error out when the env value is empty"""
-        resp, error = self.execute([fix, 'list_nodes', '--env='])
+    def test_no_valid_value(self):
+        """Should error out when the env value is empty or is a fabric task"""
+        resp, error = self.execute([fix, 'list_nodes', '--env'])
         self.assertEquals(resp, "")
-        self.assertTrue("Error: No environment was given" in error, error)
+        self.assertTrue("error: --env option requires an argument" in error, error)
+
+        resp, error = self.execute([fix, '--env', 'list_nodes'])
+        self.assertEquals(resp, "")
+        self.assertTrue("Error: no value given for --env" in error, error)
+
+        cmd = [fix, '--env', 'nodes_with_role:base', 'role:base']
+        resp, error = self.execute(cmd)
+        self.assertEquals(resp, "")
+        self.assertTrue("Error: no value given for --env" in error, error)
 
     def test_valid_environment(self):
         """Should set the chef_environment value when one is given"""
-        resp, error = self.execute([fix, 'list_nodes', '--env=staging'])
+        resp, error = self.execute([fix, 'list_nodes', '--env', 'staging'])
         self.assertEquals(error, "", error)
         self.assertTrue("Environment: staging" in resp, resp)
 
