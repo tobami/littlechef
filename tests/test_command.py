@@ -87,13 +87,13 @@ class TestConfig(BaseTest):
 class TestEnvironment(BaseTest):
     def test_no_value(self):
         """Should error out when the env value is empty"""
-        resp, error = self.execute([fix, 'list_nodes', 'env:'])
+        resp, error = self.execute([fix, 'list_nodes', '--env='])
         self.assertEquals(resp, "")
         self.assertTrue("Error: No environment was given" in error, error)
 
     def test_valid_environment(self):
         """Should set the chef_environment value when one is given"""
-        resp, error = self.execute([fix, 'list_nodes', 'env:staging'])
+        resp, error = self.execute([fix, 'list_nodes', '--env=staging'])
         self.assertEquals(error, "", error)
         self.assertTrue("Environment: staging" in resp, resp)
 

@@ -47,8 +47,8 @@ else:
             littlechef.loglevel = 'debug'
             sys.argv.remove('--debug')
         for arg in sys.argv:
-            if "env:" in arg:
-                chef_environment = arg.split(":")[1]
+            if "--env=" in arg:
+                chef_environment = arg.split("=")[1]
                 if chef_environment == '':
                     print("Error: No environment was given", file=sys.stderr)
                     sys.exit(1)
