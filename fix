@@ -55,7 +55,7 @@ parser.add_option(
 )
 parser.add_option(
     "--env", dest="environment", default=None,
-    help="Using a cerain chef environment"
+    help="Using a certain chef environment"
 )
 (options, args) = parser.parse_args()
 
