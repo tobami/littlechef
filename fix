@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from optparse import OptionParser
+
 import sys
 import os
 
@@ -22,6 +24,41 @@ except ImportError:
     print(INSTALL_ERROR)
     sys.exit(1)
 
+class LittlechefOptionParser(OptionParser):
+    
+    def print_help(self, file=None):
+        from fabric.main import list_commands, state, load_fabfile
+        OptionParser.print_help(self, file)
+        docstring, callables, default = load_fabfile(fabfile)
+        state.commands.update(callables)
+        for c in list_commands("\n", "normal"): 
+            print(c)
+        sys.exit(0)
+
+# commandline options
+parser = LittlechefOptionParser()
+parser.add_option(
+    "-v", "--version", dest="version", action="store_true", default=False,
+    help="Print littlechef version"
+)
+parser.add_option(
+    "-l", dest="list_commands", action="store_true", default=False,
+    help="List all available orders"
+)
+parser.add_option(
+    "--no-report", dest="no_report", action="store_true", default=False,
+    help="Don't save the chef-solo output as a report on the node"
+)
+parser.add_option(
+    "--debug", dest="debug", action="store_true", default=False,
+    help="Ask chef-solo for verbose debugging output"
+)
+parser.add_option(
+    "--env", dest="environment", default=None,
+    help="Using a certain chef environment"
+)
+(options, args) = parser.parse_args()
+
 ## Process args list and call fabric's main() ##
 if not sys.argv:
     print(NO_ORDER)
@@ -36,25 +73,20 @@ else:
         print(NO_ORDER)
     else:
         # Check for version, that overrides everything else.
-        for arg in '-v', '-V', '--version':
-            if arg in sys.argv: 
-                print(VERSION.format(littlechef.__version__))
-                sys.exit(0)
-        if '--no-report' in sys.argv:
+        if options.version: 
+            print(VERSION.format(littlechef.__version__))
+            sys.exit(0)
+        if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
-        if '--debug' in sys.argv:
+        if options.debug:
             littlechef.loglevel = 'debug'
             sys.argv.remove('--debug')
-        for arg in sys.argv:
-            if "env:" in arg:
-                chef_environment = arg.split(":")[1]
-                if chef_environment == '':
-                    print("Error: No environment was given", file=sys.stderr)
-                    sys.exit(1)
-                else:
-                    littlechef.chef_environment = chef_environment
-                sys.argv.remove(arg)
+        if options.environment is not None:
+            littlechef.chef_environment = options.environment
+            idx = sys.argv.index("--env")
+            sys.argv.remove("--env")
+            sys.argv.pop(idx)
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
             sys.argv[1:1] = ['-f', fabfile]
