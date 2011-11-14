@@ -2,6 +2,12 @@
 LittleChef Changelog
 ====================
 
+Version 1.0.4 November 14, 2011
+----------------------------------------
+* NEW: Make "list_nodes" respect the --env option
+* FIX: Accept --env=ENV in addition to --env ENV
+
+
 Version 1.0.3 November 11, 2011
 ----------------------------------------
 

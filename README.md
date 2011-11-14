@@ -43,7 +43,7 @@ following example: `search(:users, "married:true AND age:35")`
 
 #### Environments ####
 
-Chef Solo does not support Environments, but, similarly to the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
+Chef Solo does not support Environments but, similarly to the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
 in a role or node.
 
 #### Node Search ####
@@ -60,8 +60,8 @@ munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_env
 #### Logs ####
 
 Chef Solo output for a configuration run will be found at the node's
-`/var/log/chef/solo.log`.
-and the previous configuration run will be moved to solo.log.1
+`/var/log/chef/solo.log`, and the previous configuration run will be moved
+to `solo.log.1`.
 
 #### metadata.rb and ruby roles ####
 
@@ -168,10 +168,10 @@ Note: Don't cook outside of a kitchen!
 * `fix node:MYNODE role:MYROLE`: The same as above but role-based
 * `fix node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
-* `fix --env MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
+* `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
 * `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list.
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list.
-* `fix --env MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
+* `fix --env=MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
 * `fix --debug node:MYNODE`: You can start all your commands with `fix --debug` to see
 all Chef Solo debugging information. Also, the node file and node databag wont't be
 deleted from the node.
