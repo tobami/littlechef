@@ -87,13 +87,17 @@ else:
             # Check for mistakes:
             # * fix --env list_nodes
             # * fix --env nodes_with_role:bla role:authorization
-            if len(args) == 0 or ":" in options.environment:
-                print("Error: no value given for --env", file=sys.stderr)
-                sys.exit(1)
             littlechef.chef_environment = options.environment
-            idx = sys.argv.index("--env")
-            sys.argv.remove("--env")
-            sys.argv.pop(idx)
+            try:
+                # --env=ENV
+                sys.argv.remove("--env={0}".format(options.environment))
+            except ValueError:
+                # --env ENV
+                idx = sys.argv.index("--env")
+                sys.argv.pop(idx)
+                sys.argv.pop(idx)
+                if not len(args) or ":" in options.environment:
+                    parser.error("No value given for --env")
 
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
