@@ -94,10 +94,8 @@ def node(*nodes):
         abort('No node was given')
     elif nodes[0] == 'all':
         # Fetch all nodes and add them to env.hosts
-        for node in lib.get_nodes():
-            if env.chef_environment is None or \
-                node.get('chef_environment') == env.chef_environment:
-                env.hosts.append(node['name'])
+        for node in lib.get_nodes(env.chef_environment):
+            env.hosts.append(node['name'])
         if not len(env.hosts):
             abort('No nodes found in /nodes/')
         message = "Are you sure you want to configure all nodes ({0})".format(
@@ -231,21 +229,21 @@ def get_ips():
 @hosts('api')
 def list_nodes():
     """List all configured nodes"""
-    for node in lib.get_nodes():
+    for node in lib.get_nodes(env.chef_environment):
         lib.print_node(node)
 
 
 @hosts('api')
 def list_nodes_detailed():
     """Show a detailed list of all nodes"""
-    for node in lib.get_nodes():
+    for node in lib.get_nodes(env.chef_environment):
         lib.print_node(node, detailed=True)
 
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
     """Show all nodes which have asigned a given recipe"""
-    for node in lib.get_nodes():
+    for node in lib.get_nodes(env.chef_environment):
         if recipe in lib.get_recipes_in_node(node):
             lib.print_node(node)
         else:

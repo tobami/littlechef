@@ -93,12 +93,12 @@ class TestEnvironment(BaseTest):
 
         resp, error = self.execute([fix, '--env', 'list_nodes'])
         self.assertEquals(resp, "")
-        self.assertTrue("Error: no value given for --env" in error, error)
+        self.assertTrue("error: No value given for --env" in error, error)
 
         cmd = [fix, '--env', 'nodes_with_role:base', 'role:base']
         resp, error = self.execute(cmd)
         self.assertEquals(resp, "")
-        self.assertTrue("Error: no value given for --env" in error, error)
+        self.assertTrue("error: No value given for --env" in error, error)
 
     def test_valid_environment(self):
         """Should set the chef_environment value when one is given"""

@@ -96,25 +96,42 @@ class TestRunner(BaseTest):
 class TestLib(unittest.TestCase):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
+        # Unexisting node
         expected = {'run_list': []}
         self.assertEquals(lib.get_node('Idon"texist'), expected)
-        expected = {'run_list': ['recipe[subversion]']}
+        # Existing node
+        expected = {
+            'chef_environment': 'production',
+            'run_list': ['recipe[subversion]'],
+        }
         self.assertEquals(lib.get_node('testnode1'), expected)
 
-    def test_list_nodes(self):
-        """Should list all configured nodes"""
+    def test_get_nodes(self):
+        """Should return all configured nodes"""
         expected = [
-            {'name': 'testnode1', 'run_list': ['recipe[subversion]']},
+            {
+                'name': 'testnode1',
+                'chef_environment': 'production',
+                'run_list': ['recipe[subversion]']
+            },
             {
                 'chef_environment': 'staging', 'name': 'testnode2',
                 'other_attr': {'deep_dict': {'deep_key1': 'node_value1'}},
                 'subversion': {'password': 'node_password', 'user': 'node_user'},
                 'run_list': ['role[all_you_can_eat]']
             },
-            {'name': 'testnode3.mydomain.com',
-                'run_list': ['recipe[subversion]', 'recipe[vim]']},
+            {
+                'name': 'testnode3.mydomain.com',
+                "chef_environment": "production",
+                'run_list': ['recipe[subversion]', 'recipe[vim]']
+            },
         ]
         self.assertEquals(lib.get_nodes(), expected)
+
+    def test_get_nodes_in_env(self):
+        """Should list all nodes in the given environment"""
+        self.assertEquals(len(lib.get_nodes("production")), 2)
+        self.assertEquals(len(lib.get_nodes("staging")), 1)
 
     def test_list_recipes(self):
         recipes = lib.get_recipes()

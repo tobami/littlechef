@@ -28,7 +28,7 @@ from littlechef.settings import cookbook_paths
 knife_installed = True
 
 
-def get_nodes():
+def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
     if not os.path.exists('nodes/'):
         return []
@@ -38,9 +38,10 @@ def get_nodes():
                                     and not f.startswith('.')]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
         node = get_node(fqdn)
-        # Add node name so that we can tell to which node the data belongs to
-        node['name'] = fqdn
-        nodes.append(node)
+        if environment is None or node.get('chef_environment') == environment:
+            # Add node name so that we can tell to which node it is
+            node['name'] = fqdn
+            nodes.append(node)
     return nodes
 
 
