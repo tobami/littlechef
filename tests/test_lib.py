@@ -102,6 +102,7 @@ class TestLib(unittest.TestCase):
         # Existing node
         expected = {
             'chef_environment': 'production',
+            'name': 'testnode1',
             'run_list': ['recipe[subversion]'],
         }
         self.assertEquals(lib.get_node('testnode1'), expected)

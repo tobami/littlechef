@@ -225,7 +225,7 @@ def plugin(name):
         abort(error)
     print("Executing plugin '{0}' on {1}".format(name, env.host_string))
     node = lib.get_node(env.host_string)
-    if 'name' not in node:
+    if node == {'run_list': []}:
         node['name'] = env.host_string
     plug.execute(node)
     print("Finished executing plugin")

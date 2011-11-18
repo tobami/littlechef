@@ -154,9 +154,14 @@ class TestRunner(BaseTest):
         expected = "Sorry, could not find 'notthere.py' in the plugin directory"
         self.assertTrue(expected in error, resp + error)
 
+        resp, error = self.execute([fix, 'node:testnode1', 'plugin:bad'])
+        expected = "Found plugin 'bad', but it seems to have a syntax error:"
+        expected += " invalid syntax (bad.py, line 4)"
+        self.assertTrue(expected in error, resp + error)
+
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:dummy'])
         expected = "Executing plugin '{0}' on {1}".format("dummy", "testnode1")
-        self.assertTrue(expected in resp)
+        self.assertTrue(expected in resp, resp + error)
 
 
 class TestCookbook(BaseTest):
