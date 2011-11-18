@@ -40,7 +40,6 @@ def get_nodes(environment=None):
         node = get_node(fqdn)
         if environment is None or node.get('chef_environment') == environment:
             # Add node name so that we can tell to which node it is
-            node['name'] = fqdn
             nodes.append(node)
     return nodes
 
@@ -57,6 +56,7 @@ def get_node(name):
             msg = 'LittleChef found the following error in'
             msg += ' "{0}":\n                {1}'.format(node_path, str(e))
             abort(msg)
+    node['name'] = name
     return node
 
 

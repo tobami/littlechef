@@ -118,7 +118,8 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode2'])
         self.assertTrue("== Configuring testnode2 ==" in resp)
         # Will try to configure testnode2 and will fail DNS lookup
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error)
+        self.assertTrue("tal error: Name lookup failed for testnode2" in error,
+                        error)
 
     def test_several_nodes(self):
         """Should try to configure two nodes"""
@@ -146,6 +147,16 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode1', 'role:base'])
         self.assertTrue("== Applying role 'base' to testnode1 ==" in resp)
         self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+
+    def test_plugin(self):
+        """Should execute the given plugin"""
+        resp, error = self.execute([fix, 'node:testnode1', 'plugin:notthere'])
+        expected = "Sorry, could not find 'notthere.py' in the plugin directory"
+        self.assertTrue(expected in error, resp + error)
+
+        resp, error = self.execute([fix, 'node:testnode1', 'plugin:dummy'])
+        expected = "Executing plugin '{0}' on {1}".format("dummy", "testnode1")
+        self.assertTrue(expected in resp)
 
 
 class TestCookbook(BaseTest):

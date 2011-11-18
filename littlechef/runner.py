@@ -134,7 +134,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
     distro_type=None, distro=None, stop_client='yes'):
     """Install chef-solo on a node"""
     if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODE deploy_chef')
+        abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
     chef_versions = ["0.9", "0.10"]
     if version not in chef_versions:
         abort('Wrong Chef version specified. Valid versions are {0}'.format(
@@ -168,10 +168,11 @@ def recipe(recipe):
     """Apply the given recipe to a node
     Sets the run_list to the given recipe
     If no nodes/hostname.json file exists, it creates one
+
     """
     # Check that a node has been selected
     if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODE recipe:MYRECIPE')
+        abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
     lib.print_header(
         "Applying recipe '{0}' on node {1}".format(recipe, env.host_string))
 
@@ -189,7 +190,7 @@ def role(role):
     """
     # Check that a node has been selected
     if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODE role:MYROLE')
+        abort('no node specified\nUsage: fix node:MYNODES role:MYROLE')
     lib.print_header(
         "Applying role '{0}' to {1}".format(role, env.host_string))
 
@@ -200,30 +201,34 @@ def role(role):
         chef.sync_node(data)
 
 
-@hosts('setup')
-def get_ips():
-    """Ping all nodes and update their 'ipaddress' field"""
-    import subprocess
-    for node in lib.get_nodes():
-        # For each node, ping the hostname
-        env.host_string = node['name']
-        proc = subprocess.Popen(['ping', '-c', '1', node['name']],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        resp, error = proc.communicate()
-        if not error:
-            # Split output into lines and parse the first line to get the IP
-            ip = lib.parse_ip(resp.split("\n")[0])
-            if not ip:
-                print "Warning: could not get IP address from node {0}".format(
-                    node['name'])
-                continue
-            print "Node {0} has IP {1}".format(node['name'], ip)
-            # Update with the ipaddress field in the corresponding node.json
-            del node['name']
-            node['ipaddress'] = ip
-            os.remove(chef.save_config(node, ip))
-        else:
-            print "Warning: could not resolve node {0}".format(node['name'])
+def plugin(name):
+    """Executes the selected plugin
+    Plugins are expected to be found in the kitchen's 'plugins' directory
+
+    """
+    if not env.host_string:
+        abort('no node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
+    path = os.path.join("plugins", name + ".py")
+    if not os.path.exists(path):
+        abort("Sorry, could not find '{0}.py' in the plugin directory".format(
+              name))
+    import imp
+    try:
+        with open(path, 'rb') as f:
+            plug = imp.load_module(
+                "p_" + name, f, name + '.py',
+                ('.py', 'rb', imp.PY_SOURCE)
+            )
+    except Exception as e:
+        error = "Found plugin '{0}',".format(name)
+        error += " but it seems to have a syntax error: {0}".format(str(e))
+        abort(error)
+    print("Executing plugin '{0}' on {1}".format(name, env.host_string))
+    node = lib.get_node(env.host_string)
+    if 'name' not in node:
+        node['name'] = env.host_string
+    plug.execute(node)
+    print("Finished executing plugin")
 
 
 @hosts('api')
