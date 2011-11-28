@@ -358,4 +358,8 @@ def credentials(*args, **kwargs):
         credentials.update(kwargs)
     else:
         credentials = kwargs
+    # Expand the home directory of 'key_filename', as 'ssh' won't do it
+    if credentials.get('key_filename'):
+        credentials['key_filename'] = os.path.expanduser(
+                                        credentials['key_filename'])
     return settings(*args, **credentials)
