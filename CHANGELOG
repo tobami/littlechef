@@ -2,6 +2,12 @@
 LittleChef Changelog
 ====================
 
+Version 1.x 
+----------------------------------------
+* NEW #72: Plugins
+* FIX: Move from paramiko library to fabric's fork "ssh"
+
+
 Version 1.0.4 November 14, 2011
 ----------------------------------------
 * NEW: Make "list_nodes" respect the --env option
@@ -10,7 +16,6 @@ Version 1.0.4 November 14, 2011
 
 Version 1.0.3 November 11, 2011
 ----------------------------------------
-
 * NEW #15 (partly): Automatic metadata.json regeneration from metadata.rb
 * NEW #63: cleonte contributed deploy_chef support for CentOS/RHEL v6
 * NEW #70: Markus added Chef Solo logs (found on /var/log/chef/solo.log)

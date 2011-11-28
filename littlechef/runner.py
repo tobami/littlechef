@@ -21,7 +21,7 @@ import simplejson as json
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-from paramiko.config import SSHConfig as _SSHConfig
+from ssh.config import SSHConfig as _SSHConfig
 
 from littlechef import solo
 from littlechef import lib
