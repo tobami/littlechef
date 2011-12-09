@@ -96,6 +96,9 @@ def _generate_metadata(path, cookbook_path, name):
         (not os.path.exists(metadata_path_json) or
          os.stat(metadata_path_rb).st_mtime > \
          os.stat(metadata_path_json).st_mtime)):
+        error_msg = "Warning: metadata.json for {0}".format(name)
+        error_msg += " in {0} is older that metadata.rb".format(cookbook_path)
+        error_msg += ", and cookbook attributes could be out of date\n"
         try:
             proc = subprocess.Popen(
                 ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
@@ -103,22 +106,25 @@ def _generate_metadata(path, cookbook_path, name):
             resp, error = proc.communicate()
             if ('ERROR:' in resp or 'FATAL:' in resp \
                 or 'Generating metadata for' not in resp):
-                msg = "Unkown error while generating metadata.json for "
-                msg += "{0}. Cookbook attributes may be out of date".format(
-                    path)
-                print(msg)
+                if("No user specified, pass via -u or specifiy 'node_name'"
+                    in error):
+                    error_msg += "You need to have an up-to-date (>=0.10.x)"
+                    error_msg += " version of knife installed locally in order"
+                    error_msg += " to generate metadata.json.\nError "
+                else:
+                    error_msg += "Unkown error "
+                error_msg += "while executing knife to generate "
+                error_msg += "metadata.json for {0}".format(path)
+                print(error_msg)
                 if env.loglevel == 'debug':
                     print "\n".join(resp.split("\n")[:2])
             else:
                 print("Generated metadata.json for {0}".format(path))
         except OSError:
             knife_installed = False
-            msg = "Warning: metadata.json for {0}".format(name)
-            msg += " in {0} is older that metadata.rb".format(cookbook_path)
-            msg += ", and cookbook attributes could be out of date\n"
-            msg += "If you locally install Chef's knife tool, LittleChef will"
-            msg += " regenerate metadata files automatically"
-            print(msg)
+            error_msg += "If you locally install Chef's knife tool, LittleChef"
+            error_msg += " will regenerate metadata.json files automatically"
+            print(error_msg)
 
 
 def get_recipes_in_cookbook(name):
@@ -268,6 +274,7 @@ def get_roles():
 def get_nodes_with_role(rolename):
     """Get all nodes which include a given role,
     prefix-searches are also supported
+
     """
     prefix_search = rolename.endswith("*")
     if prefix_search:
@@ -348,14 +355,19 @@ def parse_ip(text):
 
 def credentials(*args, **kwargs):
     """Override default credentials with contents of .ssh/config,
-    if appropriate
+
+    Only done if credentials are properly defined
     """
     if env.ssh_config:
         credentials = env.ssh_config.lookup(env.host)
-        # translate from paramiko params to fabric params
+        # translate from ssh params to fabric params
         if 'identityfile' in credentials:
             credentials['key_filename'] = credentials['identityfile']
         credentials.update(kwargs)
     else:
         credentials = kwargs
+    # Expand the home directory of 'key_filename', as 'ssh' won't do it
+    if credentials.get('key_filename'):
+        credentials['key_filename'] = os.path.expanduser(
+                                        credentials['key_filename'])
     return settings(*args, **credentials)
