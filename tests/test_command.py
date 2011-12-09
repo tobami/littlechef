@@ -81,7 +81,7 @@ class TestConfig(BaseTest):
         self.assertEquals(error, "")
         expected = "LittleChef: Configuration Management using Chef Solo"
         self.assertTrue(expected in resp)
-        self.assertEquals(len(resp.split('\n')), 20)
+        self.assertEquals(len(resp.split('\n')), 21)
 
 
 class TestEnvironment(BaseTest):
@@ -147,6 +147,14 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode1', 'role:base'])
         self.assertTrue("== Applying role 'base' to testnode1 ==" in resp)
         self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+
+    def test_ssh(self):
+        """Should execute the given command"""
+        resp, error = self.execute([fix, 'node:testnode2', 'ssh:"my command"'])
+        self.assertTrue(
+            "Executing the command '\"my command\"' on the node testnode2..." in resp)
+        self.assertTrue("tal error: Name lookup failed for testnode2" in error,
+                        error)
 
     def test_plugin(self):
         """Should execute the given plugin"""
