@@ -23,6 +23,7 @@ should be its FQDN
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
 * `roles/`: Where Chef [Roles][] are defined in JSON
 * `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported
+* `plugins/`: Your plugin tasks
 
 Whenever you start a Chef Solo configuration run with the local `fix` command, all
 cookbooks, roles and databags are rsynced to the `/tmp/chef-solo/` directory, together
@@ -162,6 +163,8 @@ Note that if you already have Chef Solo installed on your nodes, you won't need 
 
 Note: Don't cook outside of a kitchen!
 
+List of commands:
+
 * `fix -v`: Shows the version number
 * `fix -l`: Show a list of all available orders
 * `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file
@@ -169,8 +172,12 @@ Note: Don't cook outside of a kitchen!
 * `fix node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
 * `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
-* `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list.
-* `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list.
+* `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
+* `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list
+* `fix node:MYNODE plugin:save_ip`: Gets the actual IP for this node and saves it in the `ipaddress` attribute
+
+Options:
+
 * `fix --env=MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
 * `fix --debug node:MYNODE`: You can start all your commands with `fix --debug` to see
 all Chef Solo debugging information. Also, the node file and node databag wont't be
