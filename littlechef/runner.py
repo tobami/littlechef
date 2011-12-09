@@ -201,13 +201,27 @@ def role(role):
         chef.sync_node(data)
 
 
+def ssh(name):
+    """Executes the given command"""
+    if not env.host_string:
+        abort('no node specified\nUsage: fix node:MYNODES ssh:COMMAND')
+    print("\nExecuting the command '{0}' on the node {1}...".format(
+          name, env.host_string))
+    # Execute remotely using either the sudo or the run fabric functions
+    with settings(hide("warnings"), warn_only=True):
+        if name.startswith("sudo "):
+            sudo(name[5:])
+        else:
+            run(name)
+
+
 def plugin(name):
     """Executes the selected plugin
     Plugins are expected to be found in the kitchen's 'plugins' directory
 
     """
     if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
+        abort('No node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
     path = os.path.join("plugins", name + ".py")
     if not os.path.exists(path):
         abort("Sorry, could not find '{0}.py' in the plugin directory".format(

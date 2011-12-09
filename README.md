@@ -174,7 +174,9 @@ List of commands:
 * `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
 * `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list
-* `fix node:MYNODE plugin:save_ip`: Gets the actual IP for this node and saves it in the `ipaddress` attribute
+* `fix node:MYNODES ssh:"my shell command"`: Executes the given command on the node
+* `fix node:MYNODES plugin:save_ip`: Gets the actual IP for this node and saves it in
+the `ipaddress` attribute
 
 Options:
 

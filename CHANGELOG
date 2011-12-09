@@ -5,13 +5,15 @@ LittleChef Changelog
 Next Version
 ----------------------------------------
 * NEW #72: Plugin mini-framework
-* NEW #72: Plugins
+* NEW: ssh command
+
 * FIX: Move from paramiko library to fabric's fork "ssh"
 
 
 Version 1.0.4 November 14, 2011
 ----------------------------------------
 * NEW: Make "list_nodes" respect the --env option
+
 * FIX: Accept --env=ENV in addition to --env ENV
 
 
@@ -21,6 +23,7 @@ Version 1.0.3 November 11, 2011
 * NEW #63: cleonte contributed deploy_chef support for CentOS/RHEL v6
 * NEW #70: Markus added Chef Solo logs (found on /var/log/chef/solo.log)
 * NEW: Made debug and env proper command line options instead of fake fabric tasks
+
 * FIX #67: Andrew fixed `get_ips` for OSX by adding a regex to parse IPs
 * FIX #66: Remove sensible data from a node after a configuration run
 
@@ -29,6 +32,7 @@ Version 1.0.2 October 11, 2011
 ----------------------------------------
 * NEW #61: Added the command option "env"
 * NEW #60: Don't force to define a password if ssh-config is used
+
 * FIX #62: Cristi fixed rpm installation by using the FrameOS RBEL repository
 * FIX: Automatic node data bag created items with the hostname as the name.
     That can lead to name collitions. Now FQDN with underscores is used instead
@@ -38,6 +42,7 @@ Version 1.0.1 September 28, 2011
 ----------------------------------------
 * NEW #58: Markus added operation "nodes_with_role", which configures all nodes with
     the given role
+
 * FIX #57: Eivind added deploy_chef support for Arch Linux
 * FIX: Transform "true" and "false" strings from into real True and False values
     happens with default values from metadata.json attributes
@@ -78,6 +83,7 @@ Version 0.6.4 July 1, 2011
 ----------------------------------------
 * NEW: Chef 0.10.x is now default for Debian package installation.
         That was already the case for the other methods
+
 * FIX: Toby fixed the Debian package installation to run unattended again
 * FIX: cook should not require a kitchen to run "cook -v"
 
@@ -96,6 +102,7 @@ Version 0.6.1 June 9, 2011
 * NEW #38: VanL added support for Windows and Mac OS X(desktop side).
            All unit tests are now passing on Linux, Mac OS X and Windows
 * NEW #37: VanL moved fabfile execution to the same process as the cook exe
+
 * FIX #36, #37: VanL fixed detection of execution mode (cook or library import)
 * FIX #39: The recipe and role commands were not creating new node.json files
     when none were present
