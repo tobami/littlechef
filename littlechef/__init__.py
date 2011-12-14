@@ -21,5 +21,6 @@ __cooking__ = False
 
 chef_environment = None
 loglevel = "info"
+verbose = False
 LOGFILE = '/var/log/chef/solo.log'
 enable_logs = True

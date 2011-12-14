@@ -83,6 +83,18 @@ class TestConfig(BaseTest):
         self.assertTrue(expected in resp)
         self.assertEquals(len(resp.split('\n')), 21)
 
+    #def test_verbose(self):
+        #"""Should turn on verbose output"""
+        #resp, error = self.execute([fix, '--verbose', 'node:testnode1'])
+        #self.assertEquals(error, "", error)
+        #self.assertTrue('Verbose output on' in resp, resp)
+
+    #def test_debug(self):
+        #"""Should turn on debug loglevel"""
+        #resp, error = self.execute([fix, '--debug', 'node:testnode1'])
+        #self.assertEquals(error, "", error)
+        #self.assertTrue('Debug on' in resp, resp)
+
 
 class TestEnvironment(BaseTest):
     def test_no_valid_value(self):

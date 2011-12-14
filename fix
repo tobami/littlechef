@@ -51,8 +51,12 @@ parser.add_option(
     help="Don't save the chef-solo output as a report on the node"
 )
 parser.add_option(
+    "--verbose", dest="verbose", action="store_true", default=False,
+    help="Output 'processing' statements"
+)
+parser.add_option(
     "--debug", dest="debug", action="store_true", default=False,
-    help="Ask chef-solo for verbose debugging output"
+    help="Ask chef-solo for verbose and debugging output"
 )
 parser.add_option(
     "--env", dest="environment", default=None,
@@ -80,8 +84,12 @@ else:
         if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
+        if options.verbose:
+            littlechef.verbose = True
+            sys.argv.remove('--verbose')
         if options.debug:
             littlechef.loglevel = 'debug'
+            littlechef.verbose = True
             sys.argv.remove('--debug')
         if options.environment is not None:
             # Check for mistakes:

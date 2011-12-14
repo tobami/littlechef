@@ -181,9 +181,10 @@ the `ipaddress` attribute
 Options:
 
 * `fix --env=MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
+* `fix --verbose node:MYNODE`: Chef 0.10.6 introduced the `verbose_logging` option. When false, the "processing" messages are not longer shown. That is the new default for LittleChef, so that you now only see what has changed in this configuration run. `--verbose` switches this back on.
 * `fix --debug node:MYNODE`: You can start all your commands with `fix --debug` to see
 all Chef Solo debugging information. Also, the node file and node databag wont't be
-deleted from the node.
+deleted from the node, and verbose will also be true
 * `fix --no-report node:MYNODE`: will prevent the logging of Chef Solo output to
 /var/log/chef/
 
