@@ -27,6 +27,24 @@ from littlechef.settings import cookbook_paths
 knife_installed = True
 
 
+def get_node(name):
+    """Returns a JSON node file as a dictionary"""
+    node_path = os.path.join("nodes", name + ".json")
+    if not os.path.exists(node_path):
+        return {'run_list': []}
+    # Read node.json
+    with open(node_path, 'r') as f:
+        try:
+            node = json.loads(f.read())
+        except json.JSONDecodeError as e:
+            msg = 'LittleChef found the following error in'
+            msg += ' "{0}":\n                {1}'.format(node_path, str(e))
+            abort(msg)
+    # Add node name so that we can tell to which node it is
+    node['name'] = name
+    return node
+
+
 def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
     if not os.path.exists('nodes/'):
@@ -42,21 +60,42 @@ def get_nodes(environment=None):
     return nodes
 
 
-def get_node(name):
-    node_path = os.path.join("nodes", name + ".json")
-    if not os.path.exists(node_path):
-        return {'run_list': []}
-    # Read node.json
-    with open(node_path, 'r') as f:
-        try:
-            node = json.loads(f.read())
-        except json.JSONDecodeError as e:
-            msg = 'LittleChef found the following error in'
-            msg += ' "{0}":\n                {1}'.format(node_path, str(e))
-            abort(msg)
-    # Add node name so that we can tell to which node it is
-    node['name'] = name
-    return node
+def get_nodes_with_role(role_name, environment=None):
+    """Get all nodes which include a given role,
+    prefix-searches are also supported
+
+    """
+    prefix_search = role_name.endswith("*")
+    if prefix_search:
+        role_name = role_name.rstrip("*")
+    for n in get_nodes(environment):
+        if prefix_search:
+            roles = get_roles_in_node(n)
+            if any(role.startswith(role_name) for role in roles):
+                yield n
+        else:
+            if role_name in get_roles_in_node(n):
+                yield n
+
+
+def get_nodes_with_recipe(recipe_name, environment=None):
+    """Get all nodes which include a given recipe,
+    prefix-searches are also supported
+
+    """
+    prefix_search = recipe_name.endswith("*")
+    if prefix_search:
+        recipe_name = recipe_name.rstrip("*")
+    for n in get_nodes(environment):
+        recipes= get_recipes_in_node(n)
+        for role in get_roles_in_node(n):
+            recipes.extend(get_recipes_in_role(role))
+        if prefix_search:
+            if any(recipe.startswith(recipe_name) for recipe in recipes):
+                yield n
+        else:
+            if recipe_name in recipes:
+                yield n
 
 
 def print_node(node, detailed=False):
@@ -268,24 +307,6 @@ def get_roles():
                     root[len('roles/'):], filename[:-len('.json')])
                 roles.append(_get_role(path))
     return sorted(roles, key=lambda x: x['fullname'])
-
-
-def get_nodes_with_role(rolename, environment=None):
-    """Get all nodes which include a given role,
-    prefix-searches are also supported
-
-    """
-    prefix_search = rolename.endswith("*")
-    if prefix_search:
-        rolename = rolename.rstrip("*")
-    for n in get_nodes(environment):
-        if prefix_search:
-            roles = get_roles_in_node(n)
-            if any(role.startswith(rolename) for role in roles):
-                yield n
-        else:
-            if rolename in get_roles_in_node(n):
-                yield n
 
 
 def print_role(role, detailed=True):

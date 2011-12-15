@@ -262,17 +262,8 @@ def list_nodes_detailed():
 @hosts('api')
 def list_nodes_with_recipe(recipe):
     """Show all nodes which have asigned a given recipe"""
-    for node in lib.get_nodes(env.chef_environment):
-        if recipe in lib.get_recipes_in_node(node):
-            lib.print_node(node)
-        else:
-            for role in lib.get_roles_in_node(node):
-                with open('roles/' + role + '.json', 'r') as f:
-                    roles = json.loads(f.read())
-                    # Reuse _get_recipes_in_node to extract recipes in a role
-                    if recipe in lib.get_recipes_in_node(roles):
-                        lib.print_node(node)
-                        break
+    for node in lib.get_nodes_with_recipe(recipe, env.chef_environment):
+        lib.print_node(node)
 
 
 @hosts('api')

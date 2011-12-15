@@ -159,6 +159,31 @@ class TestLib(unittest.TestCase):
         nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'production'))
         self.assertFalse(len(nodes))
 
+    def test_nodes_with_recipe(self):
+        """Should return all nodes with a given recipe"""
+        # All nodes have the subversion recipe in the expanded run_list
+        nodes = list(lib.get_nodes_with_recipe('subversion'))
+        self.assertEquals(len(nodes), 3)
+        nodes = list(lib.get_nodes_with_recipe('sub*'))
+        self.assertEquals(len(nodes), 3)
+        nodes = list(lib.get_nodes_with_recipe('vim'))
+        self.assertEquals(len(nodes), 1)
+        nodes = list(lib.get_nodes_with_recipe('*'))
+        self.assertEquals(len(nodes), 3)
+        nodes = list(lib.get_nodes_with_role(''))
+        self.assertEquals(len(nodes), 0)
+
+    def test_nodes_with_recipe_in_env(self):
+        """Should return all nodes with a given recipe and in the given env"""
+        nodes = list(lib.get_nodes_with_recipe('subversion', 'production'))
+        self.assertEquals(len(nodes), 2)
+        self.assertEquals(nodes[0]['name'], 'testnode1')
+        nodes = list(lib.get_nodes_with_recipe('subversion', 'staging'))
+        self.assertEquals(len(nodes), 1)
+        # No nodes in staging with this role
+        nodes = list(lib.get_nodes_with_recipe('vim', 'staging'))
+        self.assertFalse(len(nodes))
+
     def test_list_recipes(self):
         recipes = lib.get_recipes()
         self.assertEquals(len(recipes), 5)
