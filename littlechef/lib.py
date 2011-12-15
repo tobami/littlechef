@@ -16,7 +16,6 @@
 import os
 import simplejson as json
 import subprocess
-import re
 
 from fabric import colors
 from fabric.api import env, settings
@@ -271,7 +270,7 @@ def get_roles():
     return sorted(roles, key=lambda x: x['fullname'])
 
 
-def get_nodes_with_role(rolename):
+def get_nodes_with_role(rolename, environment=None):
     """Get all nodes which include a given role,
     prefix-searches are also supported
 
@@ -279,7 +278,7 @@ def get_nodes_with_role(rolename):
     prefix_search = rolename.endswith("*")
     if prefix_search:
         rolename = rolename.rstrip("*")
-    for n in get_nodes():
+    for n in get_nodes(environment):
         if prefix_search:
             roles = get_roles_in_node(n)
             if any(role.startswith(rolename) for role in roles):
@@ -341,16 +340,6 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
-
-
-def parse_ip(text):
-    """Extract an IPv4 IP from a text string
-    Uses an IP Address Regex: http://www.regular-expressions.info/examples.html
-
-    """
-    ip_matches = re.findall(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', text)
-    ip = ip_matches[0] if ip_matches else None
-    return ip
 
 
 def credentials(*args, **kwargs):

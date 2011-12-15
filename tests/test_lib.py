@@ -134,17 +134,6 @@ class TestLib(unittest.TestCase):
         self.assertEquals(len(lib.get_nodes("production")), 2)
         self.assertEquals(len(lib.get_nodes("staging")), 1)
 
-    def test_list_recipes(self):
-        recipes = lib.get_recipes()
-        self.assertEquals(len(recipes), 5)
-        self.assertEquals(recipes[1]['name'], 'subversion')
-        self.assertEquals(recipes[1]['description'],
-            'Includes the client recipe. Modified by site-cookbooks')
-        self.assertEquals(recipes[2]['name'], 'subversion::client')
-        self.assertEquals(recipes[2]['description'],
-            'Subversion Client installs subversion and some extra svn libs')
-        self.assertEquals(recipes[3]['name'], 'subversion::server')
-
     def test_nodes_with_role(self):
         """Should return all nodes with a given role in their run_list"""
         nodes = list(lib.get_nodes_with_role('all_you_can_eat'))
@@ -161,19 +150,26 @@ class TestLib(unittest.TestCase):
         nodes = list(lib.get_nodes_with_role(''))
         self.assertEquals(len(nodes), 0)
 
-    def test_parse_ip(self):
-        """Should return an IP when the given text contains one IPv4"""
-        text = "127.0.0.1"
-        self.assertEquals(lib.parse_ip(text), "127.0.0.1")
+    def test_nodes_with_role_in_env(self):
+        """Should return all nodes with a given role and in the given env"""
+        nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'staging'))
+        self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0]['name'], 'testnode2')
+        # No nodes in production with this role
+        nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'production'))
+        self.assertFalse(len(nodes))
 
-        text = "blabla(127.0.0.1)sdfasdf"
-        self.assertEquals(lib.parse_ip(text), "127.0.0.1")
+    def test_list_recipes(self):
+        recipes = lib.get_recipes()
+        self.assertEquals(len(recipes), 5)
+        self.assertEquals(recipes[1]['name'], 'subversion')
+        self.assertEquals(recipes[1]['description'],
+            'Includes the client recipe. Modified by site-cookbooks')
+        self.assertEquals(recipes[2]['name'], 'subversion::client')
+        self.assertEquals(recipes[2]['description'],
+            'Subversion Client installs subversion and some extra svn libs')
+        self.assertEquals(recipes[3]['name'], 'subversion::server')
 
-        text = "\nblabla 216.34.94.184 sdfasdf"
-        self.assertEquals(lib.parse_ip(text), "216.34.94.184")
-
-        text = "216.34.94"
-        self.assertEquals(lib.parse_ip(text), None)
 
 class TestChef(BaseTest):
     def tearDown(self):

@@ -278,7 +278,7 @@ def list_nodes_with_recipe(recipe):
 @hosts('api')
 def list_nodes_with_role(role):
     """Show all nodes which have asigned a given role"""
-    for node in lib.get_nodes_with_role(role):
+    for node in lib.get_nodes_with_role(role, env.chef_environment):
         lib.print_node(node)
 
 

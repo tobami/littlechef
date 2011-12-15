@@ -240,8 +240,16 @@ class TestListNodes(BaseTest):
     def test_list_nodes(self):
         """Should list all nodes"""
         resp, error = self.execute([fix, 'list_nodes'])
-        self.assertTrue('testnode1' in resp)
+        for node in ['testnode1', 'testnode2', 'testnode3.mydomain.com']:
+            self.assertTrue(node in resp)
         self.assertTrue('Recipes: subversion' in resp)
+
+    def test_list_nodes_in_env(self):
+        """Should list all nodes in an environment"""
+        resp, error = self.execute([fix, '--env', 'staging', 'list_nodes'])
+        self.assertTrue('testnode2' in resp)
+        self.assertFalse('testnode1' in resp)
+        self.assertFalse('testnode3.mydomain.com' in resp)
 
     def test_list_nodes_detailed(self):
         """Should show a detailed list of all nodes"""
