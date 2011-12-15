@@ -248,29 +248,25 @@ def plugin(name):
 @hosts('api')
 def list_nodes():
     """List all configured nodes"""
-    for node in lib.get_nodes(env.chef_environment):
-        lib.print_node(node)
+    lib.print_nodes(lib.get_nodes(env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_detailed():
     """Show a detailed list of all nodes"""
-    for node in lib.get_nodes(env.chef_environment):
-        lib.print_node(node, detailed=True)
+    lib.print_nodes(lib.get_nodes(env.chef_environment), detailed=True)
 
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
     """Show all nodes which have asigned a given recipe"""
-    for node in lib.get_nodes_with_recipe(recipe, env.chef_environment):
-        lib.print_node(node)
+    lib.print_nodes(lib.get_nodes_with_recipe(recipe, env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_with_role(role):
     """Show all nodes which have asigned a given role"""
-    for node in lib.get_nodes_with_role(role, env.chef_environment):
-        lib.print_node(node)
+    lib.print_nodes(lib.get_nodes_with_role(role, env.chef_environment))
 
 
 @hosts('api')

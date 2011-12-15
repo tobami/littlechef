@@ -69,12 +69,15 @@ def get_nodes_with_role(role_name, environment=None):
     if prefix_search:
         role_name = role_name.rstrip("*")
     for n in get_nodes(environment):
+        roles = []
+        for role in get_roles_in_node(n):
+            roles.append(role)
+            roles.extend(get_roles_in_role(role))
         if prefix_search:
-            roles = get_roles_in_node(n)
             if any(role.startswith(role_name) for role in roles):
                 yield n
         else:
-            if role_name in get_roles_in_node(n):
+            if role_name in roles:
                 yield n
 
 
@@ -87,7 +90,7 @@ def get_nodes_with_recipe(recipe_name, environment=None):
     if prefix_search:
         recipe_name = recipe_name.rstrip("*")
     for n in get_nodes(environment):
-        recipes= get_recipes_in_node(n)
+        recipes = get_recipes_in_node(n)
         for role in get_roles_in_node(n):
             recipes.extend(get_recipes_in_role(role))
         if prefix_search:
@@ -121,6 +124,15 @@ def print_node(node, detailed=False):
         if attribute == "run_list" or attribute == "name":
             continue
         print "    {0}: {1}".format(attribute, node[attribute])
+
+
+def print_nodes(nodes, detailed=False):
+    """Prints all the given nodes"""
+    found = 0
+    for node in nodes:
+        found += 1
+        print_node(node, detailed=detailed)
+    print("\nFound {0} node{1}".format(found, "s" if found else ""))
 
 
 def _generate_metadata(path, cookbook_path, name):

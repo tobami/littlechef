@@ -140,11 +140,18 @@ class TestLib(unittest.TestCase):
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0]['name'], 'testnode2')
         self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
+        # nested role 'base'
+        nodes = list(lib.get_nodes_with_role('base'))
+        self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0]['name'], 'testnode2')
+        # Wild card
         nodes = list(lib.get_nodes_with_role('all_*'))
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0]['name'], 'testnode2')
+        # Prefix with no wildcard
         nodes = list(lib.get_nodes_with_role('all_'))
         self.assertEquals(len(nodes), 0)
+        # Nodes with at least one role
         nodes = list(lib.get_nodes_with_role('*'))
         self.assertEquals(len(nodes), 1)
         nodes = list(lib.get_nodes_with_role(''))
@@ -168,6 +175,12 @@ class TestLib(unittest.TestCase):
         self.assertEquals(len(nodes), 3)
         nodes = list(lib.get_nodes_with_recipe('vim'))
         self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0]['name'], 'testnode3.mydomain.com')
+        # man recipe inside role "all_you_can_eat"
+        nodes = list(lib.get_nodes_with_recipe('man'))
+        self.assertEquals(len(nodes), 1)
+        self.assertEquals(nodes[0]['name'], 'testnode2')
+        # Get node with at least one recipe
         nodes = list(lib.get_nodes_with_recipe('*'))
         self.assertEquals(len(nodes), 3)
         nodes = list(lib.get_nodes_with_role(''))

@@ -6,8 +6,12 @@ Next Version
 ----------------------------------------
 * NEW #72: Plugin mini-framework
 * NEW: ssh command
+* NEW: --verbose option (Chef 0.10.6+). Default is false, and will not show the
+    "Processing" output any more. Chef Solo will only log what has changed
 
-* FIX: Move from paramiko library to fabric's fork "ssh"
+* FIX: Move from paramiko library to fabric's fork "ssh". Fixes paramiko import
+* FIX: Make "list_nodes_with_recipe" and "list_nodes_with_role" respect the --env option
+    Also, they now use the expanded run_list
 
 
 Version 1.0.4 November 14, 2011
