@@ -4,21 +4,23 @@ LittleChef Changelog
 
 Next Version
 ----------------------------------------
-* NEW #72: Plugin mini-framework
-* NEW: ssh command
-* NEW: --verbose option (Chef 0.10.6+). Default is false, and will not show the
+New features
+* #72: Plugin mini-framework
+* ssh command
+* --verbose option (Chef 0.10.6+). Default is false, and will not show the
     "Processing" output any more. Chef Solo will only log what has changed
 
-* FIX: Move from paramiko library to fabric's fork "ssh". Fixes paramiko import
-* FIX: Make "list_nodes_with_recipe" and "list_nodes_with_role" respect the --env option
+Bugs fixed:
+* Fixes paramiko dependency by moving to new fabric's fork "ssh"
+* Make "list_nodes_with_recipe" and "list_nodes_with_role" respect the --env option
     Also, they now use the expanded run_list
 
 
 Version 1.0.4 November 14, 2011
 ----------------------------------------
-* NEW: Make "list_nodes" respect the --env option
-
-* FIX: Accept --env=ENV in addition to --env ENV
+New features
+* Make "list_nodes" respect the --env option
+* Accept --env=ENV in addition to --env ENV
 
 
 Version 1.0.3 November 11, 2011

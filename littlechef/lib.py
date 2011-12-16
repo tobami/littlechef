@@ -132,7 +132,7 @@ def print_nodes(nodes, detailed=False):
     for node in nodes:
         found += 1
         print_node(node, detailed=detailed)
-    print("\nFound {0} node{1}".format(found, "s" if found else ""))
+    print("\nFound {0} node{1}".format(found, "s" if found == 1 else ""))
 
 
 def _generate_metadata(path, cookbook_path, name):
