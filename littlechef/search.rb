@@ -18,7 +18,7 @@
 #
 
 if Chef::Config[:solo]
-  
+
   if (defined? require_relative).nil?
     # defenition of 'require_relative' for ruby < 1.9, found on stackoverflow.com
     def require_relative(relative_feature)
@@ -32,12 +32,12 @@ if Chef::Config[:solo]
       require absolute
     end
   end
-  
+
   require_relative 'parser.rb'
-  
+
   class Chef
     class Recipe
-      
+
       # Overwrite the search method of recipes to operate locally by using
       # data found in data_bags.
       # Only very basic lucene syntax is supported and also sorting the result

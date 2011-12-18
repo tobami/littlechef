@@ -26,13 +26,13 @@ except ImportError:
 
 
 class LittlechefOptionParser(OptionParser):
-    
+
     def print_help(self, file=None):
         from fabric.main import list_commands, state, load_fabfile
         OptionParser.print_help(self, file)
         docstring, callables, default = load_fabfile(fabfile)
         state.commands.update(callables)
-        for c in list_commands("\n", "normal"): 
+        for c in list_commands("\n", "normal"):
             print(c)
         sys.exit(0)
 
@@ -78,7 +78,7 @@ else:
         print(NO_ORDER)
     else:
         # Check for version, that overrides everything else.
-        if options.version: 
+        if options.version:
             print(VERSION.format(littlechef.__version__))
             sys.exit(0)
         if options.no_report:
