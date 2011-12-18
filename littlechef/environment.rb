@@ -18,7 +18,7 @@
 #
 
 if Chef::Config[:solo]
-  
+
   class Chef
     class Environment
       def self.load(name)
@@ -28,5 +28,5 @@ if Chef::Config[:solo]
       end
     end
   end
-  
+
 end
