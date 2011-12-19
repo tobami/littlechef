@@ -115,11 +115,10 @@ def node(*nodes):
 
     # Check whether another command was given in addition to "node:"
     execute = True
-    if littlechef.__cooking__ and \
-        'node:' not in sys.argv[-1] and 'nodes_with_role:' not in sys.argv[-1]:
-        execute = False
-    # If user didn't type recipe:X, role:Y or deploy_chef, just run configure
-    if execute:
+    if not(littlechef.__cooking__ and
+            'node:' not in sys.argv[-1] and
+            'nodes_with_role:' not in sys.argv[-1]):
+        # If user didn't type recipe:X, role:Y or deploy_chef, just run configure
         for hostname in env.hosts:
             env.host = hostname
             env.host_string = hostname
@@ -187,6 +186,7 @@ def role(role):
     """Apply the given role to a node
     Sets the run_list to the given role
     If no nodes/hostname.json file exists, it creates one
+
     """
     # Check that a node has been selected
     if not env.host_string:
