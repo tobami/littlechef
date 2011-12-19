@@ -327,7 +327,9 @@ def _configure_node():
             "Executing Chef Solo with the following command:\n{0}".format(cmd))
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(cmd)
-    if output.failed or "FATAL: Stacktrace dumped" in output:
+    if (output.failed or "FATAL: Stacktrace dumped" in output or
+            ("Chef Run complete" not in output and
+            "Report handlers complete" not in output)):
         if 'chef-solo: command not found' in output:
             print(
                 colors.red(
