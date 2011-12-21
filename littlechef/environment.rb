@@ -23,7 +23,7 @@ if Chef::Config[:solo]
     class Environment
       def self.load(name)
         Chef::Log.info("Setting 'node.chef_environment' to '#{name}'")
-        Chef::Log.warn("Could not load environment data because it is not supported by Chef Solo")
+        Chef::Log.debug("Won't load environment data because it is not yet supported by Chef Solo")
         return nil
       end
     end
