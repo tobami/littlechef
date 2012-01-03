@@ -81,7 +81,7 @@ class TestConfig(BaseTest):
         self.assertEquals(error, "")
         expected = "LittleChef: Configuration Management using Chef Solo"
         self.assertTrue(expected in resp)
-        self.assertEquals(len(resp.split('\n')), 21)
+        self.assertEquals(len(resp.split('\n')), 22)
 
     #def test_verbose(self):
         #"""Should turn on verbose output"""
@@ -163,10 +163,11 @@ class TestRunner(BaseTest):
     def test_ssh(self):
         """Should execute the given command"""
         resp, error = self.execute([fix, 'node:testnode2', 'ssh:"my command"'])
-        self.assertTrue(
-            "Executing the command '\"my command\"' on the node testnode2..." in resp)
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error,
-                        error)
+        expected = "Executing the command '\"my command\"' on the node"
+        expected += " testnode2..."
+        self.assertTrue(expected in resp)
+        expected = "tal error: Name lookup failed for testnode2"
+        self.assertTrue(expected in error, error)
 
     def test_plugin(self):
         """Should execute the given plugin"""
@@ -182,6 +183,13 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:dummy'])
         expected = "Executing plugin '{0}' on {1}".format("dummy", "testnode1")
         self.assertTrue(expected in resp, resp + error)
+
+    def test_list_plugins(self):
+        """Should print a list of available plugins"""
+        resp, error = self.execute([fix, 'list_plugins'])
+        self.assertTrue("List of available plugins:" in resp, resp)
+        self.assertTrue("bad: Plugin has a syntax error" in resp, resp)
+        self.assertTrue("dummy: Dummy LittleChef plugin" in resp, resp)
 
 
 class TestCookbook(BaseTest):

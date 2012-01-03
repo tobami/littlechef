@@ -5,8 +5,8 @@ LittleChef Changelog
 Next Version
 ----------------------------------------
 New features
-* #72: Plugin mini-framework
-* ssh command
+* #72: Plugin mini-framework. Moved save_ip to a plugin
+* New ssh command
 * --verbose option (Chef 0.10.6+). Default is false, and will not show the
     "Processing" output any more. Chef Solo will only log what has changed
 

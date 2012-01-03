@@ -222,21 +222,7 @@ def plugin(name):
     """
     if not env.host_string:
         abort('No node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
-    path = os.path.join("plugins", name + ".py")
-    if not os.path.exists(path):
-        abort("Sorry, could not find '{0}.py' in the plugin directory".format(
-              name))
-    import imp
-    try:
-        with open(path, 'rb') as f:
-            plug = imp.load_module(
-                "p_" + name, f, name + '.py',
-                ('.py', 'rb', imp.PY_SOURCE)
-            )
-    except Exception as e:
-        error = "Found plugin '{0}',".format(name)
-        error += " but it seems to have a syntax error: {0}".format(str(e))
-        abort(error)
+    plug = lib.import_plugin(name)
     print("Executing plugin '{0}' on {1}".format(name, env.host_string))
     node = lib.get_node(env.host_string)
     if node == {'run_list': []}:
@@ -300,6 +286,12 @@ def list_roles_detailed():
     """Show detailed information for all roles"""
     for role in lib.get_roles():
         lib.print_role(role)
+
+
+@hosts('api')
+def list_plugins():
+    """Show all available plugins"""
+    lib.print_plugin_list()
 
 
 # Check that user is cooking inside a kitchen and configure authentication #

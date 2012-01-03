@@ -1,3 +1,4 @@
+"""Gets the IP and adds or updates the ipaddress attribute of a node"""
 import subprocess
 import os
 import re

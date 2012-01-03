@@ -16,6 +16,7 @@
 import os
 import simplejson as json
 import subprocess
+import imp
 
 from fabric import colors
 from fabric.api import env, settings
@@ -51,7 +52,7 @@ def get_nodes(environment=None):
         return []
     nodes = []
     for filename in sorted([f for f in os.listdir('nodes/')
-                                if not os.path.isdir(f) and ".json" in f
+                                if not os.path.isdir(f) and f.endswith(".json")
                                     and not f.startswith('.')]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
         node = get_node(fqdn)
@@ -336,6 +337,48 @@ def print_role(role, detailed=True):
         print("    override_attributes:")
         _pprint(role['override_attributes'])
     print("")
+
+
+def print_plugin_list():
+    """Prints a list of available plugins"""
+    print("List of available plugins:")
+    for plugin in get_plugins():
+        _pprint(plugin)
+
+
+def get_plugins():
+    """Gets available plugins by looking into the plugins/ directory"""
+    if os.path.exists('plugins/'):
+        for filename in sorted([f for f in os.listdir('plugins/')
+                                if not os.path.isdir(f) and f.endswith(".py")]):
+            plugin_name = filename[:-3]
+            try:
+                plugin = import_plugin(plugin_name)
+            except SystemExit as e:
+                description = "Plugin has a syntax error"
+            else:
+                description = plugin.__doc__ or "No description found"
+            yield {plugin_name: description}
+
+
+def import_plugin(name):
+    """Imports plugin python module"""
+    path = os.path.join("plugins", name + ".py")
+    try:
+        with open(path, 'rb') as f:
+            try:
+                plugin = imp.load_module(
+                    "p_" + name, f, name + '.py',
+                    ('.py', 'rb', imp.PY_SOURCE)
+                )
+            except SyntaxError as e:
+                error = "Found plugin '{0}', but it seems".format(name)
+                error += " to have a syntax error: {0}".format(str(e))
+                abort(error)
+    except IOError:
+        abort("Sorry, could not find '{0}.py' in the plugin directory".format(
+              name))
+    return plugin
 
 
 def get_cookbook_path(cookbook_name):

@@ -209,6 +209,22 @@ class TestLib(unittest.TestCase):
         self.assertEquals(recipes[3]['name'], 'subversion::server')
 
 
+    def test_import_plugin(self):
+        """Should import the given plugin"""
+        plugin = lib.import_plugin("dummy")
+        expected = "Dummy LittleChef plugin"
+        self.assertEquals(plugin.__doc__, expected)
+
+        # Should fail to import a bad plugin module
+        self.assertRaises(SystemExit, lib.import_plugin, "bad")
+
+    def test_get_plugins(self):
+        """Should get a list of available plugins"""
+        plugins = [p for p in lib.get_plugins()]
+        self.assertEquals(len(plugins), 2)
+        self.assertEquals(plugins[0]['bad'], "Plugin has a syntax error")
+
+
 class TestChef(BaseTest):
     def tearDown(self):
         chef._remove_local_node_data_bag()

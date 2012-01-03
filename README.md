@@ -72,6 +72,16 @@ when you make changes. If you have knife locally installed, it will even be done
 automatically on every run if a changed metadata.rb is detected. Ruby roles are not
 yet automatically converted, but an implementation is planned.
 
+#### Plugins ####
+
+You can define your own LittleChef tasks as Python plugin modules. They should be located
+in the `plugins` directory. The filename will be the plugin name and the module docstring
+the description. Each plugin should define an execute funtion, which will then be
+executed when applying a plugin on a node (the *Cooking* section describes how to run a
+plugins).
+
+You can find example plugins in the [repository plugins directory](https://github.com/tobami/littlechef/blob/master/plugins/)
+
 ## Installation
 
 ### Desktop support
@@ -200,6 +210,7 @@ Once a node has a config file, the command you will be using most often is `fix 
 * `fix list_recipes_detailed`: Same as above, but shows description, version, dependencies and attributes
 * `fix list_roles`: Lists all available roles
 * `fix list_roles_detailed`: Same as above, but shows description and attributes
+* `fix list_plugins`: Show a list of available plugins
 
 ### Using LittleChef as a library
 
