@@ -101,15 +101,9 @@ def _synchronize_node(configfile):
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
-    kitchen_dirs = './cookbooks ./data_bags ./nodes ./plugins'
-    kitchen_dirs += ' ./roles ./site-cookbooks'
     rsync_project(
-        node_work_path, kitchen_dirs,
-        exclude=(
-            '*.svn', '.bzr*', '.git*', '.hg*',  # ignore vcs data
-            '/site-cookbooks/chef_solo_search_lib/'  # ignore data generated
-                                                     # by littlechef
-        ),
+        node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
+        exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts="-q",
     )
