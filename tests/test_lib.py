@@ -199,7 +199,7 @@ class TestLib(unittest.TestCase):
 
     def test_list_recipes(self):
         recipes = lib.get_recipes()
-        self.assertEquals(len(recipes), 5)
+        self.assertEquals(len(recipes), 6)
         self.assertEquals(recipes[1]['name'], 'subversion')
         self.assertEquals(recipes[1]['description'],
             'Includes the client recipe. Modified by site-cookbooks')
@@ -207,6 +207,8 @@ class TestLib(unittest.TestCase):
         self.assertEquals(recipes[2]['description'],
             'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[3]['name'], 'subversion::server')
+        self.assertIn('subversion::testrecipe', [r['name'] for r in recipes])
+        
 
 
     def test_import_plugin(self):
