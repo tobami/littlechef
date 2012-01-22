@@ -183,7 +183,7 @@ def get_recipes_in_cookbook(name):
     Returns a list of dictionaries
 
     """
-    recipes = []
+    recipes = {}
     path = None
     cookbook_exists = False
     metadata_exists = False
@@ -209,24 +209,18 @@ def get_recipes_in_cookbook(name):
                     abort(msg)
                 # Add each recipe defined in the cookbook
                 metadata_exists = True
+                recipe_defaults = {
+                    'description': '',
+                    'version': cookbook.get('version'),
+                    'dependencies': cookbook.get('dependencies', {}).keys(),
+                    'attributes': cookbook.get('attributes', {})
+                }
                 for recipe in cookbook.get('recipes', []):
-                    recipes.append({
-                        'name': recipe,
-                        'description': cookbook['recipes'][recipe],
-                        'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies', {}).keys(),
-                        'attributes': cookbook.get('attributes', {}),
-                        })
-                # When a recipe has no default recipe (libraries?),
-                # add one so that it is listed
-                if not recipes:
-                    recipes.append({
-                        'name': name,
-                        'description': 'This cookbook has no default recipe',
-                        'version': cookbook.get('version'),
-                        'dependencies': cookbook.get('dependencies', {}).keys(),
-                        'attributes': cookbook.get('attributes', {})
-                    })
+                    recipes[recipe] = dict(
+                        recipe_defaults,
+                        name=recipe,
+                        description=cookbook['recipes'][recipe]
+                    )
             # Cookbook metadata.json was found, don't try next cookbook path
             # because metadata.json in site-cookbooks has preference
             break
@@ -237,7 +231,31 @@ def get_recipes_in_cookbook(name):
         abort('Unable to find cookbook "{0}"'.format(name))
     elif not metadata_exists:
         abort('Cookbook "{0}" has no metadata.json'.format(name))
-    return recipes
+    # Add recipes found in the 'recipes' directory but not listed
+    # in the metadata
+    for cookbook_path in cookbook_paths:
+        recipes_dir = os.path.join(cookbook_path, name, 'recipes')
+        if not os.path.isdir(recipes_dir):
+            continue
+        for basename in os.listdir(recipes_dir):
+            fname, ext = os.path.splitext(basename)
+            if ext != '.rb':
+                continue
+            if fname != 'default':
+                recipe = '%s::%s' % (name, fname)
+            else:
+                recipe = name
+            if recipe not in recipes:
+                recipes[recipe] = dict(recipe_defaults, name=recipe)
+    # When a recipe has no default recipe (libraries?),
+    # add one so that it is listed
+    if not recipes:
+        recipes[name] = dict(
+            recipe_defaults,
+            name=name,
+            description='This cookbook has no default recipe'
+        )
+    return recipes.values()
 
 
 def get_recipes_in_role(rolename):
