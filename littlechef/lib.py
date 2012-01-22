@@ -453,4 +453,8 @@ def credentials(*args, **kwargs):
     if credentials.get('key_filename'):
         credentials['key_filename'] = os.path.expanduser(
                                         credentials['key_filename'])
+    # If ssh config defines a different Hostname string (be it domain or IP),
+    # override 'host_string'
+    if 'hostname' in credentials:
+        credentials['host_string'] = credentials['hostname'] 
     return settings(*args, **credentials)

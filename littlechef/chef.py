@@ -69,15 +69,21 @@ def sync_node(node):
     It also injects the ipaddress to the node's config file if not already
     existent.
     """
+    # Get merged attributes
+    current_node = _build_node_data_bag()
     with lib.credentials():
-        # Get merged attributes
-        current_node = _build_node_data_bag()
         # Always configure Chef Solo
         solo.configure(current_node)
-        # Everything was configured alright, so save the node configuration
-        filepath = save_config(node, _get_ipaddress(node))
+        ipaddress = _get_ipaddress(node)
+    # Everything was configured alright, so save the node configuration
+    # This is done without credentials, so that we keep the node name used
+    # by the user and not the hostname or IP translated by .ssh/config
+    filepath = save_config(node, ipaddress)
+    with lib.credentials():
         try:
+            # Synchronize the kitchen directory
             _synchronize_node(filepath)
+            # Execute Chef Solo
             _configure_node()
         finally:
             _remove_local_node_data_bag()
