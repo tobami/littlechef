@@ -82,7 +82,7 @@ def sync_node(node):
     with lib.credentials():
         try:
             # Synchronize the kitchen directory
-            _synchronize_node(filepath)
+            _synchronize_node(filepath, node)
             # Execute Chef Solo
             _configure_node()
         finally:
@@ -90,7 +90,7 @@ def sync_node(node):
             _node_cleanup()
 
 
-def _synchronize_node(configfile):
+def _synchronize_node(configfile, node):
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
     patch for data bags
@@ -102,8 +102,11 @@ def _synchronize_node(configfile):
     # First upload node.json
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
+    root_user = "root"
+    if node.get('platform') in ["freebsd", "mac_os_x"]:
+        root_user = "wheel"
     with hide('stdout'):
-        sudo('chown root:root {0}'.format(remote_file))
+        sudo('chown root:{0} {1}'.format(root_user, remote_file))
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
