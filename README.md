@@ -92,7 +92,7 @@ Tested on all three major desktops:
 ### Requirements
 
 * Python 2.6+
-* Fabric 1.0.1+
+* Fabric 1.3.2+
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
 `sudo apt-get install python-pip python-dev` for Debian and Ubuntu  

@@ -2,6 +2,19 @@
 LittleChef Changelog
 ====================
 
+Next version
+----------------------------------------
+New features
+* #82: kitchen sync now works on OSX
+* chef-solo-search upstream version upgrade: search now not only works from
+    recipes and definitions
+
+Bugs fixed:
+* drhevans expanded recipe lookup so that recipes can be used even when they are
+    not in metadata.json
+* #78: fix paramiko module import: the ssh module is now required instead
+
+
 Version 1.1.0 January 3, 2012
 ----------------------------------------
 New features
