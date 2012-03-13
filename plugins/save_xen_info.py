@@ -36,4 +36,5 @@ def execute(node):
     print("Found {0} VMs for this Xen host".format(
           len(node['virtualization']['vms'])))
     # Save node file and remove the returned temp file
+    del node['name']
     os.remove(chef.save_config(node, True))
