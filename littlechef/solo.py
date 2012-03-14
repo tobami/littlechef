@@ -23,6 +23,7 @@ from fabric.utils import abort
 
 from littlechef.lib import credentials
 from littlechef.settings import node_work_path, cookbook_paths
+from littlechef import LOGFILE as logging_path
 
 
 # Path to local patch
@@ -73,6 +74,8 @@ def configure(current_node=None):
                     "Could not modify {0} dir. Do you have sudo rights?".format(
                         node_work_path))
         # Set up chef solo configuration
+        if not exists(logging_path):
+            sudo('mkdir -p {0}'.format(logging_path))
         if not exists('/etc/chef'):
             sudo('mkdir -p /etc/chef')
         # Set parameters and upload solo.rb template
