@@ -75,7 +75,7 @@ def configure(current_node=None):
                         node_work_path))
         # Set up chef solo configuration
         if not exists(logging_path):
-            sudo('mkdir -p {}'.format(logging_path))
+            sudo('mkdir -p {0}'.format(logging_path))
         if not exists('/etc/chef'):
             sudo('mkdir -p /etc/chef')
         # Set parameters and upload solo.rb template
