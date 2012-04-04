@@ -24,7 +24,7 @@ sys.path.insert(0, env_path)
 from littlechef import runner, chef, lib
 
 
-runner.__testing__ =  True
+runner.__testing__ = True
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
 littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
@@ -67,7 +67,8 @@ class TestRunner(BaseTest):
 
     def test_nodes_with_role_in_env_empty(self):
         runner.env.chef_environment = "production"
-        self.assertRaises(SystemExit, runner.nodes_with_role, "all_you_can_eat")
+        self.assertRaises(
+            SystemExit, runner.nodes_with_role, "all_you_can_eat")
         self.assertEquals(runner.env.hosts, [])
 
     def test_nodes_one(self):
@@ -118,7 +119,9 @@ class TestLib(unittest.TestCase):
             {
                 'chef_environment': 'staging', 'name': 'testnode2',
                 'other_attr': {'deep_dict': {'deep_key1': 'node_value1'}},
-                'subversion': {'password': 'node_password', 'user': 'node_user'},
+                'subversion': {
+                    'password': 'node_password', 'user': 'node_user'
+                },
                 'run_list': ['role[all_you_can_eat]']
             },
             {
@@ -208,8 +211,6 @@ class TestLib(unittest.TestCase):
             'Subversion Client installs subversion and some extra svn libs')
         self.assertEquals(recipes[3]['name'], 'subversion::server')
         self.assertIn('subversion::testrecipe', [r['name'] for r in recipes])
-        
-
 
     def test_import_plugin(self):
         """Should import the given plugin"""
@@ -233,7 +234,8 @@ class TestChef(BaseTest):
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
-        """Should create a tmp_testnode4.json and a nodes/testnode4.json config file
+        """Should create a tmp_testnode4.json and a nodes/testnode4.json config
+        file
 
         """
         # Save a new node
@@ -280,17 +282,19 @@ class TestChef(BaseTest):
         self.assertEquals(data['roles'], [u'base', u'all_you_can_eat'])
 
     def test_build_node_data_bag_nonalphanumeric(self):
-        """Should create a node data bag when node name contains non-alphanumerical
-        characters"""
+        """Should create a node data bag when node name contains invalid chars
+        """
         chef._build_node_data_bag()
         # A node called testnode3.mydomain.com will have the data bag id
         # 'testnode3', because dots are not allowed.
-        item_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
-        self.assertTrue(os.path.exists(item_path))
+        filename = 'testnode3_mydomain_com'
+        nodename = filename.replace("_", ".")
+        item_path = os.path.join('data_bags', 'node', filename + '.json')
+        self.assertTrue(os.path.exists(item_path), "node file does not exist")
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
-        self.assertTrue('id' in data and data['id'] == 'testnode3_mydomain_com')
-        self.assertTrue('name' in data and data['name'] == 'testnode3.mydomain.com')
+        self.assertTrue('id' in data and data['id'] == filename)
+        self.assertTrue('name' in data and data['name'] == nodename)
 
     def test_automatic_attributes(self):
         """Should add Chef's automatic attributes"""
@@ -304,16 +308,21 @@ class TestChef(BaseTest):
         self.assertTrue('domain' in data and data['domain'] == '')
 
         # Check node with complex fqdn
-        testnode3_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
+        testnode3_path = os.path.join(
+            'data_bags', 'node', 'testnode3_mydomain_com.json')
         with open(testnode3_path, 'r') as f:
             print testnode3_path
             data = json.loads(f.read())
-        self.assertTrue('fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
+        self.assertTrue(
+            'fqdn' in data and data['fqdn'] == 'testnode3.mydomain.com')
         self.assertTrue('hostname' in data and data['hostname'] == 'testnode3')
         self.assertTrue('domain' in data and data['domain'] == 'mydomain.com')
 
     def test_attribute_merge_cookbook_not_found(self):
-        """Should print a warning when merging a node and a cookbook is not found"""
+        """Should print a warning when merging a node and a cookbook is not
+        found
+
+        """
         # Save new node with a non-existing cookbook assigned
         env.host_string = 'testnode4'
         chef.save_config({"run_list": ["recipe[phantom_cookbook]"]})
@@ -331,14 +340,15 @@ class TestChef(BaseTest):
     def test_attribute_merge_cookbook_boolean(self):
         """Should have real boolean values for default cookbook attributes"""
         chef._build_node_data_bag()
-        item_path = os.path.join('data_bags', 'node', 'testnode3_mydomain_com.json')
+        item_path = os.path.join(
+            'data_bags', 'node', 'testnode3_mydomain_com.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('vim' in data)
         self.assertTrue(data['vim']['sucks'] is True)
 
     def test_attribute_merge_site_cookbook_default(self):
-        """Should have the value found in 
+        """Should have the value found in
         site_cookbooks/xx/recipe/attributes/default.rb
 
         """
@@ -363,7 +373,8 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertEquals(data['subversion']['repo_server'], 'role_default_repo_server')
+        self.assertEquals(
+            data['subversion']['repo_server'], 'role_default_repo_server')
         self.assertTrue('other_attr' in data)
         self.assertEquals(data['other_attr']['other_key'], 'nada')
 
@@ -386,7 +397,8 @@ class TestChef(BaseTest):
         self.assertEquals(data['subversion']['password'], 'role_override_pass')
 
     def test_attribute_merge_deep_dict(self):
-        """Should deep-merge a dict when it is defined in two different places"""
+        """Should deep-merge a dict when it is defined in two different places
+        """
         chef._build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:

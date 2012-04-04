@@ -61,18 +61,18 @@ def configure(current_node=None):
             with settings(hide('running', 'stdout'), warn_only=True):
                 output = sudo('mkdir -p {0}'.format(cache_dir))
             if output.failed:
-                abort(
-                    "Could not create {0} dir. Do you have sudo rights?".format(
-                        node_work_path))
+                error = "Could not create {0} dir. ".format(node_work_path)
+                error += "Do you have sudo rights?"
+                abort(error)
         # Change ownership of /tmp/chef-solo/ so that we can rsync
         with hide('running', 'stdout'):
             with settings(warn_only=True):
                 output = sudo(
                     'chown -R {0} {1}'.format(env.user, node_work_path))
             if output.failed:
-                abort(
-                    "Could not modify {0} dir. Do you have sudo rights?".format(
-                        node_work_path))
+                error = "Could not modify {0} dir. ".format(node_work_path)
+                error += "Do you have sudo rights?"
+                abort(error)
         # Set up chef solo configuration
         if not exists(logging_path):
             sudo('mkdir -p {0}'.format(logging_path))
@@ -171,8 +171,9 @@ def _gem_apt_install():
 def _gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
     _add_rpm_repos()
+    needed_packages = "ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync"
     with show('running'):
-        sudo('yum -y install ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync')
+        sudo('yum -y install {0}'.format(needed_packages))
     _gem_install()
 
 
@@ -226,7 +227,8 @@ def _apt_install(distro, version, stop_client='yes'):
         with settings(hide('warnings'), warn_only=True):
             output = sudo('apt-get update')
             if output.failed:
-                print(colors.red("Error while executing apt-get install chef:"))
+                print(colors.red(
+                    "Error while executing 'apt-get install chef':"))
                 abort(output)
         # Install Chef Solo
         print("Installing Chef Solo")
@@ -238,7 +240,8 @@ def _apt_install(distro, version, stop_client='yes'):
         with settings(hide('warnings'), warn_only=True):
             output = sudo('apt-get --yes install ucf chef')
             if output.failed:
-                print(colors.red("Error while executing 'apt-get install chef':"))
+                print(colors.red(
+                    "Error while executing 'apt-get install chef':"))
                 abort(output)
         if stop_client == 'yes':
             # We only want chef-solo, stop chef-client and remove it from init
@@ -256,7 +259,8 @@ def _apt_install(distro, version, stop_client='yes'):
 def _add_rpm_repos():
     """Add RPM repositories for Chef
     Opscode doesn't officially support an ELFF resporitory any longer:
-    http://wiki.opscode.com/display/chef/Installation+on+RHEL+and+CentOS+5+with+RPMs
+    http://wiki.opscode.com/display/chef/Installation+on+RHEL+and+CentOS+5+with
+    +RPMs
 
     Using http://rbel.frameos.org/
 

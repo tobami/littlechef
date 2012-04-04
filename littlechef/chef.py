@@ -150,7 +150,8 @@ def update_dct(dic1, dic2):
 
 def _add_automatic_attributes(node):
     """Adds some of Chef's automatic attributes:
-        http://wiki.opscode.com/display/chef/Recipes#Recipes-CommonAutomaticAttributes
+        http://wiki.opscode.com/display/chef/Recipes#Recipes
+        -CommonAutomaticAttributes
 
     """
     node['fqdn'] = node['name']
@@ -162,7 +163,8 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     """Merges attributes from cookbooks, node and roles
 
     Chef Attribute precedence:
-    http://wiki.opscode.com/display/chef/Attributes#Attributes-AttributeTypeandPrecedence
+    http://wiki.opscode.com/display/chef/Attributes#Attributes
+    -AttributeTypeandPrecedence
     LittleChef implements, in precedence order:
         - Cookbook default
         - Role default
@@ -235,8 +237,8 @@ def _build_node_data_bag():
         All attributes found in nodes/<item>.json file
         Default and override attributes from all roles
 
-    Returns the node object of the node which is about to be configured, or None
-    if this node object cannot be found.
+    Returns the node object of the node which is about to be configured, or
+    None if this node object cannot be found.
 
     """
     current_node = None
@@ -301,12 +303,13 @@ def _node_cleanup():
 
 
 def _add_search_patch():
-    """ Adds chef_solo_search_lib cookbook, which provides a library to read and search
-    data bags.
+    """ Adds chef_solo_search_lib cookbook, which provides a library to read
+    and search data bags
+
     """
     # Create extra cookbook dir
     lib_path = os.path.join(
-                node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
+        node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Add search and environment patch to the node's cookbooks

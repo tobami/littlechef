@@ -370,7 +370,7 @@ def _readconfig():
         pass
 
     if user_specified and not env.password and not env.ssh_config:
-        abort('You need to define a password or a ssh-config file in auth.cfg.')
+        abort('You need to define a password or a ssh-config file in auth.cfg')
 
 
 # Only read config if fix is being used and we are not creating a new kitchen

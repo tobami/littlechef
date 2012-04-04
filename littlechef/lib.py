@@ -368,7 +368,7 @@ def get_plugins():
     """Gets available plugins by looking into the plugins/ directory"""
     if os.path.exists('plugins/'):
         for filename in sorted([f for f in os.listdir('plugins/')
-                                if not os.path.isdir(f) and f.endswith(".py")]):
+                if not os.path.isdir(f) and f.endswith(".py")]):
             plugin_name = filename[:-3]
             try:
                 plugin = import_plugin(plugin_name)
@@ -456,5 +456,5 @@ def credentials(*args, **kwargs):
     # If ssh config defines a different Hostname string (be it domain or IP),
     # override 'host_string'
     if 'hostname' in credentials:
-        credentials['host_string'] = credentials['hostname'] 
+        credentials['host_string'] = credentials['hostname']
     return settings(*args, **credentials)

@@ -32,7 +32,7 @@ if platform.system() == 'Windows':
     fix = join(littlechef_top, 'fix.cmd')
     WIN32 = True
 else:
-    fix = join(littlechef_top,'fix')
+    fix = join(littlechef_top, 'fix')
     WIN32 = False
 
 
@@ -73,7 +73,8 @@ class TestConfig(BaseTest):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([fix, '-v'])
         self.assertEquals(error, "", error)
-        self.assertTrue('LittleChef {0}'.format(littlechef.__version__) in resp)
+        self.assertTrue(
+            'LittleChef {0}'.format(littlechef.__version__) in resp)
 
     def test_list_commands(self):
         """Should output a list of available commands"""
@@ -101,7 +102,8 @@ class TestEnvironment(BaseTest):
         """Should error out when the env value is empty or is a fabric task"""
         resp, error = self.execute([fix, 'list_nodes', '--env'])
         self.assertEquals(resp, "")
-        self.assertTrue("error: --env option requires an argument" in error, error)
+        self.assertTrue(
+            "error: --env option requires an argument" in error, error)
 
         resp, error = self.execute([fix, '--env', 'list_nodes'])
         self.assertEquals(resp, "")
@@ -140,17 +142,10 @@ class TestRunner(BaseTest):
         # Will try to configure *first* testnode2 and will fail DNS lookup
         self.assertTrue("tal error: Name lookup failed for testnode2" in error)
 
-    # TODO: This test will now prompt for user input
-    #def test_all_nodes(self):
-        #"""Should try to configure all nodes"""
-        #resp, error = self.execute([fix, 'node:all'])
-        #self.assertTrue("== Configuring testnode1 ==" in resp)
-        ## Will try to configure all nodes and will fail DNS lookup of testnode1
-        #self.assertTrue("tal error: Name lookup failed for testnode1" in error)
-
     def test_recipe(self):
         """Should configure node with the given recipe"""
-        resp, error = self.execute([fix, 'node:testnode1', 'recipe:subversion'])
+        resp, error = self.execute(
+            [fix, 'node:testnode1', 'recipe:subversion'])
         self.assertTrue("plying recipe 'subversion' on node testnode1" in resp)
         self.assertTrue("tal error: Name lookup failed for testnode1" in error)
 
@@ -161,7 +156,7 @@ class TestRunner(BaseTest):
         self.assertTrue("tal error: Name lookup failed for testnode1" in error)
 
     def test_ssh(self):
-        """Should execute the given command"""
+        """Should execute the given ssh command"""
         resp, error = self.execute([fix, 'node:testnode2', 'ssh:"my command"'])
         expected = "Executing the command '\"my command\"' on the node"
         expected += " testnode2..."
@@ -172,12 +167,12 @@ class TestRunner(BaseTest):
     def test_plugin(self):
         """Should execute the given plugin"""
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:notthere'])
-        expected = "Sorry, could not find 'notthere.py' in the plugin directory"
+        expected = ", could not find 'notthere.py' in the plugin directory"
         self.assertTrue(expected in error, resp + error)
 
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:bad'])
         expected = "Found plugin 'bad', but it seems to have a syntax error:"
-        expected += " invalid syntax (bad.py, line 4)"
+        expected += " invalid syntax (bad.py, line 6)"
         self.assertTrue(expected in error, resp + error)
 
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:dummy'])
@@ -213,7 +208,10 @@ class TestCookbook(BaseTest):
             self.assertTrue(field in resp)
 
     def test_list_recipes_detailed_site_cookbooks(self):
-        """Should show a detailed list of available recipes with site-cookbook priority"""
+        """Should show a detailed list of available recipes with site-cookbook
+        priority
+
+        """
         resp, error = self.execute([fix, 'list_recipes_detailed'])
         self.assertTrue('0.8.4' in resp)
 
