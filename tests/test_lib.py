@@ -35,10 +35,11 @@ class BaseTest(unittest.TestCase):
             'tmp_testnode1',
             'tmp_testnode2',
             'tmp_testnode3.mydomain.com',
-            'tmp_testnode4']:
+            'tmp_testnode4',
+            'tmp_extranode']:
             if os.path.exists(nodename + '.json'):
                 os.remove(nodename + '.json')
-        extra_node = os.path.join("nodes", "testnode4" + '.json')
+        extra_node = os.path.join("nodes", "extranode" + '.json')
         if os.path.exists(extra_node):
             os.remove(extra_node)
         runner.env.chef_environment = None
@@ -72,7 +73,7 @@ class TestRunner(BaseTest):
         self.assertEquals(runner.env.hosts, [])
 
     def test_nodes_one(self):
-        """Should configure one node"""
+        """Should configure one node when an existing node name is given"""
         runner.node('testnode1')
         self.assertEquals(runner.env.hosts, ['testnode1'])
 
@@ -82,10 +83,10 @@ class TestRunner(BaseTest):
         self.assertEquals(runner.env.hosts, ['testnode1', 'testnode2'])
 
     def test_nodes_all(self):
-        """Should configure all nodes"""
+        """Should configure all nodes when 'all' is given"""
         runner.node('all')
         self.assertEquals(runner.env.hosts,
-            ['testnode1', 'testnode2', 'testnode3.mydomain.com'])
+            ['testnode1', 'testnode2', 'testnode3.mydomain.com', 'testnode4'])
 
     def test_nodes_all_in_env(self):
         """Should configure all nodes in a given environment"""
@@ -129,12 +130,18 @@ class TestLib(unittest.TestCase):
                 "chef_environment": "production",
                 'run_list': ['recipe[subversion]', 'recipe[vim]']
             },
+            {
+                'dummy': True,
+                'chef_environment': 'production',
+                'name': 'testnode4',
+                'run_list': ['recipe[man]']
+            },
         ]
         self.assertEquals(lib.get_nodes(), expected)
 
     def test_get_nodes_in_env(self):
         """Should list all nodes in the given environment"""
-        self.assertEquals(len(lib.get_nodes("production")), 2)
+        self.assertEquals(len(lib.get_nodes("production")), 3)
         self.assertEquals(len(lib.get_nodes("staging")), 1)
 
     def test_nodes_with_role(self):
@@ -179,13 +186,13 @@ class TestLib(unittest.TestCase):
         nodes = list(lib.get_nodes_with_recipe('vim'))
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0]['name'], 'testnode3.mydomain.com')
-        # man recipe inside role "all_you_can_eat"
+        # man recipe inside role "all_you_can_eat" and in testnode4
         nodes = list(lib.get_nodes_with_recipe('man'))
-        self.assertEquals(len(nodes), 1)
+        self.assertEquals(len(nodes), 2)
         self.assertEquals(nodes[0]['name'], 'testnode2')
         # Get node with at least one recipe
         nodes = list(lib.get_nodes_with_recipe('*'))
-        self.assertEquals(len(nodes), 3)
+        self.assertEquals(len(nodes), 4)
         nodes = list(lib.get_nodes_with_role(''))
         self.assertEquals(len(nodes), 0)
 
@@ -234,15 +241,15 @@ class TestChef(BaseTest):
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
-        """Should create a tmp_testnode4.json and a nodes/testnode4.json config
+        """Should create a tmp_extranode.json and a nodes/extranode.json config
         file
 
         """
         # Save a new node
-        env.host_string = 'testnode4'
+        env.host_string = 'extranode'
         run_list = ["role[base]"]
         chef.save_config({"run_list": run_list})
-        file_path = os.path.join('nodes', 'testnode4.json')
+        file_path = os.path.join('nodes', 'extranode.json')
         self.assertTrue(os.path.exists(file_path))
         with open(file_path, 'r') as f:
             data = json.loads(f.read())
@@ -324,7 +331,7 @@ class TestChef(BaseTest):
 
         """
         # Save new node with a non-existing cookbook assigned
-        env.host_string = 'testnode4'
+        env.host_string = 'extranode'
         chef.save_config({"run_list": ["recipe[phantom_cookbook]"]})
         self.assertRaises(SystemExit, chef._build_node_data_bag)
 
@@ -362,7 +369,7 @@ class TestChef(BaseTest):
     def test_attribute_merge_role_not_found(self):
         """Should print a warning when an assigned role if not found"""
         # Save new node with a non-existing cookbook assigned
-        env.host_string = 'testnode4'
+        env.host_string = 'extranode'
         chef.save_config({"run_list": ["role[phantom_role]"]})
         self.assertRaises(SystemExit, chef._build_node_data_bag)
 

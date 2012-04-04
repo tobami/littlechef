@@ -134,6 +134,11 @@ class TestRunner(BaseTest):
         # Will try to configure testnode2 and will fail DNS lookup
         self.assertTrue("tal error: Name lookup failed for testnode2" in error,
                         error)
+    def test_dummy_node(self):
+        """Should *not* configure a node when dummy is set to true"""
+        resp, error = self.execute([fix, 'node:testnode4'])
+        self.assertFalse("Configuring" in resp)
+        self.assertTrue("== Skipping dummy: testnode4 ==" in resp)
 
     def test_several_nodes(self):
         """Should try to configure two nodes"""

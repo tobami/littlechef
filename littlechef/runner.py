@@ -123,11 +123,15 @@ def node(*nodes):
         for hostname in env.hosts:
             env.host = hostname
             env.host_string = hostname
-            lib.print_header("Configuring {0}".format(env.host))
-            # Read node data and configure node
             node = lib.get_node(env.host)
-            if not __testing__:
-                chef.sync_node(node)
+            if node.get('dummy'):
+                lib.print_header("Skipping dummy: {0}".format(env.host))
+            else:
+                lib.print_header("Configuring {0}".format(env.host))
+                if __testing__:
+                    print "TEST: would now configure {0}".format(env.host)
+                else:
+                    chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
