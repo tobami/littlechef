@@ -2,12 +2,12 @@
 LittleChef Changelog
 ====================
 
-Next version
+Version 1.2.0 April 4, 2012
 ----------------------------------------
 New features
 * #82: kitchen sync now works on OSX
-* chef-solo-search upstream version upgrade: search now not only works from
-    recipes and definitions
+* chef-solo-search upstream version upgrade: now search works from cookbook libraries
+* Configuration runs will ignore nodes with 'dummy=true'
 
 Bugs fixed:
 * drhevans expanded recipe lookup so that recipes can be used even when they are
