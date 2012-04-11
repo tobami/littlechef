@@ -204,7 +204,7 @@ def get_recipes_in_cookbook(name):
                     cookbook = json.loads(f.read())
                 except json.JSONDecodeError as e:
                     msg = "Little Chef found the following error in your"
-                    msg += " {0}.json file:\n  {1}".format(
+                    msg += " {0} file:\n  {1}".format(
                         os.path.join(path, 'metadata.json'), e)
                     abort(msg)
                 # Add each recipe defined in the cookbook
