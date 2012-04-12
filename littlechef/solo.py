@@ -279,7 +279,7 @@ def _add_rpm_repos():
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
-            repo_url = "http://download.fedora.redhat.com"
+            repo_url = "http://dl.fedoraproject.org"
             repo_path = "/pub/epel/{0}/i386/".format(rhel_version)
             repo_path += "{0}.rpm".format(epel_release)
             output = sudo('rpm -Uvh {0}{1}'.format(repo_url, repo_path))
