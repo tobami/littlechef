@@ -90,9 +90,15 @@ def configure(current_node=None):
             'environment': current_node.get('chef_environment', '_default'),
             'verbose': "true" if env.verbose else "false"
         }
-        with hide('running', 'stdout'):
-            upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
-                context=data, use_sudo=True, backup=False, mode=0400)
+        with settings(hide('everything')):
+            try:
+                upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
+                    context=data, use_sudo=True, backup=False, mode=0400)
+            except SystemExit:
+                error = ("Failed to upload '/etc/chef/solo.rb'\n"
+                "This can happen when the deployment user does not have a "
+                "home directory, which is needed as a temporary location")
+                abort(error)
         with hide('stdout'):
             sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
 
