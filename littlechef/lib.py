@@ -144,12 +144,12 @@ def _generate_metadata(path, cookbook_path, name):
     metadata_path_rb = os.path.join(path, 'metadata.rb')
     metadata_path_json = os.path.join(path, 'metadata.json')
     if (os.path.exists(metadata_path_rb) and
-        (not os.path.exists(metadata_path_json) or
-         os.stat(metadata_path_rb).st_mtime > \
-         os.stat(metadata_path_json).st_mtime)):
+            (not os.path.exists(metadata_path_json) or
+            os.stat(metadata_path_rb).st_mtime > \
+            os.stat(metadata_path_json).st_mtime)):
         error_msg = "Warning: metadata.json for {0}".format(name)
         error_msg += " in {0} is older that metadata.rb".format(cookbook_path)
-        error_msg += ", and cookbook attributes could be out of date\n"
+        error_msg += ", cookbook attributes could be out of date\n\n"
         try:
             proc = subprocess.Popen(
                 ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
@@ -167,16 +167,15 @@ def _generate_metadata(path, cookbook_path, name):
                 error_msg += "while executing knife to generate "
                 error_msg += "metadata.json for {0}".format(path)
                 print(error_msg)
-                if env.loglevel == 'debug':
-                    print "\n".join(resp.split("\n")[:2])
-            else:
-                print("Generated metadata.json for {0}".format(path))
+            if env.loglevel == 'debug':
+                print "\n".join(resp.split("\n")[:2])
         except OSError:
             knife_installed = False
             error_msg += "If you locally install Chef's knife tool, LittleChef"
-            error_msg += " will regenerate metadata.json files automatically"
+            error_msg += " will regenerate metadata.json files automatically\n"
             print(error_msg)
-
+        else:
+            print("Generated metadata.json for {0}\n".format(path))
 
 def get_recipes_in_cookbook(name):
     """Gets the name of all recipes present in a cookbook
