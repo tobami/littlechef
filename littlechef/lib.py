@@ -48,10 +48,10 @@ def get_node(name):
 
 def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
-    if not os.path.exists('nodes/'):
+    if not os.path.exists('nodes'):
         return []
     nodes = []
-    for filename in sorted([f for f in os.listdir('nodes/')
+    for filename in sorted([f for f in os.listdir('nodes')
                                 if not os.path.isdir(f) and f.endswith(".json")
                                     and not f.startswith('.')]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
@@ -313,7 +313,7 @@ def get_roles_in_node(node):
 
 def _get_role(rolename):
     """Reads and parses a file containing a role"""
-    path = 'roles/' + rolename + '.json'
+    path = os.path.join('roles', rolename + '.json')
     if not os.path.exists(path):
         abort("Couldn't read role file {0}".format(path))
     with open(path, 'r') as f:
@@ -328,13 +328,13 @@ def _get_role(rolename):
 
 
 def get_roles():
-    """Gets all roles found in the roles/ directory"""
+    """Gets all roles found in the 'roles' directory"""
     roles = []
-    for root, subfolders, files in os.walk('roles/'):
+    for root, subfolders, files in os.walk('roles'):
         for filename in files:
             if filename.endswith(".json"):
                 path = os.path.join(
-                    root[len('roles/'):], filename[:-len('.json')])
+                    root[len('roles'):], filename[:-len('.json')])
                 roles.append(_get_role(path))
     return sorted(roles, key=lambda x: x['fullname'])
 
@@ -365,8 +365,8 @@ def print_plugin_list():
 
 def get_plugins():
     """Gets available plugins by looking into the plugins/ directory"""
-    if os.path.exists('plugins/'):
-        for filename in sorted([f for f in os.listdir('plugins/')
+    if os.path.exists('plugins'):
+        for filename in sorted([f for f in os.listdir('plugins')
                 if not os.path.isdir(f) and f.endswith(".py")]):
             plugin_name = filename[:-3]
             try:

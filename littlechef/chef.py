@@ -40,7 +40,7 @@ def save_config(node, force=False):
     if no nodes/hostname.json exists, or force=True, it creates one
     it also saves to tmp_node.json
     """
-    filepath = os.path.join("nodes/", env.host_string + ".json")
+    filepath = os.path.join("nodes", env.host_string + ".json")
     tmp_filename = 'tmp_{0}.json'.format(env.host_string)
     files_to_create = [tmp_filename]
     if not os.path.exists(filepath) or force:
