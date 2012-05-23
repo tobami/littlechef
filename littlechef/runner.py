@@ -215,9 +215,11 @@ def ssh(name):
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
         if name.startswith("sudo "):
-            sudo(name[5:])
+            with lib.credentials():
+                sudo(name[5:])
         else:
-            run(name)
+            with lib.credentials():
+                run(name)
 
 
 def plugin(name):
