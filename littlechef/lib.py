@@ -167,6 +167,7 @@ def _generate_metadata(path, cookbook_path, name):
                 error_msg += "while executing knife to generate "
                 error_msg += "metadata.json for {0}".format(path)
                 print(error_msg)
+                print resp
             if env.loglevel == 'debug':
                 print "\n".join(resp.split("\n")[:2])
         except OSError:
