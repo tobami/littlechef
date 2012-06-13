@@ -98,6 +98,9 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
+    if node.get('dummy'):
+        lib.print_header("Skipping dummy: {0}".format(env.host))
+        return
     print "Synchronizing node, cookbooks, roles and data bags..."
     # First upload node.json
     remote_file = '/etc/chef/node.json'

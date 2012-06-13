@@ -85,11 +85,12 @@ class TestRunner(BaseTest):
     def test_nodes_all(self):
         """Should configure all nodes when 'all' is given"""
         runner.node('all')
-        self.assertEquals(runner.env.hosts,
-            ['testnode1', 'testnode2', 'testnode3.mydomain.com', 'testnode4'])
+        expected = ['testnode1', 'testnode2', 'testnode3.mydomain.com', 'testnode4']
+        self.assertEquals(runner.env.hosts, expected)
 
     def test_nodes_all_in_env(self):
-        """Should configure all nodes in a given environment"""
+        """Should configure all nodes in a given environment when 'all' is
+        given and evironment is set"""
         runner.env.chef_environment = "staging"
         runner.node('all')
         self.assertEquals(runner.env.hosts, ['testnode2'])
