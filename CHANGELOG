@@ -2,6 +2,15 @@
 LittleChef Changelog
 ====================
 
+Version 1.2.1 June 14, 2012
+----------------------------------------
+Bugs fixed:
+* jmalonzo updated the url for the EPEL repo
+* #94: Use ssh-config credentials for the "ssh" command
+* #95: role and recipe commands should skip "dummy" nodes
+* Some improvemts to knife error messages
+
+
 Version 1.2.0 April 4, 2012
 ----------------------------------------
 New features
