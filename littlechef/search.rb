@@ -46,7 +46,7 @@ if Chef::Config[:solo]
         # an exception is raised.
         # This search() method returns a block iterator or an Array, depending
         # on how this method is called.
-        def search(bag_name, query=nil, sort=nil, start=0, rows=1000, &block)
+        def search(obj, query=nil, sort=nil, start=0, rows=1000, &block)
           if !sort.nil?
             raise "Sorting search results is not supported"
           end
@@ -54,26 +54,49 @@ if Chef::Config[:solo]
           if @_query.nil?
             raise "Query #{query} is not supported"
           end
+          @_result = []
+
+          case obj
+          when :node
+            search_nodes(start, rows, &block)
+          when :role
+            search_roles(start, rows, &block)
+          else
+            search_data_bag(obj, start, rows, &block)
+          end
+          
+
           if block_given?
             pos = 0
+            while (pos >= start and pos < (start + rows) and pos < @_result.size)
+              yield @_result[pos]
+              pos += 1
+            end
           else
-            result = []
+            return @_result.slice(start, rows)
           end
+        end
+
+        def search_nodes(start, rows, &block)
+          Dir.glob(File.join(Chef::Config[:data_bag_path], "node", "*.json")).map do |f|
+            # parse and hashify the node
+            node = JSON.parse(IO.read(f))
+            if @_query.match(node.to_hash)
+              @_result << node
+            end
+          end
+        end
+
+        def search_roles(start, rows, &block)
+          raise "Role searching not implemented"
+        end
+
+        def search_data_bag(bag_name, start, rows, &block)
           data_bag(bag_name.to_s).each do |bag_item_id|
             bag_item = data_bag_item(bag_name.to_s, bag_item_id)
             if @_query.match(bag_item)
-              if block_given?
-                if (pos >= start and pos < (start + rows))
-                  yield bag_item
-                end
-                pos += 1
-              else
-                result << bag_item
-              end
+              @_result << bag_item
             end
-          end
-          if !block_given?
-            return result.slice(start, rows)
           end
         end
       end
