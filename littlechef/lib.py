@@ -308,8 +308,12 @@ def get_roles_in_node(node):
     for elem in node.get('run_list'):
         if elem.startswith("role"):
             role = elem.split('[')[1].split(']')[0]
-            roles.append(role)
-    return roles
+            sub_roles = get_roles_in_role(role)
+            if sub_roles:
+                roles.extend(sub_roles)
+            else:
+                roles.append(role)
+    return list(set(roles))
 
 
 def _get_role(rolename):
