@@ -1,0 +1,11 @@
+{
+    "name": "sub_role",
+    "json_class": "Chef::Role",
+    "description": "A role included in a top-level role",
+    "chef_type": "role",
+    "default_attributes": { },
+    "override_attributes": { },
+    "run_list": [
+        "role[sub_sub_role]"
+    ]
+}
