@@ -280,8 +280,8 @@ class TestListNodes(BaseTest):
         """Should list all nodes with a recipe in the run list"""
         for r in ['top_level_role', 'sub_role', 'sub_sub_role', 'base']:
             resp, error = self.execute([fix, 'list_nodes_with_role:%s' % r])
-        self.assertTrue('nestedroles1' in resp, r+": "+resp)
-        self.assertTrue(r in resp, r+": "+resp)
+            self.assertTrue('nestedroles1' in resp, r+": "+resp)
+            self.assertTrue(r in resp, r+": "+resp)
 
 
 if __name__ == "__main__":
