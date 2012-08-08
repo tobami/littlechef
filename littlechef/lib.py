@@ -70,10 +70,7 @@ def get_nodes_with_role(role_name, environment=None):
     if prefix_search:
         role_name = role_name.rstrip("*")
     for n in get_nodes(environment):
-        roles = []
-        for role in get_roles_in_node(n):
-            roles.append(role)
-            roles.extend(get_roles_in_role(role))
+        roles = get_roles_in_node(n)
         if prefix_search:
             if any(role.startswith(role_name) for role in roles):
                 yield n
