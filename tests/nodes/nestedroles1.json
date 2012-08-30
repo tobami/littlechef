@@ -1,0 +1,6 @@
+{
+    "chef_environment": "role_testing",
+    "run_list": [
+        "role[top_level_role]"
+    ]
+}
