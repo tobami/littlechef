@@ -281,7 +281,7 @@ def _add_rpm_repos():
 
     epel_release = "epel-release-5-4.noarch"
     if rhel_version == "6":
-        epel_release = "epel-release-6-5.noarch"
+        epel_release = "epel-release-6-7.noarch"
     with show('running'):
         # Install the EPEL Yum Repository.
         with settings(hide('warnings', 'running'), warn_only=True):
