@@ -6,7 +6,6 @@
     "description": "An example aplication role than needs the subversion recipe",
     "chef_type": "role",
     "run_list": [
-        "recipe[subversion]",
-        "recipe[vim]"
+        "recipe[subversion]"
     ]
 }

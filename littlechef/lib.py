@@ -70,10 +70,7 @@ def get_nodes_with_role(role_name, environment=None):
     if prefix_search:
         role_name = role_name.rstrip("*")
     for n in get_nodes(environment):
-        roles = []
-        for role in get_roles_in_node(n):
-            roles.append(role)
-            roles.extend(get_roles_in_role(role))
+        roles = get_roles_in_node(n, recursive=True)
         if prefix_search:
             if any(role.startswith(role_name) for role in roles):
                 yield n
@@ -92,7 +89,7 @@ def get_nodes_with_recipe(recipe_name, environment=None):
         recipe_name = recipe_name.rstrip("*")
     for n in get_nodes(environment):
         recipes = get_recipes_in_node(n)
-        for role in get_roles_in_node(n):
+        for role in get_roles_in_node(n, recursive=True):
             recipes.extend(get_recipes_in_role(role))
         if prefix_search:
             if any(recipe.startswith(recipe_name) for recipe in recipes):
@@ -261,9 +258,7 @@ def get_recipes_in_cookbook(name):
 
 def get_recipes_in_role(rolename):
     """Gets all recipes defined in a role's run_list"""
-    recipes = []
-    role = _get_role(rolename)
-    recipes.extend(get_recipes_in_node(role))
+    recipes = get_recipes_in_node(_get_role(rolename))
     return recipes
 
 
@@ -303,14 +298,24 @@ def get_roles_in_role(rolename):
     return get_roles_in_node(_get_role(rolename))
 
 
-def get_roles_in_node(node):
-    """Gets the name of all roles found in the run_list of a node"""
+def get_roles_in_node(node, recursive=False, depth=0):
+    """Returns a list of roles found in the run_list of a node
+    * recursive: True feches roles recursively
+    * depth: Keeps track of recursion depth
+
+    """
+    LIMIT = 5
     roles = []
     for elem in node.get('run_list'):
         if elem.startswith("role"):
             role = elem.split('[')[1].split(']')[0]
-            roles.append(role)
-    return roles
+            if role not in roles:
+                roles.append(role)
+                if recursive and depth <= LIMIT:
+                    roles.extend(get_roles_in_node(_get_role(role),
+                                                   recursive=True,
+                                                   depth=depth + 1))
+    return list(set(roles))
 
 
 def _get_role(rolename):
