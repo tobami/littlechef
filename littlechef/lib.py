@@ -89,7 +89,7 @@ def get_nodes_with_recipe(recipe_name, environment=None):
         recipe_name = recipe_name.rstrip("*")
     for n in get_nodes(environment):
         recipes = get_recipes_in_node(n)
-        for role in get_roles_in_node(n):
+        for role in get_roles_in_node(n, recursive=True):
             recipes.extend(get_recipes_in_role(role))
         if prefix_search:
             if any(recipe.startswith(recipe_name) for recipe in recipes):

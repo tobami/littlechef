@@ -151,7 +151,7 @@ class TestLib(BaseTest):
             self.assertTrue(nodes[0]['name'], 'nestedroles1')
 
     def test_nodes_with_role_wildcard(self):
-        """Should return nodes when wildcard is given and role is asigned"""
+        """Should return node when wildcard is given and role is asigned"""
         nodes = list(lib.get_nodes_with_role('all_*'))
         self.assertEqual(len(nodes), 1)
         self.assertEqual(nodes[0]['name'], 'testnode2')
@@ -166,7 +166,7 @@ class TestLib(BaseTest):
         self.assertEqual(len(nodes), 0)
 
     def test_nodes_with_role_in_env(self):
-        """Should return all nodes with a given role and in the given env"""
+        """Should return node when role is asigned and environment matches"""
         nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'staging'))
         self.assertEqual(len(nodes), 1)
         self.assertEqual(nodes[0]['name'], 'testnode2')
@@ -175,22 +175,30 @@ class TestLib(BaseTest):
         self.assertFalse(len(nodes))
 
     def test_nodes_with_recipe(self):
-        """Should return all nodes with a given recipe"""
-        # All nodes have the subversion recipe in the expanded run_list
-        nodes = list(lib.get_nodes_with_recipe('subversion'))
-        self.assertEqual(len(nodes), 3)
-        nodes = list(lib.get_nodes_with_recipe('sub*'))
-        self.assertEqual(len(nodes), 3)
+        """Should return node when recipe is in the explicit run_list"""
         nodes = list(lib.get_nodes_with_recipe('vim'))
         self.assertEqual(len(nodes), 1)
         self.assertEqual(nodes[0]['name'], 'testnode3.mydomain.com')
+
+    def test_nodes_with_recipe_expanded(self):
+        """Should return node when recipe is in the expanded run_list"""
+        # 'subversion' is in the 'base' role
+        nodes = list(lib.get_nodes_with_recipe('subversion'))
+        self.assertEqual(len(nodes), 4)
+
         # man recipe inside role "all_you_can_eat" and in testnode4
         nodes = list(lib.get_nodes_with_recipe('man'))
         self.assertEqual(len(nodes), 2)
         self.assertEqual(nodes[0]['name'], 'testnode2')
+        
+    def test_nodes_with_recipe_wildcard(self):
+        """Should return node when wildcard is given and role is asigned"""
+        nodes = list(lib.get_nodes_with_recipe('sub*'))
+        self.assertEqual(len(nodes), 4)
+
         # Get node with at least one recipe
         nodes = list(lib.get_nodes_with_recipe('*'))
-        self.assertEqual(len(nodes), 4)
+        self.assertEqual(len(nodes), 5)
         nodes = list(lib.get_nodes_with_role(''))
         self.assertEqual(len(nodes), 0)
 
@@ -281,7 +289,7 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('id' in data and data['id'] == 'testnode2')
         self.assertTrue('recipes' in data)
-        self.assertEqual(data['recipes'], [u'subversion', u'man', u'vim'])
+        self.assertEqual(data['recipes'], [u'subversion', u'man'])
         self.assertTrue('recipes' in data)
         self.assertEqual(data['role'], [u'all_you_can_eat'])
         self.assertEqual(data['roles'], [u'base', u'all_you_can_eat'])
