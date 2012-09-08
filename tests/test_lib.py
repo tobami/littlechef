@@ -30,15 +30,20 @@ littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
 
 class BaseTest(unittest.TestCase):
+    def setUp(self):
+        self.nodes = [
+            'nestedroles1',
+            'testnode1',
+            'testnode2',
+            'testnode3.mydomain.com',
+            'testnode4'
+        ]
+
     def tearDown(self):
-        for nodename in [
-            'tmp_testnode1',
-            'tmp_testnode2',
-            'tmp_testnode3.mydomain.com',
-            'tmp_testnode4',
-            'tmp_extranode']:
-            if os.path.exists(nodename + '.json'):
-                os.remove(nodename + '.json')
+        for nodename in self.nodes + ["extranode"]:
+            filename = 'tmp_' + nodename + '.json'
+            if os.path.exists(filename):
+                os.remove(filename)
         extra_node = os.path.join("nodes", "extranode" + '.json')
         if os.path.exists(extra_node):
             os.remove(extra_node)
@@ -85,88 +90,77 @@ class TestRunner(BaseTest):
     def test_nodes_all(self):
         """Should configure all nodes when 'all' is given"""
         runner.node('all')
-        expected = ['testnode1', 'testnode2', 'testnode3.mydomain.com', 'testnode4']
-        self.assertEquals(runner.env.hosts, expected)
+        self.assertEqual(runner.env.hosts, self.nodes)
 
     def test_nodes_all_in_env(self):
         """Should configure all nodes in a given environment when 'all' is
         given and evironment is set"""
         runner.env.chef_environment = "staging"
         runner.node('all')
-        self.assertEquals(runner.env.hosts, ['testnode2'])
+        self.assertEqual(runner.env.hosts, ['testnode2'])
 
 
-class TestLib(unittest.TestCase):
+class TestLib(BaseTest):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
         # Unexisting node
         expected = {'run_list': []}
-        self.assertEquals(lib.get_node('Idon"texist'), expected)
+        self.assertEqual(lib.get_node('Idon"texist'), expected)
         # Existing node
         expected = {
             'chef_environment': 'production',
             'name': 'testnode1',
             'run_list': ['recipe[subversion]'],
         }
-        self.assertEquals(lib.get_node('testnode1'), expected)
+        self.assertEqual(lib.get_node('testnode1'), expected)
 
     def test_get_nodes(self):
-        """Should return all configured nodes"""
-        expected = [
-            {
-                'name': 'testnode1',
-                'chef_environment': 'production',
-                'run_list': ['recipe[subversion]']
-            },
-            {
-                'chef_environment': 'staging', 'name': 'testnode2',
-                'other_attr': {'deep_dict': {'deep_key1': 'node_value1'}},
-                'subversion': {
-                    'password': 'node_password', 'user': 'node_user'
-                },
-                'run_list': ['role[all_you_can_eat]']
-            },
-            {
-                'name': 'testnode3.mydomain.com',
-                "chef_environment": "production",
-                'run_list': ['recipe[subversion]', 'recipe[vim]']
-            },
-            {
-                'dummy': True,
-                'chef_environment': 'production',
-                'name': 'testnode4',
-                'run_list': ['recipe[man]']
-            },
-        ]
-        self.assertEquals(lib.get_nodes(), expected)
+        """Should return all configured nodes when no environment is given"""
+        found_nodes = lib.get_nodes()
+        self.assertEqual(len(found_nodes), len(self.nodes))
+        expected_keys = ['name', 'chef_environment', 'run_list']
+        for node in found_nodes:
+            self.assertTrue(all([key in node for key in expected_keys]))
 
     def test_get_nodes_in_env(self):
         """Should list all nodes in the given environment"""
-        self.assertEquals(len(lib.get_nodes("production")), 3)
-        self.assertEquals(len(lib.get_nodes("staging")), 1)
+        self.assertEqual(len(lib.get_nodes("production")), 3)
+        self.assertEqual(len(lib.get_nodes("staging")), 1)
 
     def test_nodes_with_role(self):
-        """Should return all nodes with a given role in their run_list"""
+        """Should return nodes when role is present in the explicit run_list"""
         nodes = list(lib.get_nodes_with_role('all_you_can_eat'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
         self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
+        
+    def test_nodes_with_role_expanded(self):
+        """Should return nodes when role is present in the expanded run_list"""
         # nested role 'base'
         nodes = list(lib.get_nodes_with_role('base'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
-        # Wild card
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
+
+        # Find node regardless of recursion level of role sought
+        for role in ['top_level_role', 'sub_role', 'sub_sub_role', 'base']:
+            nodes = list(lib.get_nodes_with_role(role))
+            self.assertEqual(len(nodes), 1)
+            self.assertTrue(nodes[0]['name'], 'nestedroles1')
+
+    def test_nodes_with_role_wildcard(self):
+        """Should return nodes when wildcard is given and role is asigned"""
         nodes = list(lib.get_nodes_with_role('all_*'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
         # Prefix with no wildcard
         nodes = list(lib.get_nodes_with_role('all_'))
-        self.assertEquals(len(nodes), 0)
+        self.assertEqual(len(nodes), 0)
         # Nodes with at least one role
         nodes = list(lib.get_nodes_with_role('*'))
-        self.assertEquals(len(nodes), 1)
+
+        self.assertEqual(len(nodes), 2)
         nodes = list(lib.get_nodes_with_role(''))
-        self.assertEquals(len(nodes), 0)
+        self.assertEqual(len(nodes), 0)
 
     def test_nodes_with_role_in_env(self):
         """Should return all nodes with a given role and in the given env"""
