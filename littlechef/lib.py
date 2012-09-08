@@ -1,4 +1,4 @@
-#Copyright 2010-2012 Miquel Torres <tobami@googlemail.com>
+#Copyright 2010-2012 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -178,6 +178,7 @@ def _generate_metadata(path, cookbook_path, name):
         else:
             print("Generated metadata.json for {0}\n".format(path))
 
+
 def get_recipes_in_cookbook(name):
     """Gets the name of all recipes present in a cookbook
     Returns a list of dictionaries
@@ -354,6 +355,8 @@ def print_role(role, detailed=True):
     if 'override_attributes' in role:
         print("    override_attributes:")
         _pprint(role['override_attributes'])
+    if detailed:
+        print("    run_list: {0}".format(role.get('run_list')))
     print("")
 
 
