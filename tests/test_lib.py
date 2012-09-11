@@ -30,15 +30,20 @@ littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
 
 class BaseTest(unittest.TestCase):
+    def setUp(self):
+        self.nodes = [
+            'nestedroles1',
+            'testnode1',
+            'testnode2',
+            'testnode3.mydomain.com',
+            'testnode4'
+        ]
+
     def tearDown(self):
-        for nodename in [
-            'tmp_testnode1',
-            'tmp_testnode2',
-            'tmp_testnode3.mydomain.com',
-            'tmp_testnode4',
-            'tmp_extranode']:
-            if os.path.exists(nodename + '.json'):
-                os.remove(nodename + '.json')
+        for nodename in self.nodes + ["extranode"]:
+            filename = 'tmp_' + nodename + '.json'
+            if os.path.exists(filename):
+                os.remove(filename)
         extra_node = os.path.join("nodes", "extranode" + '.json')
         if os.path.exists(extra_node):
             os.remove(extra_node)
@@ -58,173 +63,173 @@ class TestRunner(BaseTest):
     def test_nodes_with_role(self):
         """Should return a list of nodes with the given role in the run_list"""
         runner.nodes_with_role("all_you_can_eat")
-        self.assertEquals(runner.env.hosts, ['testnode2'])
+        self.assertEqual(runner.env.hosts, ['testnode2'])
 
     def test_nodes_with_role_in_env(self):
         """Should return a filtered list of nodes when an env is given"""
         runner.env.chef_environment = "staging"
         runner.nodes_with_role("all_you_can_eat")
-        self.assertEquals(runner.env.hosts, ['testnode2'])
+        self.assertEqual(runner.env.hosts, ['testnode2'])
 
     def test_nodes_with_role_in_env_empty(self):
         runner.env.chef_environment = "production"
         self.assertRaises(
             SystemExit, runner.nodes_with_role, "all_you_can_eat")
-        self.assertEquals(runner.env.hosts, [])
+        self.assertEqual(runner.env.hosts, [])
 
     def test_nodes_one(self):
         """Should configure one node when an existing node name is given"""
         runner.node('testnode1')
-        self.assertEquals(runner.env.hosts, ['testnode1'])
+        self.assertEqual(runner.env.hosts, ['testnode1'])
 
     def test_nodes_several(self):
         """Should configure several nodes"""
         runner.node('testnode1', 'testnode2')
-        self.assertEquals(runner.env.hosts, ['testnode1', 'testnode2'])
+        self.assertEqual(runner.env.hosts, ['testnode1', 'testnode2'])
 
     def test_nodes_all(self):
         """Should configure all nodes when 'all' is given"""
         runner.node('all')
-        expected = ['testnode1', 'testnode2', 'testnode3.mydomain.com', 'testnode4']
-        self.assertEquals(runner.env.hosts, expected)
+        self.assertEqual(runner.env.hosts, self.nodes)
 
     def test_nodes_all_in_env(self):
         """Should configure all nodes in a given environment when 'all' is
         given and evironment is set"""
         runner.env.chef_environment = "staging"
         runner.node('all')
-        self.assertEquals(runner.env.hosts, ['testnode2'])
+        self.assertEqual(runner.env.hosts, ['testnode2'])
 
 
-class TestLib(unittest.TestCase):
+class TestLib(BaseTest):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
         # Unexisting node
         expected = {'run_list': []}
-        self.assertEquals(lib.get_node('Idon"texist'), expected)
+        self.assertEqual(lib.get_node('Idon"texist'), expected)
         # Existing node
         expected = {
             'chef_environment': 'production',
             'name': 'testnode1',
             'run_list': ['recipe[subversion]'],
         }
-        self.assertEquals(lib.get_node('testnode1'), expected)
+        self.assertEqual(lib.get_node('testnode1'), expected)
 
     def test_get_nodes(self):
-        """Should return all configured nodes"""
-        expected = [
-            {
-                'name': 'testnode1',
-                'chef_environment': 'production',
-                'run_list': ['recipe[subversion]']
-            },
-            {
-                'chef_environment': 'staging', 'name': 'testnode2',
-                'other_attr': {'deep_dict': {'deep_key1': 'node_value1'}},
-                'subversion': {
-                    'password': 'node_password', 'user': 'node_user'
-                },
-                'run_list': ['role[all_you_can_eat]']
-            },
-            {
-                'name': 'testnode3.mydomain.com',
-                "chef_environment": "production",
-                'run_list': ['recipe[subversion]', 'recipe[vim]']
-            },
-            {
-                'dummy': True,
-                'chef_environment': 'production',
-                'name': 'testnode4',
-                'run_list': ['recipe[man]']
-            },
-        ]
-        self.assertEquals(lib.get_nodes(), expected)
+        """Should return all configured nodes when no environment is given"""
+        found_nodes = lib.get_nodes()
+        self.assertEqual(len(found_nodes), len(self.nodes))
+        expected_keys = ['name', 'chef_environment', 'run_list']
+        for node in found_nodes:
+            self.assertTrue(all([key in node for key in expected_keys]))
 
     def test_get_nodes_in_env(self):
         """Should list all nodes in the given environment"""
-        self.assertEquals(len(lib.get_nodes("production")), 3)
-        self.assertEquals(len(lib.get_nodes("staging")), 1)
+        self.assertEqual(len(lib.get_nodes("production")), 3)
+        self.assertEqual(len(lib.get_nodes("staging")), 1)
 
     def test_nodes_with_role(self):
-        """Should return all nodes with a given role in their run_list"""
+        """Should return nodes when role is present in the explicit run_list"""
         nodes = list(lib.get_nodes_with_role('all_you_can_eat'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
         self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
+        
+    def test_nodes_with_role_expanded(self):
+        """Should return nodes when role is present in the expanded run_list"""
         # nested role 'base'
         nodes = list(lib.get_nodes_with_role('base'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
-        # Wild card
+        self.assertEqual(len(nodes), 2)
+        expected_nodes = ['nestedroles1', 'testnode2']
+        for node in nodes:
+            self.assertTrue(node['name'] in expected_nodes)
+            expected_nodes.remove(node['name'])
+
+        # Find node regardless of recursion level of role sought
+        for role in ['top_level_role', 'sub_role', 'sub_sub_role']:
+            nodes = list(lib.get_nodes_with_role(role))
+            self.assertEqual(len(nodes), 1)
+            self.assertTrue(nodes[0]['name'], 'nestedroles1')
+
+    def test_nodes_with_role_wildcard(self):
+        """Should return node when wildcard is given and role is asigned"""
         nodes = list(lib.get_nodes_with_role('all_*'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
         # Prefix with no wildcard
         nodes = list(lib.get_nodes_with_role('all_'))
-        self.assertEquals(len(nodes), 0)
+        self.assertEqual(len(nodes), 0)
         # Nodes with at least one role
         nodes = list(lib.get_nodes_with_role('*'))
-        self.assertEquals(len(nodes), 1)
+
+        self.assertEqual(len(nodes), 2)
         nodes = list(lib.get_nodes_with_role(''))
-        self.assertEquals(len(nodes), 0)
+        self.assertEqual(len(nodes), 0)
 
     def test_nodes_with_role_in_env(self):
-        """Should return all nodes with a given role and in the given env"""
+        """Should return node when role is asigned and environment matches"""
         nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'staging'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
         # No nodes in production with this role
         nodes = list(lib.get_nodes_with_role('all_you_can_eat', 'production'))
         self.assertFalse(len(nodes))
 
     def test_nodes_with_recipe(self):
-        """Should return all nodes with a given recipe"""
-        # All nodes have the subversion recipe in the expanded run_list
-        nodes = list(lib.get_nodes_with_recipe('subversion'))
-        self.assertEquals(len(nodes), 3)
-        nodes = list(lib.get_nodes_with_recipe('sub*'))
-        self.assertEquals(len(nodes), 3)
+        """Should return node when recipe is in the explicit run_list"""
         nodes = list(lib.get_nodes_with_recipe('vim'))
-        self.assertEquals(len(nodes), 1)
-        self.assertEquals(nodes[0]['name'], 'testnode3.mydomain.com')
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]['name'], 'testnode3.mydomain.com')
+
+    def test_nodes_with_recipe_expanded(self):
+        """Should return node when recipe is in the expanded run_list"""
+        # 'subversion' is in the 'base' role
+        nodes = list(lib.get_nodes_with_recipe('subversion'))
+        self.assertEqual(len(nodes), 4)
+
         # man recipe inside role "all_you_can_eat" and in testnode4
         nodes = list(lib.get_nodes_with_recipe('man'))
-        self.assertEquals(len(nodes), 2)
-        self.assertEquals(nodes[0]['name'], 'testnode2')
+        self.assertEqual(len(nodes), 2)
+        self.assertEqual(nodes[0]['name'], 'testnode2')
+        
+    def test_nodes_with_recipe_wildcard(self):
+        """Should return node when wildcard is given and role is asigned"""
+        nodes = list(lib.get_nodes_with_recipe('sub*'))
+        self.assertEqual(len(nodes), 4)
+
         # Get node with at least one recipe
         nodes = list(lib.get_nodes_with_recipe('*'))
-        self.assertEquals(len(nodes), 4)
+        self.assertEqual(len(nodes), 5)
         nodes = list(lib.get_nodes_with_role(''))
-        self.assertEquals(len(nodes), 0)
+        self.assertEqual(len(nodes), 0)
 
     def test_nodes_with_recipe_in_env(self):
         """Should return all nodes with a given recipe and in the given env"""
         nodes = list(lib.get_nodes_with_recipe('subversion', 'production'))
-        self.assertEquals(len(nodes), 2)
-        self.assertEquals(nodes[0]['name'], 'testnode1')
+        self.assertEqual(len(nodes), 2)
+        self.assertEqual(nodes[0]['name'], 'testnode1')
         nodes = list(lib.get_nodes_with_recipe('subversion', 'staging'))
-        self.assertEquals(len(nodes), 1)
+        self.assertEqual(len(nodes), 1)
         # No nodes in staging with this role
         nodes = list(lib.get_nodes_with_recipe('vim', 'staging'))
         self.assertFalse(len(nodes))
 
     def test_list_recipes(self):
         recipes = lib.get_recipes()
-        self.assertEquals(len(recipes), 6)
-        self.assertEquals(recipes[1]['name'], 'subversion')
-        self.assertEquals(recipes[1]['description'],
+        self.assertEqual(len(recipes), 6)
+        self.assertEqual(recipes[1]['name'], 'subversion')
+        self.assertEqual(recipes[1]['description'],
             'Includes the client recipe. Modified by site-cookbooks')
-        self.assertEquals(recipes[2]['name'], 'subversion::client')
-        self.assertEquals(recipes[2]['description'],
+        self.assertEqual(recipes[2]['name'], 'subversion::client')
+        self.assertEqual(recipes[2]['description'],
             'Subversion Client installs subversion and some extra svn libs')
-        self.assertEquals(recipes[3]['name'], 'subversion::server')
+        self.assertEqual(recipes[3]['name'], 'subversion::server')
         self.assertIn('subversion::testrecipe', [r['name'] for r in recipes])
 
     def test_import_plugin(self):
         """Should import the given plugin"""
         plugin = lib.import_plugin("dummy")
         expected = "Dummy LittleChef plugin"
-        self.assertEquals(plugin.__doc__, expected)
+        self.assertEqual(plugin.__doc__, expected)
 
         # Should fail to import a bad plugin module
         self.assertRaises(SystemExit, lib.import_plugin, "bad")
@@ -232,8 +237,8 @@ class TestLib(unittest.TestCase):
     def test_get_plugins(self):
         """Should get a list of available plugins"""
         plugins = [p for p in lib.get_plugins()]
-        self.assertEquals(len(plugins), 2)
-        self.assertEquals(plugins[0]['bad'], "Plugin has a syntax error")
+        self.assertEqual(len(plugins), 2)
+        self.assertEqual(plugins[0]['bad'], "Plugin has a syntax error")
 
 
 class TestChef(BaseTest):
@@ -254,7 +259,7 @@ class TestChef(BaseTest):
         self.assertTrue(os.path.exists(file_path))
         with open(file_path, 'r') as f:
             data = json.loads(f.read())
-        self.assertEquals(data['run_list'], run_list)
+        self.assertEqual(data['run_list'], run_list)
 
         # It should't overwrite existing config files
         env.host_string = 'testnode1'  # This node exists
@@ -263,7 +268,7 @@ class TestChef(BaseTest):
         with open(os.path.join('nodes', 'testnode1.json'), 'r') as f:
             data = json.loads(f.read())
             # It should *NOT* have "base" assigned
-            self.assertEquals(data['run_list'], ["recipe[subversion]"])
+            self.assertEqual(data['run_list'], ["recipe[subversion]"])
 
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""
@@ -284,10 +289,10 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('id' in data and data['id'] == 'testnode2')
         self.assertTrue('recipes' in data)
-        self.assertEquals(data['recipes'], [u'subversion', u'man', u'vim'])
+        self.assertEqual(data['recipes'], [u'subversion', u'man'])
         self.assertTrue('recipes' in data)
-        self.assertEquals(data['role'], [u'all_you_can_eat'])
-        self.assertEquals(data['roles'], [u'base', u'all_you_can_eat'])
+        self.assertEqual(data['role'], [u'all_you_can_eat'])
+        self.assertEqual(data['roles'], [u'base', u'all_you_can_eat'])
 
     def test_build_node_data_bag_nonalphanumeric(self):
         """Should create a node data bag when node name contains invalid chars
@@ -381,10 +386,10 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertEquals(
+        self.assertEqual(
             data['subversion']['repo_server'], 'role_default_repo_server')
         self.assertTrue('other_attr' in data)
-        self.assertEquals(data['other_attr']['other_key'], 'nada')
+        self.assertEqual(data['other_attr']['other_key'], 'nada')
 
     def test_attribute_merge_node_normal(self):
         """Should have the value found in the node attributes"""
@@ -393,7 +398,7 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertEquals(data['subversion']['user'], 'node_user')
+        self.assertEqual(data['subversion']['user'], 'node_user')
 
     def test_attribute_merge_role_override(self):
         """Should have the value found in the roles override attributes"""
@@ -402,7 +407,7 @@ class TestChef(BaseTest):
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
-        self.assertEquals(data['subversion']['password'], 'role_override_pass')
+        self.assertEqual(data['subversion']['password'], 'role_override_pass')
 
     def test_attribute_merge_deep_dict(self):
         """Should deep-merge a dict when it is defined in two different places
