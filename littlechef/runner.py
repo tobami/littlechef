@@ -63,7 +63,7 @@ def new_kitchen():
             print >> configfh, "password = "
             print >> configfh, "keypair-file = "
             print >> configfh, "ssh-config = "
-            print >> configfh, "[littlechef]"
+            print >> configfh, "[kitchen]"
             print >> configfh, "littlechef_dir = /tmp/chef-solo/"
             print "config.cfg file created..."
 
@@ -328,13 +328,6 @@ def _readconfig():
         abort(msg)
     config = ConfigParser.ConfigParser()
     config.read("config.cfg")
-
-    try:
-        littlechef_dir = config.get('littlechef', 'littlchef_dir') or '/tmp/chef-solo'
-    except ConfigParser.NoSectionError:
-        pass
-    except ConfigParser.NoOptionError:
-        pass
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair

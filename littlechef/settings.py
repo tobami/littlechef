@@ -21,6 +21,6 @@ cookbook_paths = ['site-cookbooks', 'cookbooks']
 config = ConfigParser.ConfigParser()
 config.read("config.cfg")
 try:
-    node_work_path = config.get('littlechef','littlechef_dir') or '/tmp/chef-solo'
-except:
-    pass
+    node_work_path = config.get('kitchen','littlechef_dir')
+except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    node_work_path = '/tmp/chef-solo'

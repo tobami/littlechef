@@ -15,7 +15,7 @@ It also adds features to Chef Solo that are currently only available for Chef Se
 
 It all starts in the **kitchen**, which you should keep under version control:
 
-* `config.cfg`: Authentication information needed to be able to connect to the nodes
+* `config.cfg`: Configuration, including authentication and run-time options.
 * `nodes/`: After recipes are run on [Nodes][], their configuration is stored here in
 JSON format. You can manually edit them or even add new ones. The name of a node
 should be its FQDN
@@ -135,7 +135,7 @@ user = myusername
 password = mypassword
 ssh-config = /path/to/config/file
 
-[littlechef]
+[kitchen]
 littlechef_dir = /tmp/chef-solo
 ```
 
