@@ -15,7 +15,7 @@ It also adds features to Chef Solo that are currently only available for Chef Se
 
 It all starts in the **kitchen**, which you should keep under version control:
 
-* `auth.cfg`: Authentication information needed to be able to connect to the nodes
+* `config.cfg`: Configuration, including authentication and run-time options.
 * `nodes/`: After recipes are run on [Nodes][], their configuration is stored here in
 JSON format. You can manually edit them or even add new ones. The name of a node
 should be its FQDN
@@ -117,23 +117,26 @@ Careful what you do with your nodes!:
 
 ### Local Setup
 
-`fix new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `auth.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
+`fix new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `config.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
 
 ### Authentication
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. `new_kitchen` will have created a file named `auth.cfg`. You can edit it now to enter needed authentication data. There are several possibilities:
+To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. `new_kitchen` will have created a file named `config.cfg`. You can edit it now to enter needed authentication data. There are several possibilities:
 
 * username and password
 * username, password and keypair-file
 * A reference to an ssh-config file
 
-The last one allows the most flexibility, as it allows you to define different usernames, passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by default, but you can always specify another path in `auth.cfg`:
+The last one allows the most flexibility, as it allows you to define different usernames, passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by default, but you can always specify another path in `config.cfg`:
 
 ```ini
 [userinfo]
 user = myusername
 password = mypassword
 ssh-config = /path/to/config/file
+
+[kitchen]
+littlechef_dir = /tmp/chef-solo
 ```
 
 An example `~/.ssh/config` file:

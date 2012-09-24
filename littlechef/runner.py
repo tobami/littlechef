@@ -55,15 +55,17 @@ def new_kitchen():
     _mkdir("data_bags")
     for cookbook_path in cookbook_paths:
         _mkdir(cookbook_path)
-    # Add skeleton auth.cfg
-    if not os.path.exists("auth.cfg"):
-        with open("auth.cfg", "w") as authfh:
-            print >> authfh, "[userinfo]"
-            print >> authfh, "user = "
-            print >> authfh, "password = "
-            print >> authfh, "keypair-file = "
-            print >> authfh, "ssh-config = "
-            print "auth.cfg file created..."
+    # Add skeleton config.cfg
+    if not os.path.exists("config.cfg"):
+        with open("config.cfg", "w") as configfh:
+            print >> configfh, "[userinfo]"
+            print >> configfh, "user = "
+            print >> configfh, "password = "
+            print >> configfh, "keypair-file = "
+            print >> configfh, "ssh-config = "
+            print >> configfh, "[kitchen]"
+            print >> configfh, "littlechef_dir = /tmp/chef-solo/"
+            print "config.cfg file created..."
 
 
 @hosts('setup')
@@ -308,8 +310,8 @@ def _check_appliances():
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
         if (dirname not in names) or (not os.path.isdir(dirname)):
             missing.append(dirname)
-    if 'auth.cfg' not in names:
-        missing.append('auth.cfg')
+    if 'config.cfg' not in names:
+        missing.append('config.cfg')
     return (not bool(missing)), missing
 
 
@@ -325,7 +327,7 @@ def _readconfig():
                " type 'fix new_kitchen'"
         abort(msg)
     config = ConfigParser.ConfigParser()
-    config.read("auth.cfg")
+    config.read("config.cfg")
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
@@ -334,7 +336,7 @@ def _readconfig():
         ssh_config = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
         msg = 'You need to define a "userinfo" section'
-        msg += ' in auth.cfg. Refer to the README for help'
+        msg += ' in config.cfg. Refer to the README for help'
         msg += ' (http://github.com/tobami/littlechef)'
         abort(msg)
     except ConfigParser.NoOptionError:
@@ -357,7 +359,7 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         if not ssh_config:
             msg = 'You need to define a user in the "userinfo" section'
-            msg += ' of auth.cfg. Refer to the README for help'
+            msg += ' of config.cfg. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
             abort(msg)
         user_specified = False
@@ -373,7 +375,7 @@ def _readconfig():
         pass
 
     if user_specified and not env.password and not env.ssh_config:
-        abort('You need to define a password or a ssh-config file in auth.cfg')
+        abort('You need to define a password or a ssh-config file in config.cfg')
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
