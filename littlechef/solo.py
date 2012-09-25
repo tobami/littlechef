@@ -22,7 +22,7 @@ from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
 from littlechef.lib import credentials
-from littlechef.settings import node_work_path, cookbook_paths
+from littlechef.settings import cookbook_paths
 from littlechef import LOGFILE as logging_path
 
 
@@ -56,21 +56,21 @@ def configure(current_node=None):
     current_node = current_node or {}
     with credentials():
         # Ensure that the /tmp/chef-solo/cache directory exist
-        cache_dir = "{0}/cache".format(node_work_path)
+        cache_dir = "{0}/cache".format(env.node_work_path)
         if not exists(cache_dir):
             with settings(hide('running', 'stdout'), warn_only=True):
                 output = sudo('mkdir -p {0}'.format(cache_dir))
             if output.failed:
-                error = "Could not create {0} dir. ".format(node_work_path)
+                error = "Could not create {0} dir. ".format(env.node_work_path)
                 error += "Do you have sudo rights?"
                 abort(error)
         # Change ownership of /tmp/chef-solo/ so that we can rsync
         with hide('running', 'stdout'):
             with settings(warn_only=True):
                 output = sudo(
-                    'chown -R {0} {1}'.format(env.user, node_work_path))
+                    'chown -R {0} {1}'.format(env.user, env.node_work_path))
             if output.failed:
-                error = "Could not modify {0} dir. ".format(node_work_path)
+                error = "Could not modify {0} dir. ".format(env.node_work_path)
                 error += "Do you have sudo rights?"
                 abort(error)
         # Set up chef solo configuration
@@ -82,10 +82,10 @@ def configure(current_node=None):
         reversed_cookbook_paths = cookbook_paths[:]
         reversed_cookbook_paths.reverse()
         cookbook_paths_list = '[{0}]'.format(', '.join(
-            ['"{0}/{1}"'.format(node_work_path, x) \
+            ['"{0}/{1}"'.format(env.node_work_path, x) \
                 for x in reversed_cookbook_paths]))
         data = {
-            'node_work_path': node_work_path,
+            'node_work_path': env.node_work_path,
             'cookbook_paths_list': cookbook_paths_list,
             'environment': current_node.get('chef_environment', '_default'),
             'verbose': "true" if env.verbose else "false"

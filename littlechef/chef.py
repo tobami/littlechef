@@ -27,7 +27,7 @@ from fabric.contrib.project import rsync_project
 
 from littlechef import lib
 from littlechef import solo
-from littlechef.settings import node_work_path, cookbook_paths
+from littlechef.settings import cookbook_paths
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 
 
@@ -114,7 +114,7 @@ def _synchronize_node(configfile, node):
     os.remove(configfile)
     # Synchronize kitchen
     rsync_project(
-        node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
+        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts="-q",
@@ -292,7 +292,7 @@ def _remove_local_node_data_bag():
 
 def _remove_remote_node_data_bag():
     """Removes generated 'node' data_bag from the remote node"""
-    node_data_bag_path = os.path.join(node_work_path, 'data_bags', 'node')
+    node_data_bag_path = os.path.join(env.node_work_path, 'data_bags', 'node')
     if exists(node_data_bag_path):
         sudo("rm -rf {0}".format(node_data_bag_path))
 
@@ -312,7 +312,7 @@ def _add_search_patch():
     """
     # Create extra cookbook dir
     lib_path = os.path.join(
-        node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
+        env.node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Add search and environment patch to the node's cookbooks

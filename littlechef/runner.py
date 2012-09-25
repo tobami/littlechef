@@ -26,7 +26,7 @@ from ssh.config import SSHConfig as _SSHConfig
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef.settings import CONFIGFILE, cookbook_paths
+from littlechef.settings import CONFIGFILE, cookbook_paths, node_work_path
 
 
 # Fabric settings
@@ -300,28 +300,25 @@ def list_plugins():
     lib.print_plugin_list()
 
 
-# Check that user is cooking inside a kitchen and configure authentication #
 def _check_appliances():
     """Look around and return True or False based on whether we are in a
     kitchen
     """
-    global CONFIGFILE
     filenames = os.listdir(os.getcwd())
     missing = []
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
         if (dirname not in filenames) or (not os.path.isdir(dirname)):
             missing.append(dirname)
-    if CONFIGFILE not in filenames:
-        if 'auth.cfg' in filenames:
-            CONFIGFILE = 'auth.cfg'
-        else:
-            missing.append(CONFIGFILE)
     return (not bool(missing)), missing
 
 
 def _readconfig():
     """Configure environment"""
-    # Check that all dirs and files are present
+    config = ConfigParser.SafeConfigParser()
+    found = config.read([CONFIGFILE, 'auth.cfg'])
+    if not len(found):
+        abort('No config.cfg file found in the current directory')
+
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
     if not in_a_kitchen:
@@ -330,8 +327,6 @@ def _readconfig():
                "To create a new kitchen in the current directory "\
                " type 'fix new_kitchen'"
         abort(msg)
-    config = ConfigParser.ConfigParser()
-    config.read(CONFIGFILE)
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
@@ -380,6 +375,15 @@ def _readconfig():
 
     if user_specified and not env.password and not env.ssh_config:
         abort('You need to define a password or a ssh-config file in config.cfg')
+
+    # Node's Chef Solo working directory for storing cookbooks, roles, etc.
+    try:
+        env.node_work_path = config.get('kitchen','littlechef_dir')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.node_work_path = node_work_path
+    else:
+        if not env.node_work_path:
+            abort('The "node_work_path" option cannot be empty')
 
 
 # Only read config if fix is being used and we are not creating a new kitchen

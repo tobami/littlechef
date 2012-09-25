@@ -12,16 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-import ConfigParser
-
 CONFIGFILE = 'config.cfg'
 # Path to look up cookbooks
 cookbook_paths = ['site-cookbooks', 'cookbooks']
-
-# Node's Chef Solo working directory for storing cookbooks, roles, etc.
-config = ConfigParser.ConfigParser()
-config.read("config.cfg")
-try:
-    node_work_path = config.get('kitchen','littlechef_dir')
-except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-    node_work_path = '/tmp/chef-solo'
+node_work_path = '/tmp/chef-solo'

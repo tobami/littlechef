@@ -14,8 +14,10 @@
 import unittest
 import os
 import json
+from ConfigParser import SafeConfigParser
 
 from fabric.api import env
+from mock import patch
 
 import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
@@ -24,7 +26,6 @@ sys.path.insert(0, env_path)
 from littlechef import runner, chef, lib
 
 
-runner.__testing__ = True
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
 littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
@@ -38,6 +39,7 @@ class BaseTest(unittest.TestCase):
             'testnode3.mydomain.com',
             'testnode4'
         ]
+        runner.__testing__ = True
 
     def tearDown(self):
         for nodename in self.nodes + ["extranode"]:
@@ -50,15 +52,27 @@ class BaseTest(unittest.TestCase):
         runner.env.chef_environment = None
         runner.env.hosts = []
         runner.env.all_hosts = []
+        runner.env.ssh_config =  None
+        runner.env.key_filename = None
+        runner.env.node_work_path = None
 
 
 class TestRunner(BaseTest):
+    def test_get_config(self):
+        """Should read configuration from config file when config.cfg is found
+        """
+        runner._readconfig()
+        self.assertEqual(runner.env.ssh_config, None)
+        self.assertEqual(runner.env.user, "testuser")
+        self.assertEqual(runner.env.password, "testpass")
+        self.assertEqual(runner.env.key_filename, None)
+        self.assertEqual(runner.env.node_work_path, "/tmp/chef-solo")
+
     def test_not_a_kitchen(self):
-        """Should exit with error when not a kitchen directory"""
-        # Change to a directory which is not a kitchen
-        # NOTE: We need absolute paths for the kitchen
-        os.chdir(littlechef_top)
-        self.assertRaises(SystemExit, runner._readconfig)
+        """Should abort when no config file found"""
+        with patch.object(SafeConfigParser, 'read') as mock_method:
+            mock_method.return_value = []
+            self.assertRaises(SystemExit, runner._readconfig)
 
     def test_nodes_with_role(self):
         """Should return a list of nodes with the given role in the run_list"""
@@ -72,6 +86,8 @@ class TestRunner(BaseTest):
         self.assertEqual(runner.env.hosts, ['testnode2'])
 
     def test_nodes_with_role_in_env_empty(self):
+        """Should abort when no nodes with given role found in the environment
+        """
         runner.env.chef_environment = "production"
         self.assertRaises(
             SystemExit, runner.nodes_with_role, "all_you_can_eat")
