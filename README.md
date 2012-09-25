@@ -153,7 +153,7 @@ kitchen to:
 
 ```ini
 [kitchen]
-littlechef_dir = /tmp/chef-solo
+node_work_path = /tmp/chef-solo
 ```
 
 ### Deploying

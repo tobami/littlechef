@@ -64,7 +64,7 @@ def new_kitchen():
             print >> configfh, "keypair-file = "
             print >> configfh, "ssh-config = "
             print >> configfh, "[kitchen]"
-            print >> configfh, "littlechef_dir = /tmp/chef-solo/"
+            print >> configfh, "node_work_path = /tmp/chef-solo/"
             print "config.cfg file created..."
 
 
@@ -378,7 +378,7 @@ def _readconfig():
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
-        env.node_work_path = config.get('kitchen','littlechef_dir')
+        env.node_work_path = config.get('kitchen','node_work_path')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.node_work_path = node_work_path
     else:
