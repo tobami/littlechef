@@ -26,7 +26,7 @@ from ssh.config import SSHConfig as _SSHConfig
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef.settings import cookbook_paths
+from littlechef.settings import CONFIGFILE, cookbook_paths
 
 
 # Fabric settings
@@ -305,13 +305,17 @@ def _check_appliances():
     """Look around and return True or False based on whether we are in a
     kitchen
     """
-    names = os.listdir(os.getcwd())
+    global CONFIGFILE
+    filenames = os.listdir(os.getcwd())
     missing = []
     for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
-        if (dirname not in names) or (not os.path.isdir(dirname)):
+        if (dirname not in filenames) or (not os.path.isdir(dirname)):
             missing.append(dirname)
-    if 'config.cfg' not in names:
-        missing.append('config.cfg')
+    if CONFIGFILE not in filenames:
+        if 'auth.cfg' in filenames:
+            CONFIGFILE = 'auth.cfg'
+        else:
+            missing.append(CONFIGFILE)
     return (not bool(missing)), missing
 
 
@@ -327,7 +331,7 @@ def _readconfig():
                " type 'fix new_kitchen'"
         abort(msg)
     config = ConfigParser.ConfigParser()
-    config.read("config.cfg")
+    config.read(CONFIGFILE)
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair

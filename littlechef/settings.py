@@ -14,6 +14,7 @@
 #
 import ConfigParser
 
+CONFIGFILE = 'config.cfg'
 # Path to look up cookbooks
 cookbook_paths = ['site-cookbooks', 'cookbooks']
 

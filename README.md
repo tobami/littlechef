@@ -134,9 +134,6 @@ The last one allows the most flexibility, as it allows you to define different u
 user = myusername
 password = mypassword
 ssh-config = /path/to/config/file
-
-[kitchen]
-littlechef_dir = /tmp/chef-solo
 ```
 
 An example `~/.ssh/config` file:
@@ -148,6 +145,16 @@ An example `~/.ssh/config` file:
     Host *.devdomain.com
         IdentityFile ~/.ssh/dev_rsa
         User devuser
+
+### Other Configuration Options
+
+You can also optionally override the directory being used on the nodes to sync your
+kitchen to:
+
+```ini
+[kitchen]
+littlechef_dir = /tmp/chef-solo
+```
 
 ### Deploying
 
