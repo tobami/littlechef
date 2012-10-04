@@ -153,7 +153,7 @@ def check_distro():
 def _gem_install():
     """Install Chef from gems"""
     # Install RubyGems from Source
-    rubygems_version = "1.7.2"
+    rubygems_version = "1.8.10"
     run('wget http://production.cf.rubygems.org/rubygems/rubygems-{0}.tgz'
         .format(rubygems_version))
     run('tar zxf rubygems-{0}.tgz'.format(rubygems_version))
@@ -177,7 +177,7 @@ def _gem_apt_install():
 def _gem_rpm_install():
     """Install Chef from gems for rpm based distros"""
     _add_rpm_repos()
-    needed_packages = "ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync"
+    needed_packages = "make ruby ruby-shadow gcc gcc-c++ ruby-devel wget rsync"
     with show('running'):
         sudo('yum -y install {0}'.format(needed_packages))
     _gem_install()
