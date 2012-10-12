@@ -2,6 +2,19 @@
 LittleChef Changelog
 ====================
 
+Version 1.2.2 October 12, 2012
+----------------------------------------
+New features:
+* #83: jordane made the remote repo dir configurable
+* #106: jordane added a more general config file name: config.cfg
+
+Bugs fixed:
+* #101: cburyta updated the CentOS epel repo to 6.7
+* #104: mattgleeson helped to do deeper role expansion
+* #109: cburyta updated the rubygems version to 1.8.10, fixing rpm installations
+* #107: Error handling for ohai's errors when parsing ipaddress
+
+
 Version 1.2.1 June 14, 2012
 ----------------------------------------
 Bugs fixed:
