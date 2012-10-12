@@ -301,7 +301,7 @@ def list_plugins():
 
 
 def _check_appliances():
-    """Look around and return True or False based on whether we are in a
+    """Looks around and return True or False based on whether we are in a
     kitchen
     """
     filenames = os.listdir(os.getcwd())
@@ -313,9 +313,12 @@ def _check_appliances():
 
 
 def _readconfig():
-    """Configure environment"""
+    """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
-    found = config.read([CONFIGFILE, 'auth.cfg'])
+    try:
+        found = config.read([CONFIGFILE, 'auth.cfg'])
+    except ConfigParser.ParsingError as e:
+        abort(str(e))
     if not len(found):
         abort('No config.cfg file found in the current directory')
 
