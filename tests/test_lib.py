@@ -308,7 +308,7 @@ class TestChef(BaseTest):
             mocked_ohai_response = ('Invalid gemspec '
                                     '["{0}"]'.format("1.1.1.2"))
             mock_method.return_value = MockSudoReturnValue(mocked_ohai_response)
-            self.assertRaises(SystemExit, chef._get_ipaddress({}))
+            self.assertRaises(SystemExit, chef._get_ipaddress, {})
 
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""

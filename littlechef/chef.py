@@ -62,7 +62,11 @@ def _get_ipaddress(node):
         with settings(hide('stdout'), warn_only=True):
             output = sudo('ohai ipaddress')
         if output.succeeded:
-            node['ipaddress'] = json.loads(output)[0]
+            try:
+                node['ipaddress'] = json.loads(output)[0]
+            except json.JSONDecodeError:
+                abort("Could not parse ohai's output for ipaddress"
+                      ":\n  {0}".format(output))
             return True
     return False
 
