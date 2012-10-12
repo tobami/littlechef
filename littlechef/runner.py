@@ -378,7 +378,8 @@ def _readconfig():
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
-        env.node_work_path = config.get('kitchen','node_work_path')
+        env.node_work_path = os.path.expanduser(config.get('kitchen',
+                                                'node_work_path'))
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.node_work_path = node_work_path
     else:
