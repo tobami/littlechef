@@ -64,7 +64,7 @@ class TestConfig(BaseTest):
         # Call fix from the current directory above "tests/"
         resp, error = self.execute([fix, '-l'])
         self.assertTrue("Fatal error" in error, resp)
-        self.assertTrue("outside of a kitchen" in error, error)
+        self.assertTrue('No config.cfg file found' in error, error)
         self.assertEquals(resp, "", resp)
         # Return to test dir
         self.set_location()
