@@ -15,6 +15,7 @@ import unittest
 import os
 import json
 
+from mock import patch
 from fabric.api import env
 
 import sys
@@ -269,6 +270,45 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
             # It should *NOT* have "base" assigned
             self.assertEqual(data['run_list'], ["recipe[subversion]"])
+
+    def test_get_ipaddress(self):
+        """Should add ipaddress attribute when ohai returns correct IP address
+        """
+        class MockSudoReturnValue(str):
+            succeeded = True
+
+        node = {}
+        fake_ip = "1.1.1.2"
+        with patch.object(chef, 'sudo') as mock_method:
+            mocked_ohai_response = '["{0}"]'.format(fake_ip)
+            mock_method.return_value = MockSudoReturnValue(mocked_ohai_response)
+            response = chef._get_ipaddress(node)
+        self.assertTrue(response)
+        self.assertEqual(node['ipaddress'], fake_ip)
+
+    def test_get_ipaddress_attribute_exists(self):
+        """Should not save ipaddress when attribute exists"""
+        class MockSudoReturnValue(str):
+            succeeded = True
+
+        node = {'ipaddress': '1.1.1.1'}
+        with patch.object(chef, 'sudo') as mock_method:
+            mocked_ohai_response = '["{0}"]'.format("1.1.1.2")
+            mock_method.return_value = MockSudoReturnValue(mocked_ohai_response)
+            response = chef._get_ipaddress(node)
+        self.assertFalse(response)
+        self.assertEqual(node['ipaddress'], '1.1.1.1')
+
+    def test_get_ipaddress_bad_ohai_output(self):
+        """Should abort when ohai's output cannot be parsed"""
+        class MockSudoReturnValue(str):
+            succeeded = True
+
+        with patch.object(chef, 'sudo') as mock_method:
+            mocked_ohai_response = ('Invalid gemspec '
+                                    '["{0}"]'.format("1.1.1.2"))
+            mock_method.return_value = MockSudoReturnValue(mocked_ohai_response)
+            self.assertRaises(SystemExit, chef._get_ipaddress({}))
 
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""

@@ -54,7 +54,10 @@ def save_config(node, force=False):
 
 
 def _get_ipaddress(node):
-    """If the node has not the key 'ipaddress' set, get the value with ohai"""
+    """Adds the ipaddress attribute to the given node object if not already
+    present and it is correctly given by ohai
+    Returns True if ipaddress is added, False otherwise
+    """
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
             output = sudo('ohai ipaddress')
