@@ -16,9 +16,9 @@ import os
 import json
 from ConfigParser import SafeConfigParser
 
+import mock
 from mock import patch
 from fabric.api import env
-from mock import patch
 
 import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
@@ -150,7 +150,7 @@ class TestLib(BaseTest):
         self.assertEqual(len(nodes), 1)
         self.assertEqual(nodes[0]['name'], 'testnode2')
         self.assertTrue('role[all_you_can_eat]' in nodes[0]['run_list'])
-        
+
     def test_nodes_with_role_expanded(self):
         """Should return nodes when role is present in the expanded run_list"""
         # nested role 'base'
@@ -207,7 +207,7 @@ class TestLib(BaseTest):
         nodes = list(lib.get_nodes_with_recipe('man'))
         self.assertEqual(len(nodes), 2)
         self.assertEqual(nodes[0]['name'], 'testnode2')
-        
+
     def test_nodes_with_recipe_wildcard(self):
         """Should return node when wildcard is given and role is asigned"""
         nodes = list(lib.get_nodes_with_recipe('sub*'))
@@ -480,6 +480,40 @@ class TestChef(BaseTest):
             }
         }
         self.assertTrue(data['other_attr']['deep_dict'], expected)
+
+
+class TestCredentials(unittest.TestCase):
+    """Tests for the credentials function in lib"""
+    def setUp(self):
+        self.ssh_config = {
+            'identityfile': '/Users/myuser/.ssh/id_rsa',
+            'loglevel': 'ERROR',
+            'hostname': '1.1.1.1',
+            'passwordauthentication': 'no',
+            'userknownhostsfile': '/dev/null',
+            'user': 'myuser',
+            'stricthostkeychecking': 'no',
+            'port': '22'
+        }
+        runner.__testing__ = True
+        runner.env.ssh_config = mock.MagicMock()
+        runner.env.ssh_config.lookup.return_value = self.ssh_config
+        runner.env.host = 'nodename'
+
+        self.old_log_level = runner.env.loglevel
+        runner.env.loglevel = 'original_loglevel'
+
+    def tearDown(self):
+        runner.env.ssh_config = None
+        runner.env.host = None
+        runner.env.loglevel = self.old_log_level
+
+    def test_credentials_ignores_ssh_config_loglevel(self):
+        """Ignores LogLevel in ssh config"""
+        with lib.credentials():
+            runner.env.ssh_config.lookup.assert_called_once_with('nodename')
+            self.assertEqual(runner.env.loglevel, 'original_loglevel')
+
 
 if __name__ == "__main__":
     unittest.main()

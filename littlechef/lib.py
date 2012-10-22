@@ -454,6 +454,10 @@ def credentials(*args, **kwargs):
         # translate from ssh params to fabric params
         if 'identityfile' in credentials:
             credentials['key_filename'] = credentials['identityfile']
+        # SSH LogLevel != overall env loglevel, so don't override the env's
+        # loglevel with SSH's
+        if 'loglevel' in credentials:
+            del credentials['loglevel']
         credentials.update(kwargs)
     else:
         credentials = kwargs
