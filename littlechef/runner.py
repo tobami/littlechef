@@ -316,7 +316,7 @@ def _readconfig():
     """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
     try:
-        found = config.read([CONFIGFILE, 'auth.cfg'])
+        found = config.read([CONFIGFILE, 'config.cfg'])
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
