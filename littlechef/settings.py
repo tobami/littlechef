@@ -15,4 +15,3 @@
 CONFIGFILE = 'config.cfg'
 # Path to look up cookbooks
 cookbook_paths = ['site-cookbooks', 'cookbooks']
-node_work_path = '/tmp/chef-solo'

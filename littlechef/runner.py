@@ -26,7 +26,7 @@ from ssh.config import SSHConfig as _SSHConfig
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef.settings import CONFIGFILE, cookbook_paths, node_work_path
+from littlechef.settings import CONFIGFILE, cookbook_paths
 
 
 # Fabric settings
@@ -384,7 +384,7 @@ def _readconfig():
         env.node_work_path = os.path.expanduser(config.get('kitchen',
                                                 'node_work_path'))
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        env.node_work_path = node_work_path
+        env.node_work_path = littlechef.node_work_path
     else:
         if not env.node_work_path:
             abort('The "node_work_path" option cannot be empty')
