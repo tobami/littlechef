@@ -76,9 +76,9 @@ def sync_node(node):
     It also injects the ipaddress to the node's config file if not already
     existent.
     """
-    if node.get('dummy'):
+    if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
-        return
+        return False
     # Get merged attributes
     current_node = _build_node_data_bag()
     with lib.credentials():
@@ -98,6 +98,7 @@ def sync_node(node):
         finally:
             _remove_local_node_data_bag()
             _node_cleanup()
+    return True
 
 
 def _synchronize_node(configfile, node):

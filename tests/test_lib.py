@@ -481,6 +481,24 @@ class TestChef(BaseTest):
         }
         self.assertTrue(data['other_attr']['deep_dict'], expected)
 
+    def test_sync_node_dummy_attr(self):
+        """Should return False when node has a dummy tag or dummy=true"""
+        self.assertFalse(chef.sync_node({'name': 'extranode', 'dummy': True}))
+        self.assertFalse(chef.sync_node({'name': 'extranode', 'tags': ['dummy']}))
+
+    @patch('littlechef.chef.solo.configure')
+    @patch('littlechef.chef._get_ipaddress')
+    @patch('littlechef.chef._synchronize_node')
+    @patch('littlechef.chef._configure_node')
+    @patch('littlechef.chef._node_cleanup')
+    def test_sync_node(self, mock_method1, mock_ipaddress, mock_method3,
+                       mock_method4, mock_method5):
+        """Should return True when node has been synced"""
+        env.host_string = 'extranode'
+        mock_ipaddress.return_value = False
+        test_node = {'name': 'extranode', 'dummy': False, 'run_list': []}
+        self.assertTrue(chef.sync_node(test_node))
+
 
 class TestCredentials(unittest.TestCase):
     """Tests for the credentials function in lib"""
