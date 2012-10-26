@@ -265,7 +265,7 @@ def get_recipes_in_role(rolename):
 def get_recipes_in_node(node):
     """Gets the name of all recipes present in the run_list of a node"""
     recipes = []
-    for elem in node.get('run_list'):
+    for elem in node.get('run_list', []):
         if elem.startswith("recipe"):
             recipe = elem.split('[')[1].split(']')[0]
             recipes.append(recipe)
@@ -306,7 +306,7 @@ def get_roles_in_node(node, recursive=False, depth=0):
     """
     LIMIT = 5
     roles = []
-    for elem in node.get('run_list'):
+    for elem in node.get('run_list', []):
         if elem.startswith("role"):
             role = elem.split('[')[1].split(']')[0]
             if role not in roles:
