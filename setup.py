@@ -15,11 +15,11 @@ setup(
     version=__import__('littlechef').__version__,
     description="Cook with Chef without a Chef Server",
     author="Miquel Torres",
-    author_email="tobami@googlemail.com",
+    author_email="tobami@gmail.com",
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/archives/master",
     keywords=["chef", "devops", "operations", "sysadmin"],
-    install_requires=['fabric>=1.3.2', 'simplejson>=2.1.0', 'ssh'],
+    install_requires=['fabric>=1.4.2', 'simplejson>=2.1.0', 'ssh'],
     packages=['littlechef'],
     package_data={
         'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']

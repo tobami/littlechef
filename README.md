@@ -208,6 +208,7 @@ all Chef Solo debugging information. Also, the node file and node databag wont't
 deleted from the node, and verbose will also be true
 * `fix --no-report node:MYNODE`: will prevent the logging of Chef Solo output to
 /var/log/chef/
+* `fix --why-run node:MYNODE`: will configure the node in [Whyrun][] mode
 
 Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
@@ -264,6 +265,7 @@ Happy cooking!
   [automatic attributes]: http://wiki.opscode.com/display/chef/Recipes#Recipes-CommonAutomaticAttributes
   [search wiki page]: http://wiki.opscode.com/display/chef/Search
   [Opscode repository]: http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo
+  [Whyrun]: http://wiki.opscode.com/display/chef/Whyrun+Testing
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
   [discussion group]: http://groups.google.com/group/littlechef
   [https://github.com/tobami/littlechef/issues]: https://github.com/tobami/littlechef/issues
