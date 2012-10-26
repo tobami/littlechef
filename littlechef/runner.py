@@ -27,7 +27,6 @@ import littlechef
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef.settings import cookbook_paths
 
 
 # Fabric settings
@@ -54,7 +53,7 @@ def new_kitchen():
     _mkdir("nodes")
     _mkdir("roles")
     _mkdir("data_bags")
-    for cookbook_path in cookbook_paths:
+    for cookbook_path in littlechef.cookbook_paths:
         _mkdir(cookbook_path)
     # Add skeleton config.cfg
     if not os.path.exists("config.cfg"):

@@ -25,9 +25,9 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
+from littlechef import cookbook_paths
 from littlechef import lib
 from littlechef import solo
-from littlechef.settings import cookbook_paths
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 
 

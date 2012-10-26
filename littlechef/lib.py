@@ -22,7 +22,7 @@ from fabric import colors
 from fabric.api import env, settings
 from fabric.utils import abort
 
-from littlechef.settings import cookbook_paths
+from littlechef import cookbook_paths
 
 
 knife_installed = True
