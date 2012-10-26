@@ -24,7 +24,7 @@ import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.insert(0, env_path)
 
-from littlechef import runner, chef, lib
+from littlechef import runner, chef, lib, solo
 
 
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
@@ -115,6 +115,17 @@ class TestRunner(BaseTest):
         runner.env.chef_environment = "staging"
         runner.node('all')
         self.assertEqual(runner.env.hosts, ['testnode2'])
+
+
+class TestSolo(BaseTest):
+    def test_configure_no_sudo_rights(self):
+        """Should abort when user has no sudo rights"""
+        env.host_string = "extranode"
+        with patch.object(solo, 'exists') as mock_exists:
+            mock_exists.return_value = False
+            with patch.object(solo, 'sudo') as mock_sudo:
+                mock_sudo.failed = True
+                self.assertRaises(SystemExit, solo.configure)
 
 
 class TestLib(BaseTest):

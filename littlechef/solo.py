@@ -21,8 +21,8 @@ from fabric import colors
 from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
+from littlechef import cookbook_paths
 from littlechef.lib import credentials
-from littlechef.settings import cookbook_paths
 from littlechef import LOGFILE as logging_path
 
 
