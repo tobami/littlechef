@@ -22,5 +22,6 @@ __cooking__ = False
 chef_environment = None
 loglevel = "info"
 verbose = False
-LOGFILE = '/var/log/chef/solo.log'
 enable_logs = True
+LOGFILE = '/var/log/chef/solo.log'
+node_work_path = '/tmp/chef-solo'
