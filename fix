@@ -51,6 +51,10 @@ parser.add_option(
     help="Don't save the chef-solo output as a report on the node"
 )
 parser.add_option(
+    "--why-run", dest="whyrun", action="store_true", default=False,
+    help="Do a configuration Whyrun, where no changes are performed to the node"
+)
+parser.add_option(
     "--verbose", dest="verbose", action="store_true", default=False,
     help="Output 'processing' statements"
 )
@@ -84,6 +88,9 @@ else:
         if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
+        if options.whyrun:
+            littlechef.whyrun = True
+            sys.argv.remove('--why-run')
         if options.verbose:
             littlechef.verbose = True
             sys.argv.remove('--verbose')

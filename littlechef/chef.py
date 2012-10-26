@@ -25,7 +25,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths
+from littlechef import cookbook_paths, whyrun
 from littlechef import lib
 from littlechef import solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
@@ -336,7 +336,10 @@ def _configure_node():
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
     # Build chef-solo command
-    cmd = 'chef-solo -l {0} -j /etc/chef/node.json'.format(env.loglevel)
+    cmd = "chef-solo "
+    if whyrun:
+        cmd += "--why-run "
+    cmd += '-l {0} -j /etc/chef/node.json'.format(env.loglevel)
     if ENABLE_LOGS:
         cmd += ' | tee {0}'.format(LOGFILE)
     if env.loglevel == "debug":
