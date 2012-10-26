@@ -23,10 +23,11 @@ from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from ssh.config import SSHConfig as _SSHConfig
 
+import littlechef
 from littlechef import solo
 from littlechef import lib
 from littlechef import chef
-from littlechef.settings import CONFIGFILE, cookbook_paths
+from littlechef.settings import cookbook_paths
 
 
 # Fabric settings
@@ -316,7 +317,7 @@ def _readconfig():
     """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
     try:
-        found = config.read([CONFIGFILE, 'auth.cfg'])
+        found = config.read([littlechef.CONFIGFILE, 'auth.cfg'])
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
@@ -391,7 +392,6 @@ def _readconfig():
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
-import littlechef
 env.chef_environment = littlechef.chef_environment
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose

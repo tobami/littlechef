@@ -20,8 +20,12 @@ __author__ = "Miquel Torres <tobami@gmail.com>"
 __cooking__ = False
 
 chef_environment = None
+
 loglevel = "info"
 verbose = False
 enable_logs = True
 LOGFILE = '/var/log/chef/solo.log'
+
 node_work_path = '/tmp/chef-solo'
+
+CONFIGFILE = 'config.cfg'
