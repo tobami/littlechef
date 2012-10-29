@@ -388,6 +388,12 @@ def _readconfig():
     else:
         if not env.node_work_path:
             abort('The "node_work_path" option cannot be empty')
+    
+    # Follow symlinks
+    try:
+        env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.follow_symlinks = False
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
