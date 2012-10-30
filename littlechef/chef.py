@@ -121,11 +121,14 @@ def _synchronize_node(configfile, node):
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
+    extra_opts = "-q"
+    if env.follow_symlinks:
+        extra_opts += " --copy-links"
     rsync_project(
         env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
-        extra_opts="-q",
+        extra_opts=extra_opts,
     )
     _add_search_patch()
 
