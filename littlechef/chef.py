@@ -20,7 +20,7 @@ import shutil
 import simplejson as json
 
 from fabric.api import *
-from fabric.contrib.files import append, exists
+from fabric.contrib.files import exists
 from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
@@ -214,7 +214,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     for role in node['roles']:
         for r in all_roles:
             if role == r['name']:
-                update_dct(attributes, r['default_attributes'])
+                update_dct(attributes, r.get('default_attributes', {}))
 
     # Get normal node attributes
     non_attribute_fields = [
@@ -230,7 +230,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     for role in node['roles']:
         for r in all_roles:
             if role == r['name']:
-                update_dct(attributes, r['override_attributes'])
+                update_dct(attributes, r.get('override_attributes', {}))
     # Merge back to the original node object
     node.update(attributes)
 
