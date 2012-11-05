@@ -90,6 +90,17 @@ def nodes_with_role(rolename):
 
 
 @hosts('setup')
+def nodes_with_tag(tag):
+    """Sets a list of nodes that have the given tag assigned and calls node()"""
+    nodes = lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests)
+    nodes = [n['name'] for n in nodes]
+    if not len(nodes):
+        print("No nodes found with tag '{0}'".format(tag))
+        sys.exit(0)
+    return node(*nodes)
+
+
+@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     if not len(nodes) or nodes[0] == '':
