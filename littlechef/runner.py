@@ -130,7 +130,8 @@ def node(*nodes):
     execute = True
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
-            'nodes_with_role:' not in sys.argv[-1]):
+            'nodes_with_role:' not in sys.argv[-1] and
+            'nodes_with_tag:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
         for hostname in env.hosts:
