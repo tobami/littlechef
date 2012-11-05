@@ -91,7 +91,7 @@ class TestConfig(BaseTest):
         self.assertTrue(expected in resp)
         commands = resp.split('\nAvailable commands:\n')[-1]
         commands = filter(None, commands.split('\n'))
-        self.assertEquals(len(commands), 20)
+        self.assertEquals(len(commands), 21)
 
     def test_verbose(self):
         """Should turn on verbose output"""
