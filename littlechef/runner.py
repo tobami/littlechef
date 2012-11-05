@@ -251,14 +251,20 @@ def list_nodes_detailed():
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
-    """Show all nodes which have asigned a given recipe"""
+    """Show all nodes which have assigned a given recipe"""
     lib.print_nodes(lib.get_nodes_with_recipe(recipe, env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_with_role(role):
-    """Show all nodes which have asigned a given role"""
+    """Show all nodes which have assigned a given role"""
     lib.print_nodes(lib.get_nodes_with_role(role, env.chef_environment))
+
+
+@hosts('api')
+def list_nodes_with_tag(tag):
+    """Show all nodes which have assigned a given role"""
+    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
 
 
 @hosts('api')
@@ -401,6 +407,7 @@ env.chef_environment = littlechef.chef_environment
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.node_work_path = littlechef.node_work_path
+env.include_guests = littlechef.include_guests
 
 if littlechef.__cooking__:
     # Called from command line

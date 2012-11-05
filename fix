@@ -66,6 +66,11 @@ parser.add_option(
     "--env", dest="environment", default=None,
     help="Using a certain chef environment"
 )
+parser.add_option(
+    "--include-guests", dest="include_guests",
+    action="store_true", default=False,
+    help="when searching for nodes with tags also include guests"
+)
 (options, args) = parser.parse_args()
 
 ## Process args list and call fabric's main() ##
@@ -98,6 +103,9 @@ else:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
             sys.argv.remove('--debug')
+        if options.include_guests:
+            littlechef.include_guests = True
+            sys.argv.remove('--include-guests')
         if options.environment is not None:
             # Check for mistakes:
             # * fix --env list_nodes
