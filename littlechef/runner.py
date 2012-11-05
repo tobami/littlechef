@@ -286,13 +286,13 @@ def list_nodes_detailed():
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
-    """Show all nodes which have asigned a given recipe"""
+    """Show all nodes which have assigned a given recipe"""
     lib.print_nodes(lib.get_nodes_with_recipe(recipe, env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_with_role(role):
-    """Show all nodes which have asigned a given role"""
+    """Show all nodes which have assigned a given role"""
     lib.print_nodes(lib.get_nodes_with_role(role, env.chef_environment))
 
 
@@ -304,6 +304,12 @@ def list_envs():
         print("{0}{1}{2}".format(
             env['name'], margin_left,
             env.get('description', '(no description)')))
+
+
+@hosts('api')
+def list_nodes_with_tag(tag):
+    """Show all nodes which have assigned a given role"""
+    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
 
 
 @hosts('api')
@@ -498,3 +504,4 @@ else:
     env.ssh_config = None
     env.follow_symlinks = False
     env.encrypted_data_bag_secret = None
+    env.include_guests = littlechef.include_guests

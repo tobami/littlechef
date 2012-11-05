@@ -146,6 +146,20 @@ def get_nodes_with_role(role_name, environment=None):
                 yield n
 
 
+def get_nodes_with_tag(tag, environment=None, include_guests=False):
+    """Get all nodes which include a given tag"""
+    nodes = get_nodes(environment)
+    nodes_mapping = dict((n['name'], n) for n in nodes)
+    print nodes_mapping.keys()
+    for n in nodes:
+        if tag in n.get('tags', []) and \
+                n.get('virtualization', {}).get('role') == 'host':
+            yield n
+            if include_guests:
+                for guest in n['virtualization']['guests']:
+                    yield nodes_mapping[guest['fqdn']]
+
+
 def get_nodes_with_recipe(recipe_name, environment=None):
     """Get all nodes which include a given recipe,
     prefix-searches are also supported
