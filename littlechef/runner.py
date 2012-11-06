@@ -275,7 +275,7 @@ def list_nodes_with_role(role):
 
 @hosts('api')
 def list_nodes_with_tag(tag):
-    """Show all nodes which have assigned a given role"""
+    """Show all nodes which have assigned a given tag"""
     lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
 
 
