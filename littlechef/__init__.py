@@ -27,6 +27,8 @@ enable_logs = True
 LOGFILE = '/var/log/chef/solo.log'
 whyrun = False
 
+attributes = {}
+
 node_work_path = '/tmp/chef-solo'
 cookbook_paths = ['site-cookbooks', 'cookbooks']
 

@@ -25,7 +25,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun
+from littlechef import cookbook_paths, whyrun, attributes as ATTRIBUTES
 from littlechef import lib
 from littlechef import solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
@@ -231,9 +231,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r.get('override_attributes', {}))
+
+    update_dct(attributes, ATTRIBUTES)
     # Merge back to the original node object
     node.update(attributes)
-
 
 def _build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory

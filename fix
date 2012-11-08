@@ -4,7 +4,7 @@ from optparse import OptionParser
 
 import sys
 import os
-
+import json
 
 # Messages
 NO_ORDER = "No order given. Type 'fix -l' for a list of orders\n"
@@ -66,6 +66,10 @@ parser.add_option(
     "--env", dest="environment", default=None,
     help="Using a certain chef environment"
 )
+parser.add_option(
+    "--attributes", dest="attributes", default=None,
+    help="Override attributes"
+)
 (options, args) = parser.parse_args()
 
 ## Process args list and call fabric's main() ##
@@ -98,6 +102,22 @@ else:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
             sys.argv.remove('--debug')
+        if options.attributes is not None:
+            try:
+                littlechef.attributes= json.loads(options.attributes)
+            except:
+                parser.error("Invalid json for --attributes")
+            try:
+                # --attributes=attributes
+                sys.argv.remove("--attributes={0}".format(options.attributes))
+            except ValueError:
+                # --attributes ATTRIBUTES
+                idx = sys.argv.index("--attributes")
+                sys.argv.pop(idx)
+                sys.argv.pop(idx)
+                if not len(args) or ":" in options.attributes:
+                    parser.error("No value given for --attributes")
+
         if options.environment is not None:
             # Check for mistakes:
             # * fix --env list_nodes
