@@ -189,8 +189,6 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         correctly defined in its metadata.json
 
     """
-    print ATTRIBUTES 
-
     # Get cookbooks from extended recipes
     attributes = {}
     for recipe in node['recipes']:
@@ -228,7 +226,6 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         node_attributes[key] = node[key]
     update_dct(attributes, node_attributes)
     update_dct(attributes, ATTRIBUTES)
-    print attributes
 
     # Get override role attributes
     for role in node['roles']:
