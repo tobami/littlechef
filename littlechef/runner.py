@@ -420,6 +420,7 @@ env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.node_work_path = littlechef.node_work_path
 env.include_guests = littlechef.include_guests
+env.follow_symlinks = False
 
 if littlechef.__cooking__:
     # Called from command line
