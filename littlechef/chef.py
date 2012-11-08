@@ -231,10 +231,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r.get('override_attributes', {}))
+
+    update_dct(attributes, ATTRIBUTES)
     # Merge back to the original node object
     node.update(attributes)
-    update_dct(attributes, ATTRIBUTES)
-
 
 def _build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
