@@ -97,6 +97,18 @@ def get_nodes_with_tag(tag, environment=None, include_guests=False):
                         pass
 
 
+def get_nodes_from_file(filename):
+    """Get all nodes listed in a given file"""
+    with open(filename) as fd:
+        for line in fd:
+            n = get_node(line.strip())
+            if n == {'run_list': []}:
+                # no node object found, ignore this entry
+                continue
+            else:
+                yield n
+
+
 def get_nodes_with_recipe(recipe_name, environment=None):
     """Get all nodes which include a given recipe,
     prefix-searches are also supported

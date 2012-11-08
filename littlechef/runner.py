@@ -101,6 +101,17 @@ def nodes_with_tag(tag):
 
 
 @hosts('setup')
+def nodes_from_file(filename):
+    """Sets a list of nodes that are listed in a given file and calls node()"""
+    nodes = lib.get_nodes_from_file(filename)
+    nodes = [n['name'] for n in nodes]
+    if not len(nodes):
+        print("No nodes found with tag '{0}'".format(tag))
+        sys.exit(0)
+    return node(*nodes)
+
+
+@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     if not len(nodes) or nodes[0] == '':
@@ -277,6 +288,12 @@ def list_nodes_with_role(role):
 def list_nodes_with_tag(tag):
     """Show all nodes which have assigned a given tag"""
     lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
+
+
+@hosts('api')
+def list_nodes_from_file(filename):
+    """Show all nodes which are listed in a given file"""
+    lib.print_nodes(lib.get_nodes_from_file(filename))
 
 
 @hosts('api')
