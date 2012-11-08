@@ -25,7 +25,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun
+from littlechef import cookbook_paths, whyrun, attributes as ATTRIBUTES
 from littlechef import lib
 from littlechef import solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
@@ -189,6 +189,8 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         correctly defined in its metadata.json
 
     """
+    print ATTRIBUTES 
+
     # Get cookbooks from extended recipes
     attributes = {}
     for recipe in node['recipes']:
@@ -225,6 +227,8 @@ def _add_merged_attributes(node, all_recipes, all_roles):
             continue
         node_attributes[key] = node[key]
     update_dct(attributes, node_attributes)
+    update_dct(attributes, ATTRIBUTES)
+    print attributes
 
     # Get override role attributes
     for role in node['roles']:
