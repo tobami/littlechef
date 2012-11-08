@@ -272,6 +272,7 @@ class TestLib(BaseTest):
 class TestChef(BaseTest):
     def tearDown(self):
         chef._remove_local_node_data_bag()
+        chef.ATTRIBUTES = {}
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
@@ -466,6 +467,16 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
         self.assertEqual(data['subversion']['user'], 'node_user')
+
+    def test_attribute_merge_from_command_line(self):
+        """Should have the value found in the command line attributes"""
+        chef.ATTRIBUTES = {"subversion": {"user": "test_user"}}
+        chef._build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode2.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertEqual(data['subversion']['user'], 'test_user')
 
     def test_attribute_merge_role_override(self):
         """Should have the value found in the roles override attributes"""
