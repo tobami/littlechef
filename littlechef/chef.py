@@ -225,7 +225,6 @@ def _add_merged_attributes(node, all_recipes, all_roles):
             continue
         node_attributes[key] = node[key]
     update_dct(attributes, node_attributes)
-    update_dct(attributes, ATTRIBUTES)
 
     # Get override role attributes
     for role in node['roles']:
@@ -234,6 +233,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
                 update_dct(attributes, r.get('override_attributes', {}))
     # Merge back to the original node object
     node.update(attributes)
+    update_dct(attributes, ATTRIBUTES)
 
 
 def _build_node_data_bag():
