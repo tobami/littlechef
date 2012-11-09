@@ -18,6 +18,7 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 import os
 import shutil
 import simplejson as json
+from copy import deepcopy
 
 from fabric.api import *
 from fabric.contrib.files import append, exists
@@ -143,7 +144,7 @@ def build_dct(dic, keys, value):
         elif value == "true":
             value = True
         # It's a leaf, assign value
-        dic[key] = value
+        dic[key] = deepcopy(value)
 
 
 def update_dct(dic1, dic2):
