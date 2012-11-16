@@ -346,8 +346,11 @@ def _readconfig():
 
     if ssh_config:
         env.ssh_config = _SSHConfig()
+        env.ssh_config_path = os.path.expanduser(ssh_config)
+        env.use_ssh_config = True
+
         try:
-            env.ssh_config.parse(open(os.path.expanduser(ssh_config)))
+            env.ssh_config.parse(open(env.ssh_config_path))
         except IOError:
             msg = "Couldn't open the ssh-config file '{0}'".format(ssh_config)
             abort(msg)
@@ -388,7 +391,7 @@ def _readconfig():
     else:
         if not env.node_work_path:
             abort('The "node_work_path" option cannot be empty')
-    
+
     # Follow symlinks
     try:
         env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
