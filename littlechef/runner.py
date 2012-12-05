@@ -229,7 +229,8 @@ def plugin(name):
     if not env.host_string:
         abort('No node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
     plug = lib.import_plugin(name)
-    print("Executing plugin '{0}' on {1}".format(name, env.host_string))
+    lib.print_header("Executing plugin '{0}' on "
+                     "{1}".format(name, env.host_string))
     node = lib.get_node(env.host_string)
     if node == {'run_list': []}:
         node['name'] = env.host_string
