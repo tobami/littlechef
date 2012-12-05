@@ -125,11 +125,15 @@ def _synchronize_node(configfile, node):
     extra_opts = "-q"
     if env.follow_symlinks:
         extra_opts += " --copy-links"
+    ssh_opts = ""
+    if env.ssh_config_path:
+        ssh_opts += " -F %s" % env.ssh_config_path
     rsync_project(
         env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
+        ssh_opts=ssh_opts
     )
     _add_search_patch()
 
