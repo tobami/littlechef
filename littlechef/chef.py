@@ -325,7 +325,8 @@ def _node_cleanup():
             _remove_remote_node_data_bag()
             with settings(warn_only=True):
                 sudo("rm '/etc/chef/node.json'")
-                sudo("rm '/etc/chef/encrypted_data_bag_secret'")
+                if env.encrypted_data_bag_secret:
+                    sudo("rm '/etc/chef/encrypted_data_bag_secret'")
 
 
 def _add_search_patch():
