@@ -156,6 +156,16 @@ kitchen to:
 node_work_path = /tmp/chef-solo
 ```
 
+If you're using encrypted data bags you can specify a path for the encrypted_data_bag_secret file:
+
+```ini
+[userinfo]
+encrypted_data_bag_secret = ~/path/to/encrypted_data_bag_secret
+```
+
+This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_secret` with permissions root:root with perms 0600.
+Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
+
 ### Deploying
 
 For convenience, there is a command that allows you to deploy chef-solo
