@@ -360,6 +360,12 @@ def _readconfig():
             abort(msg)
 
     try:
+        sudo_prefix = config.get('ssh', 'sudo_prefix', raw=True)
+        env.sudo_prefix = sudo_prefix
+    except ConfigParser.NoOptionError:
+        pass
+
+    try:
         env.user = config.get('userinfo', 'user')
         user_specified = True
     except ConfigParser.NoOptionError:
