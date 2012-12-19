@@ -165,6 +165,7 @@ encrypted_data_bag_secret = ~/path/to/encrypted_data_bag_secret
 
 This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_secret` with permissions root:root with perms 0600.
 Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
+It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
 ### Deploying
 
