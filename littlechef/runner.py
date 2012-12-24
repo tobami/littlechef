@@ -125,6 +125,8 @@ def node(*nodes):
         for hostname in env.hosts:
             env.host = hostname
             env.host_string = hostname
+            if '@' in hostname:
+                env.user = hostname.split('@')[0]
             node = lib.get_node(env.host)
             lib.print_header("Configuring {0}".format(env.host))
             if __testing__:
