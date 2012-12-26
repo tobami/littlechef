@@ -128,6 +128,12 @@ def _synchronize_node(configfile, node):
     ssh_opts = ""
     if env.ssh_config_path:
         ssh_opts += " -F %s" % env.ssh_config_path
+    if env.encrypted_data_bag_secret:
+        put(env.encrypted_data_bag_secret,
+            "/etc/chef/encrypted_data_bag_secret",
+            use_sudo=True,
+            mode=0600)
+        sudo('chown root:root /etc/chef/encrypted_data_bag_secret')
     rsync_project(
         env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
@@ -319,6 +325,8 @@ def _node_cleanup():
             _remove_remote_node_data_bag()
             with settings(warn_only=True):
                 sudo("rm '/etc/chef/node.json'")
+                if env.encrypted_data_bag_secret:
+                    sudo("rm '/etc/chef/encrypted_data_bag_secret'")
 
 
 def _add_search_patch():
