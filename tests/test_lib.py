@@ -56,6 +56,7 @@ class BaseTest(unittest.TestCase):
         runner.env.ssh_config =  None
         runner.env.key_filename = None
         runner.env.node_work_path = None
+        runner.env.encrypted_data_bag_secret = None
 
 
 class TestRunner(BaseTest):
@@ -68,6 +69,7 @@ class TestRunner(BaseTest):
         self.assertEqual(runner.env.password, "testpass")
         self.assertEqual(runner.env.key_filename, None)
         self.assertEqual(runner.env.node_work_path, "/tmp/chef-solo")
+        self.assertEqual(runner.env.encrypted_data_bag_secret, None)
 
     def test_not_a_kitchen(self):
         """Should abort when no config file found"""

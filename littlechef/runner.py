@@ -63,6 +63,7 @@ def new_kitchen():
             print >> configfh, "password = "
             print >> configfh, "keypair-file = "
             print >> configfh, "ssh-config = "
+            print >> configfh, "encrypted_data_bag_secret = "
             print >> configfh, "[kitchen]"
             print >> configfh, "node_work_path = /tmp/chef-solo/"
             print "config.cfg file created..."
@@ -358,6 +359,23 @@ def _readconfig():
         except Exception:
             msg = "Couldn't parse the ssh-config file '{0}'".format(ssh_config)
             abort(msg)
+
+    # Check for an encrypted_data_bag_secret file and set the env option
+    env.encrypted_data_bag_secret = None
+    try:
+        encrypted_data_bag_secret = config.get('userinfo',
+            'encrypted_data_bag_secret')
+    except ConfigParser.NoOptionError:
+        encrypted_data_bag_secret = None
+
+    if encrypted_data_bag_secret:
+        env.edbs_path = os.path.expanduser(encrypted_data_bag_secret)
+        try:
+            open(env.edbs_path)
+        except IOError as e:
+            msg = "Failed to open encrypted_data_bag_secret file at '{0}'".format(env.edbs_path)
+            abort(msg)
+        env.encrypted_data_bag_secret = env.edbs_path
 
     try:
         env.user = config.get('userinfo', 'user')
