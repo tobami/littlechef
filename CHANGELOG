@@ -2,12 +2,20 @@
 LittleChef Changelog
 ====================
 
-Version 1.?
------------
+Version 1.4.0 December 27, 2012
+----------------------------------------
+New features:
+* #64: dnedbaylo added support for following symlinks on rsync
+* #96: philk added support for Encrypted data bags
 
 Bugs fixed:
-* `default_attributes` and `override_attributes` are no longer required in
-  JSON role definitions.
+* winhamwr changed roles handling so that `default_attributes` and
+    `override_attributes` are no longer required in JSON role definitions.
+* #124: pawelpacana fixed LittleChef not passing ssh_config to fabric
+* #128: cburyta updated the yum epel repo url
+* #130: dnedbaylo made the "node" command use the user name in the node connection
+    string, making it consistent with what fabric does for "recipe" and "role"
+
 
 Version 1.3.0 October 26, 2012
 ----------------------------------------
@@ -19,7 +27,6 @@ New features:
 Bugs fixed:
 * #113: cyli fixed prevented SSH config's LogLevel from overriding env's loglevel
 * node_work_path was not being set to the default value when using as a library
-
 
 
 Version 1.2.2 October 12, 2012
