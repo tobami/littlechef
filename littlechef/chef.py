@@ -50,7 +50,7 @@ def save_config(node, force=False):
         files_to_create.append(filepath)
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
-            f.write(json.dumps(node, indent=4))
+            f.write(json.dumps(node, indent=4, sort_keys=True))
     return tmp_filename
 
 
