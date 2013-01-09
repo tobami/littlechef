@@ -23,7 +23,7 @@ from fabric.utils import abort
 
 from littlechef import cookbook_paths
 from littlechef.lib import credentials
-from littlechef import LOGFILE as logging_path
+from littlechef import LOGFILE
 
 
 # Path to local patch
@@ -74,6 +74,7 @@ def configure(current_node=None):
                 error += "Do you have sudo rights?"
                 abort(error)
         # Set up chef solo configuration
+	logging_path = os.path.dirname(LOGFILE)
         if not exists(logging_path):
             sudo('mkdir -p {0}'.format(logging_path))
         if not exists('/etc/chef'):
@@ -318,3 +319,4 @@ def _emerge_install():
     """Install Chef for Gentoo"""
     with show('running'):
         sudo("USE='-test' ACCEPT_KEYWORDS='~amd64' emerge -u chef")
+
