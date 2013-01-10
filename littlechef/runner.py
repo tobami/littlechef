@@ -33,7 +33,10 @@ from littlechef import chef
 import fabric
 fabric.state.output['running'] = False
 env.loglevel = "info"
-env.output_prefix = False
+if littlechef.parallel:
+    env.output_prefix = True
+else:
+    env.output_prefix = False
 __testing__ = False
 
 
@@ -431,6 +434,7 @@ env.chef_environment = littlechef.chef_environment
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.node_work_path = littlechef.node_work_path
+env.parallel = littlechef.parallel
 
 if littlechef.__cooking__:
     # Called from command line

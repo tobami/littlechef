@@ -66,6 +66,10 @@ parser.add_option(
     "--env", dest="environment", default=None,
     help="Using a certain chef environment"
 )
+parser.add_option(
+    "--parallel", dest="parallel", default=False,
+    help="Executes commands in parallel"
+)
 (options, args) = parser.parse_args()
 
 ## Process args list and call fabric's main() ##
@@ -91,6 +95,9 @@ else:
         if options.whyrun:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
+        if options.parallel:
+            littlechef.parallel = options.parallel
+            sys.argv.remove('--parallel')
         if options.verbose:
             littlechef.verbose = True
             sys.argv.remove('--verbose')
