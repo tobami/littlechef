@@ -118,10 +118,6 @@ def node(*nodes):
         # A list of nodes was given
         env.hosts = list(nodes)
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
-    if len(env.hosts) > 1:
-        lib.print_header("Configuring nodes: {0}...".format(", ".join(env.hosts)))
-    else:
-        lib.print_header("Configuring {0}".format(env.host_string))
 
     # Check whether another command was given in addition to "node:"
     if not(littlechef.__cooking__ and
@@ -142,6 +138,7 @@ def _node_runner():
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
     node = lib.get_node(env.host_string)
+    lib.print_header("Configuring {0}".format(env.host_string))
     chef.sync_node(node)
 
 
