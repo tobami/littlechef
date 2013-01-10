@@ -81,7 +81,7 @@ def sync_node(node):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
     # Get merged attributes
-    current_node = _build_node_data_bag()
+    current_node = lib.get_node(node['name'])
     with lib.credentials():
         # Always configure Chef Solo
         solo.configure(current_node)
