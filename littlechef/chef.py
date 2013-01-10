@@ -109,7 +109,7 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
-    print "Synchronizing node, cookbooks, roles and data bags..."
+    print "[{0}]: Synchronizing node, cookbooks, roles and data bags...".format(env.host_string)
     # First upload node.json
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
@@ -339,7 +339,7 @@ def _add_search_patch():
 
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    print("\nCooking...")
+    print("\n[{0}]: Cooking...".format(env.host_string))
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
@@ -372,4 +372,4 @@ def _configure_node():
             import sys
             sys.exit(1)
     else:
-        print(colors.green("\nSUCCESS: Node correctly configured"))
+        print(colors.green("\n[{0}]: SUCCESS: Node correctly configured").format(env.host_string))
