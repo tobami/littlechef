@@ -82,7 +82,7 @@ class TestConfig(BaseTest):
         self.assertEquals(error, "")
         expected = "LittleChef: Configuration Management using Chef Solo"
         self.assertTrue(expected in resp)
-        self.assertEquals(len(resp.split('\n')), 22)
+        self.assertEquals(len(resp.split('\n')), 24)
 
     #def test_verbose(self):
         #"""Should turn on verbose output"""
@@ -132,7 +132,7 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode2'])
         self.assertTrue("== Configuring testnode2 ==" in resp)
         # Will try to configure testnode2 and will fail DNS lookup
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error,
+        self.assertTrue("Fatal error: Timed out trying to connect to testnode2" in error,
                         error)
     #def test_dummy_node(self): # FIXME: Needs mocking
         """Should *not* configure a node when dummy is set to true"""
@@ -144,20 +144,20 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:testnode2,testnode1'])
         self.assertTrue("== Configuring testnode2 ==" in resp)
         # Will try to configure *first* testnode2 and will fail DNS lookup
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error)
+        self.assertTrue("Fatal error: Timed out trying to connect to testnode2" in error)
 
     def test_recipe(self):
         """Should configure node with the given recipe"""
         resp, error = self.execute(
             [fix, 'node:testnode1', 'recipe:subversion'])
         self.assertTrue("plying recipe 'subversion' on node testnode1" in resp)
-        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+        self.assertTrue("Fatal error: Timed out trying to connect to testnode1" in error)
 
     def test_role(self):
         """Should configure node with the given role"""
         resp, error = self.execute([fix, 'node:testnode1', 'role:base'])
         self.assertTrue("== Applying role 'base' to testnode1 ==" in resp)
-        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
+        self.assertTrue("Fatal error: Timed out trying to connect to testnode1" in error)
 
     def test_ssh(self):
         """Should execute the given ssh command"""
@@ -165,7 +165,7 @@ class TestRunner(BaseTest):
         expected = "Executing the command '\"my command\"' on the node"
         expected += " testnode2..."
         self.assertTrue(expected in resp)
-        expected = "tal error: Name lookup failed for testnode2"
+        expected = "Fatal error: Timed out trying to connect to testnode2"
         self.assertTrue(expected in error, error)
 
     def test_plugin(self):

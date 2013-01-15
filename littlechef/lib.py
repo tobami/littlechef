@@ -79,6 +79,24 @@ def get_nodes_with_role(role_name, environment=None):
                 yield n
 
 
+def get_nodes_with_tag(tag, environment=None, include_guests=False):
+    """Get all nodes which include a given tag"""
+    nodes = get_nodes(environment)
+    nodes_mapping = dict((n['name'], n) for n in nodes)
+    for n in nodes:
+        if tag in n.get('tags', []) and \
+                n.get('virtualization', {}).get('role') == 'host':
+            yield n
+            if include_guests:
+                for guest in n['virtualization']['guests']:
+                    try:
+                        yield nodes_mapping[guest['fqdn']]
+                    except KeyError:
+                        # we ignore guests which are not in the same
+                        # chef environments than their hosts for now
+                        pass
+
+
 def get_nodes_with_recipe(recipe_name, environment=None):
     """Get all nodes which include a given recipe,
     prefix-searches are also supported

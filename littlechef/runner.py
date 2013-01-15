@@ -91,6 +91,17 @@ def nodes_with_role(rolename):
 
 
 @hosts('setup')
+def nodes_with_tag(tag):
+    """Sets a list of nodes that have the given tag assigned and calls node()"""
+    nodes = lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests)
+    nodes = [n['name'] for n in nodes]
+    if not len(nodes):
+        print("No nodes found with tag '{0}'".format(tag))
+        sys.exit(0)
+    return node(*nodes)
+
+
+@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     if not len(nodes) or nodes[0] == '':
@@ -120,7 +131,8 @@ def node(*nodes):
     execute = True
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
-            'nodes_with_role:' not in sys.argv[-1]):
+            'nodes_with_role:' not in sys.argv[-1] and
+            'nodes_with_tag:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
         for hostname in env.hosts:
@@ -255,14 +267,20 @@ def list_nodes_detailed():
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
-    """Show all nodes which have asigned a given recipe"""
+    """Show all nodes which have assigned a given recipe"""
     lib.print_nodes(lib.get_nodes_with_recipe(recipe, env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_with_role(role):
-    """Show all nodes which have asigned a given role"""
+    """Show all nodes which have assigned a given role"""
     lib.print_nodes(lib.get_nodes_with_role(role, env.chef_environment))
+
+
+@hosts('api')
+def list_nodes_with_tag(tag):
+    """Show all nodes which have assigned a given tag"""
+    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
 
 
 @hosts('api')
@@ -431,6 +449,8 @@ env.chef_environment = littlechef.chef_environment
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.node_work_path = littlechef.node_work_path
+env.include_guests = littlechef.include_guests
+env.follow_symlinks = False
 
 if littlechef.__cooking__:
     # Called from command line
