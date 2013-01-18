@@ -96,7 +96,7 @@ else:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
         if options.parallel:
-            littlechef.parallel = options.parallel
+            littlechef.parallel = True
             try:
                 sys.argv.remove('--parallel={0}'.format(options.parallel))
                 littlechef.pool_size = options.parallel
