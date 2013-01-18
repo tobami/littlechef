@@ -97,7 +97,11 @@ else:
             sys.argv.remove('--why-run')
         if options.parallel:
             littlechef.parallel = options.parallel
-            sys.argv.remove('--parallel')
+            try:
+                sys.argv.remove('--parallel={0}'.format(options.parallel))
+                littlechef.pool_size = options.parallel
+            except ValueError:
+                sys.argv.remove('--parallel')
         if options.verbose:
             littlechef.verbose = True
             sys.argv.remove('--verbose')
