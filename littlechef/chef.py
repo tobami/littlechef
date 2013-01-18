@@ -81,10 +81,10 @@ def sync_node(node):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
     # Get merged attributes
-    current_node = lib.get_node(node['name'])
+    merged_node = lib.get_node(node['name'], merged=True)
     with lib.credentials():
         # Always configure Chef Solo
-        solo.configure(current_node)
+        solo.configure(merged_node)
         ipaddress = _get_ipaddress(node)
     # Everything was configured alright, so save the node configuration
     # This is done without credentials, so that we keep the node name used
@@ -261,7 +261,6 @@ def build_node_data_bag():
         All attributes found in nodes/<item>.json file
         Default and override attributes from all roles
     """
-    current_node = None
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
     # In case there are leftovers
