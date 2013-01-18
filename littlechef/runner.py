@@ -72,7 +72,6 @@ def new_kitchen():
             print "config.cfg file created..."
 
 
-@hosts('setup')
 def nodes_with_role(rolename):
     """Sets a list of nodes that have the given role
     in their run list and calls node()
@@ -93,7 +92,6 @@ def nodes_with_role(rolename):
     return node(*nodes_in_env)
 
 
-@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     chef.remove_local_node_data_bag()
