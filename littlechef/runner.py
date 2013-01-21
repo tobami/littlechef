@@ -336,46 +336,43 @@ def _readconfig():
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
-    env.ssh_config = None
-    env.ssh_config_path = None
     try:
-        ssh_config_option = config.get('userinfo', 'ssh-config')
+        env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
         abort('You need to define a "userinfo" section'
               ' in config.cfg. Refer to the README for help'
               ' (http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
-        ssh_config_option = None
+        env.ssh_config = None
+        env.ssh_config_path = None
 
-    if ssh_config_option:
+    if env.ssh_config_path:
         env.ssh_config = _SSHConfig()
-        env.ssh_config_path = os.path.expanduser(ssh_config_option)
+        env.ssh_config_path = os.path.expanduser(env.ssh_config_path)
         env.use_ssh_config = True
         try:
             env.ssh_config.parse(open(env.ssh_config_path))
         except IOError:
             abort("Couldn't open the ssh-config file "
-                  "'{0}'".format(ssh_config_option))
+                  "'{0}'".format(env.ssh_config_path))
         except Exception:
             abort("Couldn't parse the ssh-config file "
-                  "'{0}'".format(ssh_config_option))
+                  "'{0}'".format(env.ssh_config_path))
 
     # Check for an encrypted_data_bag_secret file and set the env option
-    env.encrypted_data_bag_secret = None
     try:
-        encrypted_data_bag_secret = config.get('userinfo',
-                                               'encrypted_data_bag_secret')
+        env.encrypted_data_bag_secret = config.get('userinfo',
+                                                   'encrypted_data_bag_secret')
     except ConfigParser.NoOptionError:
-        encrypted_data_bag_secret = None
+        env.encrypted_data_bag_secret = None
 
-    if encrypted_data_bag_secret:
-        env.edbs_path = os.path.expanduser(encrypted_data_bag_secret)
+    if env.encrypted_data_bag_secret:
+        env.edbs_path = os.path.expanduser(env.encrypted_data_bag_secret)
         try:
-            open(env.edbs_path)
+            open(env.encrypted_data_bag_secret)
         except IOError as e:
             abort("Failed to open encrypted_data_bag_secret file at "
-                  "'{0}'".format(env.edbs_path))
-        env.encrypted_data_bag_secret = env.edbs_path
+                  "'{0}'".format(env.encrypted_data_bag_secret))
 
     try:
         sudo_prefix = config.get('ssh', 'sudo_prefix', raw=True)
@@ -387,7 +384,7 @@ def _readconfig():
     try:
         env.user = config.get('userinfo', 'user')
     except ConfigParser.NoOptionError:
-        if not ssh_config_option:
+        if not env.ssh_config_path:
             msg = 'You need to define a user in the "userinfo" section'
             msg += ' of config.cfg. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
