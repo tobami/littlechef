@@ -329,77 +329,76 @@ def _readconfig():
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
     if not in_a_kitchen:
-        msg = "Couldn't find {0}. ".format(missing_str(missing))
-        msg += "Are you are executing 'fix' outside of a kitchen?\n"\
-               "To create a new kitchen in the current directory "\
-               " type 'fix new_kitchen'"
-        abort(msg)
+        abort("Couldn't find {0}. "
+              "Are you executing 'fix' outside of a kitchen?\n"
+              "To create a new kitchen in the current directory "
+              " type 'fix new_kitchen'".format(missing_str(missing)))
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
-    env.ssh_config = None
     try:
-        ssh_config = config.get('userinfo', 'ssh-config')
+        env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
-        msg = 'You need to define a "userinfo" section'
-        msg += ' in config.cfg. Refer to the README for help'
-        msg += ' (http://github.com/tobami/littlechef)'
-        abort(msg)
+        abort('You need to define a "userinfo" section'
+              ' in config.cfg. Refer to the README for help'
+              ' (http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
-        ssh_config = None
+        env.ssh_config = None
+        env.ssh_config_path = None
 
-    if ssh_config:
+    if env.ssh_config_path:
         env.ssh_config = _SSHConfig()
-        env.ssh_config_path = os.path.expanduser(ssh_config)
+        env.ssh_config_path = os.path.expanduser(env.ssh_config_path)
         env.use_ssh_config = True
-
         try:
             env.ssh_config.parse(open(env.ssh_config_path))
         except IOError:
-            msg = "Couldn't open the ssh-config file '{0}'".format(ssh_config)
-            abort(msg)
+            abort("Couldn't open the ssh-config file "
+                  "'{0}'".format(env.ssh_config_path))
         except Exception:
-            msg = "Couldn't parse the ssh-config file '{0}'".format(ssh_config)
-            abort(msg)
+            abort("Couldn't parse the ssh-config file "
+                  "'{0}'".format(env.ssh_config_path))
 
     # Check for an encrypted_data_bag_secret file and set the env option
-    env.encrypted_data_bag_secret = None
     try:
-        encrypted_data_bag_secret = config.get('userinfo',
-            'encrypted_data_bag_secret')
+        env.encrypted_data_bag_secret = config.get('userinfo',
+                                                   'encrypted_data_bag_secret')
     except ConfigParser.NoOptionError:
-        encrypted_data_bag_secret = None
+        env.encrypted_data_bag_secret = None
 
-    if encrypted_data_bag_secret:
-        env.edbs_path = os.path.expanduser(encrypted_data_bag_secret)
+    if env.encrypted_data_bag_secret:
+        env.encrypted_data_bag_secret = os.path.expanduser(
+            env.encrypted_data_bag_secret)
         try:
-            open(env.edbs_path)
+            open(env.encrypted_data_bag_secret)
         except IOError as e:
-            msg = "Failed to open encrypted_data_bag_secret file at '{0}'".format(env.edbs_path)
-            abort(msg)
-        env.encrypted_data_bag_secret = env.edbs_path
+            abort("Failed to open encrypted_data_bag_secret file at "
+                  "'{0}'".format(env.encrypted_data_bag_secret))
 
     try:
         sudo_prefix = config.get('ssh', 'sudo_prefix', raw=True)
-        env.sudo_prefix = sudo_prefix
-    except ConfigParser.NoOptionError:
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         pass
+    else:
+        env.sudo_prefix = sudo_prefix
 
     try:
         env.user = config.get('userinfo', 'user')
-        user_specified = True
     except ConfigParser.NoOptionError:
-        if not ssh_config:
+        if not env.ssh_config_path:
             msg = 'You need to define a user in the "userinfo" section'
             msg += ' of config.cfg. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
             abort(msg)
         user_specified = False
+    else:
+        user_specified = True
 
     try:
         env.password = config.get('userinfo', 'password') or None
     except ConfigParser.NoOptionError:
         pass
+
     try:
         #If keypair-file is empty, assign None or fabric will try to read key "
         env.key_filename = config.get('userinfo', 'keypair-file') or None
