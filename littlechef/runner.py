@@ -330,7 +330,7 @@ def _readconfig():
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
     if not in_a_kitchen:
         abort("Couldn't find {0}. "
-              "Are you are executing 'fix' outside of a kitchen?\n"
+              "Are you executing 'fix' outside of a kitchen?\n"
               "To create a new kitchen in the current directory "
               " type 'fix new_kitchen'".format(missing_str(missing)))
 

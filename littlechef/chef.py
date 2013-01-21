@@ -335,8 +335,8 @@ def _add_search_patch():
 
     """
     # Create extra cookbook dir
-    lib_path = os.path.join(
-        env.node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
+    lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
+                            'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Add search and environment patch to the node's cookbooks
