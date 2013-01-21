@@ -367,7 +367,8 @@ def _readconfig():
         env.encrypted_data_bag_secret = None
 
     if env.encrypted_data_bag_secret:
-        env.edbs_path = os.path.expanduser(env.encrypted_data_bag_secret)
+        env.encrypted_data_bag_secret = os.path.expanduser(
+            env.encrypted_data_bag_secret)
         try:
             open(env.encrypted_data_bag_secret)
         except IOError as e:
