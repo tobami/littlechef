@@ -61,7 +61,7 @@ def _get_ipaddress(node):
     """
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
-            output = sudo('ohai ipaddress')
+            output = sudo('ohai -l warn ipaddress')
         if output.succeeded:
             try:
                 node['ipaddress'] = json.loads(output)[0]
