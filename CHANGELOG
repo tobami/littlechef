@@ -2,6 +2,15 @@
 LittleChef Changelog
 ====================
 
+Version 1.4.1 January 21, 2013
+----------------------------------------
+Bugs fixed:
+* #136: philk made save_config output sorted JSON keys
+* #135: fix for wrong logpath
+* #142: mborho fixed "ohai ipaddress" output displaying debug info
+* #140: Fix "Can't read sshconfig file"
+
+
 Version 1.4.0 December 27, 2012
 ----------------------------------------
 New features:
