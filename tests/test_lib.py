@@ -64,6 +64,7 @@ class TestRunner(BaseTest):
         """Should read configuration from config file when config.cfg is found
         """
         runner._readconfig()
+        self.assertEqual(runner.env.ssh_config_path, None)
         self.assertEqual(runner.env.ssh_config, None)
         self.assertEqual(runner.env.user, "testuser")
         self.assertEqual(runner.env.password, "testpass")
