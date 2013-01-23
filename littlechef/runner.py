@@ -343,7 +343,6 @@ def _readconfig():
               ' in config.cfg. Refer to the README for help'
               ' (http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
-        env.ssh_config = None
         env.ssh_config_path = None
 
     if env.ssh_config_path:
@@ -358,6 +357,8 @@ def _readconfig():
         except Exception:
             abort("Couldn't parse the ssh-config file "
                   "'{0}'".format(env.ssh_config_path))
+    else:
+        env.ssh_config = None
 
     # Check for an encrypted_data_bag_secret file and set the env option
     try:
