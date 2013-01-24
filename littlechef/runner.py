@@ -94,7 +94,6 @@ def nodes_with_role(rolename):
 
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
-    chef.remove_local_node_data_bag()
     chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
