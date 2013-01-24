@@ -33,10 +33,14 @@ from littlechef import chef
 import fabric
 fabric.state.output['running'] = False
 env.loglevel = "info"
-if littlechef.parallel:
+
+if isinstance(littlechef.concurrency, int):
     env.output_prefix = True
+    env.parallel = True
+    env.pool_size = littlechef.concurrency
 else:
     env.output_prefix = False
+
 __testing__ = False
 
 
@@ -436,9 +440,6 @@ env.chef_environment = littlechef.chef_environment
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.node_work_path = littlechef.node_work_path
-env.parallel = littlechef.parallel
-if littlechef.pool_size:
-    env.pool_size = int(littlechef.pool_size)
 
 if littlechef.__cooking__:
     # Called from command line

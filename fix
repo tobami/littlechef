@@ -67,10 +67,11 @@ parser.add_option(
     help="Using a certain chef environment"
 )
 parser.add_option(
-    "--parallel", dest="parallel", default=False,
-    help="Executes commands in parallel"
+    "--concurrency", dest="concurrency", default=False,
+    help="Executes commands concurrently"
 )
 (options, args) = parser.parse_args()
+
 
 ## Process args list and call fabric's main() ##
 if not sys.argv:
@@ -95,13 +96,25 @@ else:
         if options.whyrun:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
-        if options.parallel:
-            littlechef.parallel = True
+        if options.concurrency:
+            # --concurrency 5
+            # --concurrency=5
             try:
-                sys.argv.remove('--parallel={0}'.format(options.parallel))
-                littlechef.pool_size = options.parallel
+                c = int(options.concurrency)
+                littlechef.concurrency = c
+                try:
+                    sys.argv.remove('--concurrency={0}'.format(options.concurrency))
+                except ValueError:
+                    sys.argv.remove('--concurrency'.format(options.concurrency))
+                    sys.argv.remove(options.concurrency)
             except ValueError:
-                sys.argv.remove('--parallel')
+                # --concurrency node:nodename
+                try:
+                    sys.argv.remove('--concurrency')
+                    littlechef.concurrency = 0
+                except ValueError:
+                    pass
+
         if options.verbose:
             littlechef.verbose = True
             sys.argv.remove('--verbose')
