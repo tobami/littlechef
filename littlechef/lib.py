@@ -472,4 +472,5 @@ def credentials(*args, **kwargs):
     # override 'host_string'
     if 'hostname' in credentials:
         credentials['host_string'] = credentials['hostname']
+    credentials['user'] = env.user
     return settings(*args, **credentials)
