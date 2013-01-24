@@ -134,6 +134,8 @@ def _node_runner():
     """This is only used by node so that we can execute in parallel"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
+    if '@' in env.host_string:
+        env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
     lib.print_header("Configuring {0}".format(env.host_string))
     chef.sync_node(node)
