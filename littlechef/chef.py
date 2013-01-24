@@ -80,11 +80,10 @@ def sync_node(node):
     if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
-    # Get merged attributes
-    merged_node = lib.get_node(node['name'], merged=True)
+    current_node = lib.get_node(node['name'])
     with lib.credentials():
         # Always configure Chef Solo
-        solo.configure(merged_node)
+        solo.configure(current_node)
         ipaddress = _get_ipaddress(node)
     # Everything was configured alright, so save the node configuration
     # This is done without credentials, so that we keep the node name used
