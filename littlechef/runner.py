@@ -122,12 +122,9 @@ def node(*nodes):
             'nodes_with_role:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
-        if __testing__:
-            print "TEST: would now configure {0}".format(env.host)
-        else:
-            with settings():
-                execute(_node_runner)
-            chef.remove_local_node_data_bag()
+        with settings():
+            execute(_node_runner)
+        chef.remove_local_node_data_bag()
 
 
 def _node_runner():
@@ -137,8 +134,11 @@ def _node_runner():
     if '@' in env.host_string:
         env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
-    lib.print_header("Configuring {0}".format(env.host_string))
-    chef.sync_node(node)
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
