@@ -55,7 +55,7 @@ result from merging cookbook, node and role attributes, following the standard
 [Chef attribute preference rules][]. Some [automatic attributes][] are also added.
 
 ```ruby
-munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
+munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:#{node.chef_environment}")
 ```
 
 #### Logs ####
