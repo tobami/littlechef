@@ -151,7 +151,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         abort('Must specify both or neither of distro_type and distro')
     if ask == "yes":
         message = '\nAre you sure you want to install Chef {0}'.format(version)
-        message += ' at the node {0}'.format(env.host_string)
+        message += ' on node {0}'.format(env.host_string)
         if gems == "yes":
             message += ', using gems for "{0}"?'.format(distro)
         else:
@@ -441,3 +441,5 @@ if littlechef.__cooking__:
 else:
     # runner module has been imported
     env.ssh_config = None
+    env.follow_symlinks = False
+    env.encrypted_data_bag_secret = None
