@@ -33,7 +33,14 @@ from littlechef import chef
 import fabric
 fabric.state.output['running'] = False
 env.loglevel = "info"
-env.output_prefix = False
+
+if isinstance(littlechef.concurrency, int):
+    env.output_prefix = True
+    env.parallel = True
+    env.pool_size = littlechef.concurrency
+else:
+    env.output_prefix = False
+
 __testing__ = False
 
 
@@ -69,7 +76,6 @@ def new_kitchen():
             print "config.cfg file created..."
 
 
-@hosts('setup')
 def nodes_with_role(rolename):
     """Sets a list of nodes that have the given role
     in their run list and calls node()
@@ -90,9 +96,9 @@ def nodes_with_role(rolename):
     return node(*nodes_in_env)
 
 
-@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
+    chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
     elif nodes[0] == 'all':
@@ -113,27 +119,30 @@ def node(*nodes):
         # A list of nodes was given
         env.hosts = list(nodes)
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
-    if len(env.hosts) > 1:
-        print "Configuring nodes: {0}...".format(", ".join(env.hosts))
 
     # Check whether another command was given in addition to "node:"
-    execute = True
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
             'nodes_with_role:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
-        for hostname in env.hosts:
-            env.host = hostname
-            env.host_string = hostname
-            if '@' in hostname:
-                env.user = hostname.split('@')[0]
-            node = lib.get_node(env.host)
-            lib.print_header("Configuring {0}".format(env.host))
-            if __testing__:
-                print "TEST: would now configure {0}".format(env.host)
-            else:
-                chef.sync_node(node)
+        with settings():
+            execute(_node_runner)
+        chef.remove_local_node_data_bag()
+
+
+def _node_runner():
+    """This is only used by node so that we can execute in parallel"""
+    if not env.host_string:
+        abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
+    if '@' in env.host_string:
+        env.user = env.host_string.split('@')[0]
+    node = lib.get_node(env.host_string)
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",

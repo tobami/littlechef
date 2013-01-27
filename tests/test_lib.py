@@ -274,7 +274,7 @@ class TestLib(BaseTest):
 
 class TestChef(BaseTest):
     def tearDown(self):
-        chef._remove_local_node_data_bag()
+        chef.remove_local_node_data_bag()
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
@@ -342,7 +342,7 @@ class TestChef(BaseTest):
 
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode1.json')
         self.assertTrue(os.path.exists(item_path))
         with open(item_path, 'r') as f:
@@ -367,7 +367,7 @@ class TestChef(BaseTest):
     def test_build_node_data_bag_nonalphanumeric(self):
         """Should create a node data bag when node name contains invalid chars
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         # A node called testnode3.mydomain.com will have the data bag id
         # 'testnode3', because dots are not allowed.
         filename = 'testnode3_mydomain_com'
@@ -381,7 +381,7 @@ class TestChef(BaseTest):
 
     def test_automatic_attributes(self):
         """Should add Chef's automatic attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         # Check node with single word fqdn
         testnode1_path = os.path.join('data_bags', 'node', 'testnode1.json')
         with open(testnode1_path, 'r') as f:
@@ -409,11 +409,11 @@ class TestChef(BaseTest):
         # Save new node with a non-existing cookbook assigned
         env.host_string = 'extranode'
         chef.save_config({"run_list": ["recipe[phantom_cookbook]"]})
-        self.assertRaises(SystemExit, chef._build_node_data_bag)
+        self.assertRaises(SystemExit, chef.build_node_data_bag)
 
     def test_attribute_merge_cookbook_default(self):
         """Should have the value found in recipe/attributes/default.rb"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -422,7 +422,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_cookbook_boolean(self):
         """Should have real boolean values for default cookbook attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join(
             'data_bags', 'node', 'testnode3_mydomain_com.json')
         with open(item_path, 'r') as f:
@@ -435,7 +435,7 @@ class TestChef(BaseTest):
         site_cookbooks/xx/recipe/attributes/default.rb
 
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -447,11 +447,11 @@ class TestChef(BaseTest):
         # Save new node with a non-existing cookbook assigned
         env.host_string = 'extranode'
         chef.save_config({"run_list": ["role[phantom_role]"]})
-        self.assertRaises(SystemExit, chef._build_node_data_bag)
+        self.assertRaises(SystemExit, chef.build_node_data_bag)
 
     def test_attribute_merge_role_default(self):
         """Should have the value found in the roles default attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -463,7 +463,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_node_normal(self):
         """Should have the value found in the node attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -472,7 +472,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_role_override(self):
         """Should have the value found in the roles override attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -482,7 +482,7 @@ class TestChef(BaseTest):
     def test_attribute_merge_deep_dict(self):
         """Should deep-merge a dict when it is defined in two different places
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())

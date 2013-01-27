@@ -80,8 +80,7 @@ def sync_node(node):
     if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
-    # Get merged attributes
-    current_node = _build_node_data_bag()
+    current_node = lib.get_node(node['name'])
     with lib.credentials():
         # Always configure Chef Solo
         solo.configure(current_node)
@@ -97,7 +96,6 @@ def sync_node(node):
             # Execute Chef Solo
             _configure_node()
         finally:
-            _remove_local_node_data_bag()
             _node_cleanup()
     return True
 
@@ -110,7 +108,7 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
-    print "Synchronizing node, cookbooks, roles and data bags..."
+    print "[{0}]: Synchronizing node, cookbooks, roles and data bags...".format(env.host_string)
     # First upload node.json
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
@@ -246,7 +244,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     node.update(attributes)
 
 
-def _build_node_data_bag():
+def build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
 
     Automatic attributes for a node item:
@@ -261,16 +259,11 @@ def _build_node_data_bag():
         All default cookbook attributes corresponding to the node
         All attributes found in nodes/<item>.json file
         Default and override attributes from all roles
-
-    Returns the node object of the node which is about to be configured, or
-    None if this node object cannot be found.
-
     """
-    current_node = None
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
     # In case there are leftovers
-    _remove_local_node_data_bag()
+    remove_local_node_data_bag()
     os.makedirs(node_data_bag_path)
     all_recipes = lib.get_recipes()
     all_roles = lib.get_roles()
@@ -300,12 +293,9 @@ def _build_node_data_bag():
         with open(os.path.join(
                     'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
-        if node['name'] == env.host_string:
-            current_node = node
-    return current_node
 
 
-def _remove_local_node_data_bag():
+def remove_local_node_data_bag():
     """Removes generated 'node' data_bag locally"""
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
@@ -347,7 +337,7 @@ def _add_search_patch():
 
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    print("\nCooking...")
+    print("\n[{0}]: Cooking...".format(env.host_string))
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
@@ -380,4 +370,4 @@ def _configure_node():
             import sys
             sys.exit(1)
     else:
-        print(colors.green("\nSUCCESS: Node correctly configured"))
+        print(colors.green("\n[{0}]: SUCCESS: Node correctly configured").format(env.host_string))

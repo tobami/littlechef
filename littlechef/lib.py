@@ -28,11 +28,14 @@ from littlechef import cookbook_paths
 knife_installed = True
 
 
-def get_node(name):
+def get_node(name, merged=False):
     """Returns a JSON node file as a dictionary"""
-    node_path = os.path.join("nodes", name + ".json")
-    if not os.path.exists(node_path):
-        return {'run_list': []}
+    if merged:
+        node_path = os.path.join("data_bags", "node", name.replace('.', '_') + ".json")
+    else:
+        node_path = os.path.join("nodes", name + ".json")
+        if not os.path.exists(node_path):
+            return {'run_list': []}
     # Read node.json
     with open(node_path, 'r') as f:
         try:
@@ -469,4 +472,5 @@ def credentials(*args, **kwargs):
     # override 'host_string'
     if 'hostname' in credentials:
         credentials['host_string'] = credentials['hostname']
+    credentials['user'] = env.user
     return settings(*args, **credentials)
