@@ -223,6 +223,14 @@ deleted from the node, and verbose will also be true
 
 Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
 
+### Configuring nodes in parallel
+
+By default LittleChef configures nodes serially however it can also use Fabric's parallel SSH support to configure multiple nodes in parallel. All commands are supported (node, nodes_with_role, ssh, role, and recipe)
+
+* `fix --concurrency node:NODELIST`: will configure multiple nodes in parallel
+* `fix --concurrency node:NODELIST ssh:COMMAND`: will run an ssh command on multiple nodes in parallel
+* `fix --concurrency 5 node:NODELIST`: will configure multiple nodes in parallel but limit to 5 connections
+
 ### Consulting the inventory
 
 * `fix list_nodes`: Lists all configured nodes, showing its associated recipes and roles
