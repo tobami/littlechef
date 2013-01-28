@@ -26,11 +26,8 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun
-from littlechef import lib
-from littlechef import solo
+from littlechef import cookbook_paths, whyrun, lib, solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
-
 
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
@@ -337,7 +334,11 @@ def _add_search_patch():
 
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    print("\n[{0}]: Cooking...".format(env.host_string))
+    msg = "\n"
+    if env.parallel:
+        msg += "[{0}]: "
+    msg += "Cooking...".format(env.host_string)
+    print(msg)
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))

@@ -24,9 +24,7 @@ from fabric.contrib.console import confirm
 from ssh.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo
-from littlechef import lib
-from littlechef import chef
+from littlechef import solo, lib, chef
 
 # Fabric settings
 import fabric
