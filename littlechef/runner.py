@@ -28,13 +28,15 @@ from littlechef import solo
 from littlechef import lib
 from littlechef import chef
 
-
 # Fabric settings
 import fabric
 fabric.state.output['running'] = False
-env.loglevel = "info"
+env.loglevel = littlechef.loglevel
+env.verbose = littlechef.verbose
+env.chef_environment = littlechef.chef_environment
+env.node_work_path = littlechef.node_work_path
 
-if isinstance(littlechef.concurrency, int):
+if littlechef.concurrency:
     env.output_prefix = True
     env.parallel = True
     env.pool_size = littlechef.concurrency
@@ -436,11 +438,6 @@ def _readconfig():
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
-env.chef_environment = littlechef.chef_environment
-env.loglevel = littlechef.loglevel
-env.verbose = littlechef.verbose
-env.node_work_path = littlechef.node_work_path
-
 if littlechef.__cooking__:
     # Called from command line
     if env.chef_environment:
