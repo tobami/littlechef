@@ -226,11 +226,9 @@ def ssh(name):
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
         if name.startswith("sudo "):
-            with lib.credentials():
-                sudo(name[5:])
+            sudo(name[5:])
         else:
-            with lib.credentials():
-                run(name)
+            run(name)
 
 
 def plugin(name):
@@ -415,8 +413,8 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    if user_specified and not env.password and not env.ssh_config:
-        abort('You need to define a password or a ssh-config file in config.cfg')
+    if user_specified and not env.password and not env.key_filename and not env.ssh_config:
+        abort('You need to define a password, keypair file, or ssh-config file in config.cfg')
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:

@@ -22,7 +22,6 @@ from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
 from littlechef import cookbook_paths
-from littlechef.lib import credentials
 from littlechef import LOGFILE
 
 
@@ -32,76 +31,74 @@ BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 def install(distro_type, distro, gems, version, stop_client):
     """Calls the appropriate installation function for the given distro"""
-    with credentials():
-        if distro_type == "debian":
-            if gems == "yes":
-                _gem_apt_install()
-            else:
-                _apt_install(distro, version, stop_client)
-        elif distro_type == "rpm":
-            if gems == "yes":
-                _gem_rpm_install()
-            else:
-                _rpm_install()
-        elif distro_type == "gentoo":
-            _emerge_install()
-        elif distro_type == "pacman":
-            _gem_pacman_install()
+    if distro_type == "debian":
+        if gems == "yes":
+            _gem_apt_install()
         else:
-            abort('wrong distro type: {0}'.format(distro_type))
+            _apt_install(distro, version, stop_client)
+    elif distro_type == "rpm":
+        if gems == "yes":
+            _gem_rpm_install()
+        else:
+            _rpm_install()
+    elif distro_type == "gentoo":
+        _emerge_install()
+    elif distro_type == "pacman":
+        _gem_pacman_install()
+    else:
+        abort('wrong distro type: {0}'.format(distro_type))
 
 
 def configure(current_node=None):
     """Deploy chef-solo specific files"""
     current_node = current_node or {}
-    with credentials():
-        # Ensure that the /tmp/chef-solo/cache directory exist
-        cache_dir = "{0}/cache".format(env.node_work_path)
-        if not exists(cache_dir):
-            with settings(hide('running', 'stdout'), warn_only=True):
-                output = sudo('mkdir -p {0}'.format(cache_dir))
-            if output.failed:
-                error = "Could not create {0} dir. ".format(env.node_work_path)
-                error += "Do you have sudo rights?"
-                abort(error)
-        # Change ownership of /tmp/chef-solo/ so that we can rsync
-        with hide('running', 'stdout'):
-            with settings(warn_only=True):
-                output = sudo(
-                    'chown -R {0} {1}'.format(env.user, env.node_work_path))
-            if output.failed:
-                error = "Could not modify {0} dir. ".format(env.node_work_path)
-                error += "Do you have sudo rights?"
-                abort(error)
-        # Set up chef solo configuration
-        logging_path = os.path.dirname(LOGFILE)
-        if not exists(logging_path):
-            sudo('mkdir -p {0}'.format(logging_path))
-        if not exists('/etc/chef'):
-            sudo('mkdir -p /etc/chef')
-        # Set parameters and upload solo.rb template
-        reversed_cookbook_paths = cookbook_paths[:]
-        reversed_cookbook_paths.reverse()
-        cookbook_paths_list = '[{0}]'.format(', '.join(
-            ['"{0}/{1}"'.format(env.node_work_path, x) \
-                for x in reversed_cookbook_paths]))
-        data = {
-            'node_work_path': env.node_work_path,
-            'cookbook_paths_list': cookbook_paths_list,
-            'environment': current_node.get('chef_environment', '_default'),
-            'verbose': "true" if env.verbose else "false"
-        }
-        with settings(hide('everything')):
-            try:
-                upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
-                    context=data, use_sudo=True, backup=False, mode=0400)
-            except SystemExit:
-                error = ("Failed to upload '/etc/chef/solo.rb'\n"
-                "This can happen when the deployment user does not have a "
-                "home directory, which is needed as a temporary location")
-                abort(error)
-        with hide('stdout'):
-            sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
+    # Ensure that the /tmp/chef-solo/cache directory exist
+    cache_dir = "{0}/cache".format(env.node_work_path)
+    if not exists(cache_dir):
+        with settings(hide('running', 'stdout'), warn_only=True):
+            output = sudo('mkdir -p {0}'.format(cache_dir))
+        if output.failed:
+            error = "Could not create {0} dir. ".format(env.node_work_path)
+            error += "Do you have sudo rights?"
+            abort(error)
+    # Change ownership of /tmp/chef-solo/ so that we can rsync
+    with hide('running', 'stdout'):
+        with settings(warn_only=True):
+            output = sudo(
+                'chown -R {0} {1}'.format(env.user, env.node_work_path))
+        if output.failed:
+            error = "Could not modify {0} dir. ".format(env.node_work_path)
+            error += "Do you have sudo rights?"
+            abort(error)
+    # Set up chef solo configuration
+    logging_path = os.path.dirname(LOGFILE)
+    if not exists(logging_path):
+        sudo('mkdir -p {0}'.format(logging_path))
+    if not exists('/etc/chef'):
+        sudo('mkdir -p /etc/chef')
+    # Set parameters and upload solo.rb template
+    reversed_cookbook_paths = cookbook_paths[:]
+    reversed_cookbook_paths.reverse()
+    cookbook_paths_list = '[{0}]'.format(', '.join(
+        ['"{0}/{1}"'.format(env.node_work_path, x) \
+            for x in reversed_cookbook_paths]))
+    data = {
+        'node_work_path': env.node_work_path,
+        'cookbook_paths_list': cookbook_paths_list,
+        'environment': current_node.get('chef_environment', '_default'),
+        'verbose': "true" if env.verbose else "false"
+    }
+    with settings(hide('everything')):
+        try:
+            upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
+                context=data, use_sudo=True, backup=False, mode=0400)
+        except SystemExit:
+            error = ("Failed to upload '/etc/chef/solo.rb'\n"
+            "This can happen when the deployment user does not have a "
+            "home directory, which is needed as a temporary location")
+            abort(error)
+    with hide('stdout'):
+        sudo('chown root:root {0}'.format('/etc/chef/solo.rb'))
 
 
 def check_distro():
@@ -110,7 +107,7 @@ def check_distro():
     ubuntu_distros = ['natty', 'maverick', 'lucid', 'karmic']
     rpm_distros = ['centos', 'rhel', 'sl']
 
-    with credentials(
+    with settings(
         hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:

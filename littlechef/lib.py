@@ -445,32 +445,3 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
-
-
-def credentials(*args, **kwargs):
-    """Override default credentials with contents of .ssh/config,
-
-    Only done if credentials are properly defined
-    """
-    if env.ssh_config:
-        credentials = env.ssh_config.lookup(env.host)
-        # translate from ssh params to fabric params
-        if 'identityfile' in credentials:
-            credentials['key_filename'] = credentials['identityfile']
-        # SSH LogLevel != overall env loglevel, so don't override the env's
-        # loglevel with SSH's
-        if 'loglevel' in credentials:
-            del credentials['loglevel']
-        credentials.update(kwargs)
-    else:
-        credentials = kwargs
-    # Expand the home directory of 'key_filename', as 'ssh' won't do it
-    if credentials.get('key_filename'):
-        credentials['key_filename'] = os.path.expanduser(
-                                        credentials['key_filename'])
-    # If ssh config defines a different Hostname string (be it domain or IP),
-    # override 'host_string'
-    if 'hostname' in credentials:
-        credentials['host_string'] = credentials['hostname']
-    credentials['user'] = env.user
-    return settings(*args, **credentials)
