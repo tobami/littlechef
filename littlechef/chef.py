@@ -78,22 +78,20 @@ def sync_node(node):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
     current_node = lib.get_node(node['name'])
-    with lib.credentials():
-        # Always configure Chef Solo
-        solo.configure(current_node)
-        ipaddress = _get_ipaddress(node)
+    # Always configure Chef Solo
+    solo.configure(current_node)
+    ipaddress = _get_ipaddress(node)
     # Everything was configured alright, so save the node configuration
     # This is done without credentials, so that we keep the node name used
     # by the user and not the hostname or IP translated by .ssh/config
     filepath = save_config(node, ipaddress)
-    with lib.credentials():
-        try:
-            # Synchronize the kitchen directory
-            _synchronize_node(filepath, node)
-            # Execute Chef Solo
-            _configure_node()
-        finally:
-            _node_cleanup()
+    try:
+        # Synchronize the kitchen directory
+        _synchronize_node(filepath, node)
+        # Execute Chef Solo
+        _configure_node()
+    finally:
+        _node_cleanup()
     return True
 
 

@@ -514,38 +514,5 @@ class TestChef(BaseTest):
         self.assertTrue(chef.sync_node(test_node))
 
 
-class TestCredentials(unittest.TestCase):
-    """Tests for the credentials function in lib"""
-    def setUp(self):
-        self.ssh_config = {
-            'identityfile': '/Users/myuser/.ssh/id_rsa',
-            'loglevel': 'ERROR',
-            'hostname': '1.1.1.1',
-            'passwordauthentication': 'no',
-            'userknownhostsfile': '/dev/null',
-            'user': 'myuser',
-            'stricthostkeychecking': 'no',
-            'port': '22'
-        }
-        runner.__testing__ = True
-        runner.env.ssh_config = mock.MagicMock()
-        runner.env.ssh_config.lookup.return_value = self.ssh_config
-        runner.env.host = 'nodename'
-
-        self.old_log_level = runner.env.loglevel
-        runner.env.loglevel = 'original_loglevel'
-
-    def tearDown(self):
-        runner.env.ssh_config = None
-        runner.env.host = None
-        runner.env.loglevel = self.old_log_level
-
-    def test_credentials_ignores_ssh_config_loglevel(self):
-        """Ignores LogLevel in ssh config"""
-        with lib.credentials():
-            runner.env.ssh_config.lookup.assert_called_once_with('nodename')
-            self.assertEqual(runner.env.loglevel, 'original_loglevel')
-
-
 if __name__ == "__main__":
     unittest.main()
