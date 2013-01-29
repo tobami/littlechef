@@ -413,8 +413,8 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    if user_specified and not env.password and not env.ssh_config:
-        abort('You need to define a password or a ssh-config file in config.cfg')
+    if user_specified and not env.password and not env.key_filename and not env.ssh_config:
+        abort('You need to define a password, keypair file, or ssh-config file in config.cfg')
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
