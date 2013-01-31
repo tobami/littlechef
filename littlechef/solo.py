@@ -24,7 +24,6 @@ from fabric.utils import abort
 from littlechef import cookbook_paths
 from littlechef import LOGFILE
 
-
 # Path to local patch
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
@@ -103,12 +102,8 @@ def configure(current_node=None):
 
 def check_distro():
     """Check that the given distro is supported and return the distro type"""
-    debian_distros = ['wheezy', 'squeeze', 'lenny']
-    ubuntu_distros = ['natty', 'maverick', 'lucid', 'karmic']
-    rpm_distros = ['centos', 'rhel', 'sl']
-
-    with settings(
-        hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
+    with settings(hide('warnings', 'running', 'stdout', 'stderr'),
+                  warn_only=True):
         output = sudo('cat /etc/issue')
         if 'Debian GNU/Linux 5.0' in output:
             distro = "lenny"
@@ -138,12 +133,11 @@ def check_distro():
             distro = "Arch Linux"
             distro_type = "pacman"
         else:
-            print "Currently supported distros are:"
-            print "  Debian: " + ", ".join(debian_distros)
-            print "  Ubuntu: " + ", ".join(ubuntu_distros)
-            print "  RHEL: " + ", ".join(rpm_distros)
-            print "  Gentoo"
-            print "  Arch Linux"
+            supported_distros = (
+                "Currently supported distros are:"
+                " Debian, Ubuntu, RHEL (CentOS, RHEL, SL),"
+                " Gentoo and Arch Linux")
+            print supported_distros
             abort("Unsupported distro '{0}'".format(output))
     return distro_type, distro
 
