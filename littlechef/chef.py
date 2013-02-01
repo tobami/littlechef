@@ -372,4 +372,8 @@ def _configure_node():
             import sys
             sys.exit(1)
     else:
-        print(colors.green("\n[{0}]: SUCCESS: Node correctly configured").format(env.host_string))
+        msg = "\n"
+        if env.parallel:
+            msg = "[{0}]: ".format(env.host_string)
+        msg += "SUCCESS: Node correctly configured"
+        print(colors.green(msg))
