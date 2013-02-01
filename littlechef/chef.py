@@ -374,6 +374,6 @@ def _configure_node():
     else:
         msg = "\n"
         if env.parallel:
-            msg = "[{0}]: ".format(env.host_string)
+            msg += "[{0}]: ".format(env.host_string)
         msg += "SUCCESS: Node correctly configured"
         print(colors.green(msg))

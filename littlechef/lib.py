@@ -24,7 +24,6 @@ from fabric.utils import abort
 
 from littlechef import cookbook_paths
 
-
 knife_installed = True
 
 
@@ -34,16 +33,18 @@ def get_node(name, merged=False):
         node_path = os.path.join("data_bags", "node", name.replace('.', '_') + ".json")
     else:
         node_path = os.path.join("nodes", name + ".json")
-        if not os.path.exists(node_path):
-            return {'run_list': []}
-    # Read node.json
-    with open(node_path, 'r') as f:
-        try:
-            node = json.loads(f.read())
-        except json.JSONDecodeError as e:
-            msg = 'LittleChef found the following error in'
-            msg += ' "{0}":\n                {1}'.format(node_path, str(e))
-            abort(msg)
+    if os.path.exists(node_path):
+        # Read node.json
+        with open(node_path, 'r') as f:
+            try:
+                node = json.loads(f.read())
+            except json.JSONDecodeError as e:
+                msg = 'LittleChef found the following error in'
+                msg += ' "{0}":\n                {1}'.format(node_path, str(e))
+                abort(msg)
+    else:
+        print "Creating new node file '{0}.json'".format(name)
+        node = {'run_list': []}
     # Add node name so that we can tell to which node it is
     node['name'] = name
     return node
