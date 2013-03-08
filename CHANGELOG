@@ -5,9 +5,13 @@ LittleChef Changelog
 Version 1.5.0 March 8, 2013
 ----------------------------------------
 New features:
-* 
+* #147: philk added optional parallel configuration runs
+
 Bugs fixed:
-* #151: Fixed "Failed to upload solo.rb" by pinning to Fabric 1.5
+* #146: Make ssh config work for all commands
+* #145: pawelpacana fixed a typo in chef_environment search query.
+* #149: Make deploy_chef work for Debian Wheezy
+* #151: Fixed "Failed to upload solo.rb" by pinning the fabric version to 1.5
 
 
 Version 1.4.1 January 21, 2013
