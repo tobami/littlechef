@@ -20,6 +20,7 @@ import imp
 
 from fabric import colors
 from fabric.api import env, settings
+from fabric.contrib.console import confirm
 from fabric.utils import abort
 
 from littlechef import cookbook_paths
@@ -419,6 +420,14 @@ def get_cookbook_path(cookbook_name):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
 
+def global_confirm(question, default=True):
+    """Shows a confirmation that applies to all hosts
+    by temporarily disabling parallel execution in Fabric"""
+    original_parallel = env.parallel
+    env.parallel = False
+    result = confirm(question, default)
+    env.parallel = original_parallel
+    return result
 
 def _pprint(dic):
     """Prints a dictionary with one indentation level"""

@@ -113,7 +113,7 @@ def node(*nodes):
             message += " in the {0} environment".format(env.chef_environment)
         message += "?"
         if not __testing__:
-            if not confirm(message):
+            if not lib.global_confirm(message):
                 abort('Aborted by user')
     else:
         # A list of nodes was given
