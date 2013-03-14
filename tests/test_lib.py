@@ -135,8 +135,9 @@ class TestLib(BaseTest):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
         # Unexisting node
-        expected = {'run_list': []}
-        self.assertEqual(lib.get_node('Idon"texist'), expected)
+        name = 'Idon"texist'
+        expected = {'name': name, 'run_list': []}
+        self.assertEqual(lib.get_node(name), expected)
         # Existing node
         expected = {
             'chef_environment': 'production',
