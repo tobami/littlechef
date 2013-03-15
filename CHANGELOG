@@ -2,6 +2,14 @@
 LittleChef Changelog
 ====================
 
+
+Version 1.5.1 March 15, 2013
+----------------------------------------
+Bugs fixed:
+* #152: chrismoos node:all with concurrency
+* #153: runner was still using the ssh library, dropped for paramiko
+
+
 Version 1.5.0 March 8, 2013
 ----------------------------------------
 New features:

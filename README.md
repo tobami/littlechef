@@ -36,7 +36,7 @@ be in code, revision controlled.
 
 #### Data bag Search ####
 
-Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
+Chef Solo does not currently (as of 10.18) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
 [cookbook library that implements search][].
 
 Thus, most examples in the [search wiki page][] are now possible, including the
@@ -92,7 +92,7 @@ Tested on all three major desktops:
 ### Requirements
 
 * Python 2.6+
-* Fabric 1.3.2+
+* Fabric 1.5
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
 `sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
