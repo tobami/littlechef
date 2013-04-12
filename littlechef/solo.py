@@ -123,7 +123,7 @@ def check_distro():
         elif 'Red Hat Enterprise Linux' in output:
             distro = "Red Hat"
             distro_type = "rpm"
-        elif 'Scientific Linux SL' in output:
+        elif 'Scientific Linux' in output:
             distro = "Scientific Linux"
             distro_type = "rpm"
         elif 'This is \\n.\\O (\\s \\m \\r) \\t' in output:
