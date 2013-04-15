@@ -363,7 +363,7 @@ def _configure_node():
                 colors.red(
                     "\nFAILED: Chef Solo is not installed on this node"))
             print(
-                "Type 'fix nodes:{0} deploy_chef' to install it".format(
+                "Type 'fix node:{0} deploy_chef' to install it".format(
                     env.host))
             abort("")
         else:
