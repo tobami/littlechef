@@ -146,7 +146,7 @@ def _gem_install():
     """Install Chef from gems"""
     # Install RubyGems from Source
     rubygems_version = "1.8.10"
-    ruby_version = "10.26.0"
+    ruby_version = "'~> 10.0'"
     run('wget http://production.cf.rubygems.org/rubygems/rubygems-{0}.tgz'
         .format(rubygems_version))
     run('tar zxf rubygems-{0}.tgz'.format(rubygems_version))
