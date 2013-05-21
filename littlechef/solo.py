@@ -146,13 +146,14 @@ def _gem_install():
     """Install Chef from gems"""
     # Install RubyGems from Source
     rubygems_version = "1.8.10"
+    ruby_version = "'~> 10.0'"
     run('wget http://production.cf.rubygems.org/rubygems/rubygems-{0}.tgz'
         .format(rubygems_version))
     run('tar zxf rubygems-{0}.tgz'.format(rubygems_version))
     with cd('rubygems-{0}'.format(rubygems_version)):
         sudo('ruby setup.rb --no-format-executable'.format(rubygems_version))
     sudo('rm -rf rubygems-{0} rubygems-{0}.tgz'.format(rubygems_version))
-    sudo('gem install --no-rdoc --no-ri chef')
+    sudo('gem install --no-rdoc --no-ri chef -v {0}'.format(ruby_version))
 
 
 def _gem_apt_install():
