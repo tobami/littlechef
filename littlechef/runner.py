@@ -138,6 +138,13 @@ def _node_runner():
     if '@' in env.host_string:
         env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
+
+    # set the shell to /bin/sh -c if we need to
+    with settings(hide('running', 'warnings', 'stdout'), warn_only=True):
+        result = run('which /bin/bash')
+        if result.failed:
+            env.shell = "/bin/sh -c"
+
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
     else:
