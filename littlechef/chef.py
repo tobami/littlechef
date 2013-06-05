@@ -111,7 +111,7 @@ def _synchronize_node(configfile, node):
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
     with hide('stdout'):
-        sudo('chown root:0 {0}'.format(remote_file))
+        sudo('chown root:$(id -g -n root) {0}'.format(remote_file))
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
@@ -126,7 +126,7 @@ def _synchronize_node(configfile, node):
             "/etc/chef/encrypted_data_bag_secret",
             use_sudo=True,
             mode=0600)
-        sudo('chown root:0 /etc/chef/encrypted_data_bag_secret')
+        sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
     rsync_project(
         env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),

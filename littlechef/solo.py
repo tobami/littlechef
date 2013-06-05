@@ -99,7 +99,7 @@ def configure(current_node=None):
             "home directory, which is needed as a temporary location")
             abort(error)
     with hide('stdout'):
-        sudo('chown root:0 {0}'.format('/etc/chef/solo.rb'))
+        sudo('chown root:$(id -g -n root) {0}'.format('/etc/chef/solo.rb'))
 
 
 def check_distro():
