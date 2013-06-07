@@ -187,6 +187,22 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         solo.install(distro_type, distro, gems, version, stop_client)
         solo.configure()
 
+        # Build a basic node file if there isn't one already with some properties from ohai
+        with settings(hide('stdout'), warn_only=True):
+            output = sudo('ohai -l warn')
+        if output.succeeded:
+            try:
+                ohai = json.loads(output)
+                node = {"run_list": []}
+                for prop in ["ipaddress", "platform", "platform_family",
+                             "platform_version"]:
+                    if ohai[prop]:
+                        node[prop] = ohai[prop]
+                chef.save_config(node)
+            except json.JSONDecodeError:
+                abort("Could not parse ohai's output"
+                      ":\n  {0}".format(output))
+
 
 def recipe(recipe):
     """Apply the given recipe to a node
