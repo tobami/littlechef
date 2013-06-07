@@ -205,14 +205,13 @@ def _gem_pacman_install():
 def _gem_ports_install():
     """Install Chef from gems for FreeBSD"""
     with hide('stdout', 'running'):
-        sudo('grep -q RUBY_VER /etc/make.conf || echo \'RUBY_VER=2.0\' >> /etc/make.conf')
-        sudo('grep -q RUBY_DEFAULT_VER /etc/make.conf || echo \'RUBY_DEFAULT_VER=2.0\' >> /etc/make.conf')
+        sudo('grep -q RUBY_VER /etc/make.conf || echo \'RUBY_VER=1.9\' >> /etc/make.conf')
+        sudo('grep -q RUBY_DEFAULT_VER /etc/make.conf || echo \'RUBY_DEFAULT_VER=1.9\' >> /etc/make.conf')
     with show('running'):
         sudo('which -s rsync || pkg_add -r rsync')
         sudo('which -s perl || pkg_add -r perl')
         sudo('which -s m4 || pkg_add -r m4')
-        sudo('which -s gem || (cd /usr/ports/devel/ruby-gems && make -DBATCH install)')
-    sudo('which -s chef || gem install --no-rdoc --no-ri chef')
+        sudo('which -s chef || (cd /usr/ports/sysutils/rubygem-chef && make -DBATCH install)')
 
 def _apt_install(distro, version, stop_client='yes'):
     """Install Chef for debian based distros"""
