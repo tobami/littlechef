@@ -104,6 +104,14 @@ def configure(current_node=None):
 
 def check_distro():
     """Check that the given distro is supported and return the distro type"""
+    def print_supported_distros(platform):
+        supported_distros = (
+            "Currently supported distros are:"
+            " Debian, Ubuntu, RHEL (CentOS, RHEL, SL),"
+            " Gentoo, Arch Linux or FreeBSD")
+        print supported_distros
+        abort("Unsupported distro '{0}'".format(platform))
+
     with settings(hide('warnings', 'running', 'stdout', 'stderr'),
                   warn_only=True):
         # use /bin/sh to determine our OS. FreeBSD doesn't have /bin/bash
@@ -141,23 +149,13 @@ def check_distro():
                 distro = "Arch Linux"
                 distro_type = "pacman"
             else:
-                supported_distros = (
-                    "Currently supported distros are:"
-                    " Debian, Ubuntu, RHEL (CentOS, RHEL, SL),"
-                    " Gentoo, Arch Linux or FreeBSD")
-                print supported_distros
-                abort("Unsupported distro '{0}'".format(output))
+                print_supported_distros(output)
         elif 'FreeBSD' in os_implementation:
             env.shell = "/bin/sh -c"
             distro = "FreeBSD"
             distro_type = "freebsd"
         else:
-            supported_distros = (
-                "Currently supported distros are:"
-                " Debian, Ubuntu, RHEL (CentOS, RHEL, SL),"
-                " Gentoo, Arch Linux or FreeBSD")
-            print supported_distros
-            abort("Unsupported distro '{0}'".format(os_implementation))
+            print_supported_distros(os_implementation)
 
     return distro_type, distro
 
