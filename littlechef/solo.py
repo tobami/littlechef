@@ -124,40 +124,50 @@ def check_distro():
             if 'Debian GNU/Linux 5.0' in output:
                 distro = "lenny"
                 distro_type = "debian"
+                platform = "debian"
             elif 'Debian GNU/Linux 6.0' in output:
                 distro = "squeeze"
                 distro_type = "debian"
+                platform = "debian"
             elif 'Debian GNU/Linux 7.0' in output:
                 distro = "wheezy"
                 distro_type = "debian"
+                platform = "debian"
             elif 'Ubuntu' in output:
                 distro = sudo('lsb_release -cs')
                 distro_type = "debian"
+                platform = "ubuntu"
             elif 'CentOS' in output:
                 distro = "CentOS"
                 distro_type = "rpm"
+                platform = "centos"
             elif 'Red Hat Enterprise Linux' in output:
                 distro = "Red Hat"
                 distro_type = "rpm"
+                platform = "redhat"
             elif 'Scientific Linux' in output:
                 distro = "Scientific Linux"
                 distro_type = "rpm"
+                platform = "scientific"
             elif 'This is \\n.\\O (\\s \\m \\r) \\t' in output:
                 distro = "Gentoo"
                 distro_type = "gentoo"
+                platform = "gentoo"
             elif 'Arch Linux \\r  (\\n) (\\l)' in output:
                 distro = "Arch Linux"
                 distro_type = "pacman"
+                platform = "arch"
             else:
                 print_supported_distros(output)
         elif 'FreeBSD' in os_implementation:
             env.shell = "/bin/sh -c"
             distro = "FreeBSD"
             distro_type = "freebsd"
+            platform = "freebsd"
         else:
             print_supported_distros(os_implementation)
 
-    return distro_type, distro
+    return distro_type, distro, platform
 
 
 def _gem_install():

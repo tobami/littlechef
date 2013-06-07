@@ -130,6 +130,10 @@ def node(*nodes):
             execute(_node_runner)
         chef.remove_local_node_data_bag()
 
+def _configure_fabric_for_platform(platform):
+    """Configures fabric for a specific platform"""
+    if platform == "freebsd":
+        env.shell = "/bin/sh -c"
 
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
@@ -139,11 +143,7 @@ def _node_runner():
         env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
 
-    # set the shell to /bin/sh -c if we need to
-    with settings(hide('running', 'warnings', 'stdout'), warn_only=True):
-        result = run('which /bin/bash')
-        if result.failed:
-            env.shell = "/bin/sh -c"
+    _configure_fabric_for_platform(node["platform"])
 
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
@@ -153,7 +153,7 @@ def _node_runner():
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
-    distro_type=None, distro=None, stop_client='yes'):
+    distro_type=None, distro=None, platform=None, stop_client='yes'):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
@@ -162,7 +162,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         abort('Wrong Chef version specified. Valid versions are {0}'.format(
             ", ".join(chef_versions)))
     if distro_type is None and distro is None:
-        distro_type, distro = solo.check_distro()
+        distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
     if ask == "yes":
@@ -180,6 +180,8 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         else:
             method = '{0} using "{1}" packages'.format(version, distro)
         print("Deploying Chef {0}...".format(method))
+
+    _configure_fabric_for_platform(platform)
 
     if not __testing__:
         solo.install(distro_type, distro, gems, version, stop_client)
