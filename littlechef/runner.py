@@ -193,15 +193,15 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         if output.succeeded:
             try:
                 ohai = json.loads(output)
-                node = {"run_list": []}
-                for prop in ["ipaddress", "platform", "platform_family",
-                             "platform_version"]:
-                    if ohai[prop]:
-                        node[prop] = ohai[prop]
-                chef.save_config(node)
             except json.JSONDecodeError:
                 abort("Could not parse ohai's output"
                       ":\n  {0}".format(output))
+            node = {"run_list": []}
+            for prop in ["ipaddress", "platform", "platform_family",
+                         "platform_version"]:
+                if ohai[prop]:
+                    node[prop] = ohai[prop]
+            chef.save_config(node)
 
 
 def recipe(recipe):
