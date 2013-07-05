@@ -96,7 +96,10 @@ else:
             sys.exit(0)
         if options.assume_yes:
             littlechef.abort_on_prompts = True
-            sys.argv.remove('--yes')
+            try:
+                sys.argv.remove('--yes')
+            except ValueError:
+                sys.argv.remove('-y')
         if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
@@ -104,23 +107,28 @@ else:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
         if options.concurrency:
-            # --concurrency 5
-            # --concurrency=5
+            try:
+                # --concurrency=5
+                sys.argv.remove('--concurrency={0}'.format(options.concurrency))
+            except ValueError:
+                try:
+                    # -c 5
+                    sys.argv.remove('-c')
+                    sys.argv.remove(options.concurrency)
+                except ValueError:
+                    try:
+                        # --concurrency 5
+                        sys.argv.remove('--concurrency')
+                        sys.argv.remove(options.concurrency)
+                    except ValueError:
+                        pass
             try:
                 c = int(options.concurrency)
-                littlechef.concurrency = c
-                try:
-                    sys.argv.remove('--concurrency={0}'.format(options.concurrency))
-                except ValueError:
-                    sys.argv.remove('--concurrency'.format(options.concurrency))
-                    sys.argv.remove(options.concurrency)
             except ValueError:
-                # --concurrency node:nodename
-                try:
-                    sys.argv.remove('--concurrency')
-                    littlechef.concurrency = 0
-                except ValueError:
-                    pass
+                c = False
+            else:
+                print('Setting concurrency to {}'.format(c))
+            littlechef.concurrency = c
 
         if options.verbose:
             littlechef.verbose = True
