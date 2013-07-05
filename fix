@@ -59,7 +59,7 @@ parser.add_option(
     help="Do a configuration Whyrun, where no changes are performed to the node"
 )
 parser.add_option(
-    "--verbose", dest="verbose", action="store_true", default=False,
+    "-V", "--verbose", dest="verbose", action="store_true", default=False,
     help="Output 'processing' statements"
 )
 parser.add_option(
@@ -126,34 +126,42 @@ else:
                 c = int(options.concurrency)
             except ValueError:
                 c = False
-            else:
-                print('Setting concurrency to {}'.format(c))
             littlechef.concurrency = c
 
         if options.verbose:
             littlechef.verbose = True
-            sys.argv.remove('--verbose')
+            try:
+                sys.argv.remove('--verbose')
+            except ValueError:
+                sys.argv.remove('-V')
         if options.debug:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
-            sys.argv.remove('--debug')
+            try:
+                sys.argv.remove('--debug')
+            except ValueError:
+                sys.argv.remove('-d')
         if options.environment is not None:
-            # Check for mistakes:
-            # * fix --env list_nodes
-            # * fix --env nodes_with_role:bla role:authorization
             littlechef.chef_environment = options.environment
             try:
-                # --env=ENV
-                sys.argv.remove("--env={0}".format(options.environment))
+                # --env=5
+                sys.argv.remove('--env={0}'.format(options.environment))
             except ValueError:
-                # --env ENV
-                idx = sys.argv.index("--env")
-                sys.argv.pop(idx)
-                sys.argv.pop(idx)
-                if not len(args) or ":" in options.environment:
-                    parser.error("No value given for --env")
+                try:
+                    # -e 5
+                    sys.argv.remove('-e')
+                    sys.argv.remove(options.environment)
+                except ValueError:
+                    try:
+                        # --env 5
+                        sys.argv.remove('--env')
+                        sys.argv.remove(options.environment)
+                    except ValueError:
+                        pass
 
         # Otherwise, insert our fabfile at the correct place
+        if len(sys.argv) < 2:
+            parser.error(NO_ORDER)
         if fix_cmd:
             sys.argv[1:1] = ['-f', fabfile]
         else:
