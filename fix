@@ -43,7 +43,7 @@ parser.add_option(
     help="Print littlechef version"
 )
 parser.add_option(
-    "-l", dest="list_commands", action="store_true", default=False,
+    "-l", "--list", dest="list_commands", action="store_true", default=False,
     help="List all available orders"
 )
 parser.add_option(
@@ -59,16 +59,16 @@ parser.add_option(
     help="Output 'processing' statements"
 )
 parser.add_option(
-    "--debug", dest="debug", action="store_true", default=False,
+    "-d", "--debug", dest="debug", action="store_true", default=False,
     help="Ask chef-solo for verbose and debugging output"
 )
 parser.add_option(
-    "--env", dest="environment", default=None,
-    help="Using a certain chef environment"
+    "-e", "--env", dest="environment", default=None,
+    help="Use a certain chef environment"
 )
 parser.add_option(
-    "--concurrency", dest="concurrency", default=False,
-    help="Executes commands concurrently"
+    "-c", "--concurrency", dest="concurrency", default=False,
+    help="Execute commands concurrently"
 )
 (options, args) = parser.parse_args()
 
