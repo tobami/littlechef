@@ -31,6 +31,7 @@ import fabric
 fabric.state.output['running'] = False
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
+env.abort_on_prompts = littlechef.abort_on_prompts
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
 

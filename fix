@@ -47,6 +47,10 @@ parser.add_option(
     help="List all available orders"
 )
 parser.add_option(
+    "-y", "--yes", dest="assume_yes", action="store_true", default=False,
+    help='Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively'
+)
+parser.add_option(
     "--no-report", dest="no_report", action="store_true", default=False,
     help="Don't save the chef-solo output as a report on the node"
 )
@@ -90,6 +94,9 @@ else:
         if options.version:
             print(VERSION.format(littlechef.__version__))
             sys.exit(0)
+        if options.assume_yes:
+            littlechef.abort_on_prompts = True
+            sys.argv.remove('--yes')
         if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
