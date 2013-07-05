@@ -1,4 +1,4 @@
-#Copyright 2010-2012 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ def _node_runner():
         env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
 
-    _configure_fabric_for_platform(node["platform"])
+    _configure_fabric_for_platform(node.get("platform"))
 
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
