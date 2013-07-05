@@ -43,8 +43,12 @@ parser.add_option(
     help="Print littlechef version"
 )
 parser.add_option(
-    "-l", dest="list_commands", action="store_true", default=False,
+    "-l", "--list", dest="list_commands", action="store_true", default=False,
     help="List all available orders"
+)
+parser.add_option(
+    "-y", "--yes", dest="assume_yes", action="store_true", default=False,
+    help='Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively'
 )
 parser.add_option(
     "--no-report", dest="no_report", action="store_true", default=False,
@@ -55,20 +59,20 @@ parser.add_option(
     help="Do a configuration Whyrun, where no changes are performed to the node"
 )
 parser.add_option(
-    "--verbose", dest="verbose", action="store_true", default=False,
+    "-V", "--verbose", dest="verbose", action="store_true", default=False,
     help="Output 'processing' statements"
 )
 parser.add_option(
-    "--debug", dest="debug", action="store_true", default=False,
+    "-d", "--debug", dest="debug", action="store_true", default=False,
     help="Ask chef-solo for verbose and debugging output"
 )
 parser.add_option(
-    "--env", dest="environment", default=None,
-    help="Using a certain chef environment"
+    "-e", "--env", dest="environment", default=None,
+    help="Use a certain chef environment"
 )
 parser.add_option(
-    "--concurrency", dest="concurrency", default=False,
-    help="Executes commands concurrently"
+    "-c", "--concurrency", dest="concurrency", default=False,
+    help="Execute commands concurrently"
 )
 (options, args) = parser.parse_args()
 
@@ -90,6 +94,12 @@ else:
         if options.version:
             print(VERSION.format(littlechef.__version__))
             sys.exit(0)
+        if options.assume_yes:
+            littlechef.noninteractive = True
+            try:
+                sys.argv.remove('--yes')
+            except ValueError:
+                sys.argv.remove('-y')
         if options.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
@@ -97,48 +107,61 @@ else:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
         if options.concurrency:
-            # --concurrency 5
-            # --concurrency=5
+            try:
+                # --concurrency=5
+                sys.argv.remove('--concurrency={0}'.format(options.concurrency))
+            except ValueError:
+                try:
+                    # -c 5
+                    sys.argv.remove('-c')
+                    sys.argv.remove(options.concurrency)
+                except ValueError:
+                    try:
+                        # --concurrency 5
+                        sys.argv.remove('--concurrency')
+                        sys.argv.remove(options.concurrency)
+                    except ValueError:
+                        pass
             try:
                 c = int(options.concurrency)
-                littlechef.concurrency = c
-                try:
-                    sys.argv.remove('--concurrency={0}'.format(options.concurrency))
-                except ValueError:
-                    sys.argv.remove('--concurrency'.format(options.concurrency))
-                    sys.argv.remove(options.concurrency)
             except ValueError:
-                # --concurrency node:nodename
-                try:
-                    sys.argv.remove('--concurrency')
-                    littlechef.concurrency = 0
-                except ValueError:
-                    pass
+                c = False
+            littlechef.concurrency = c
 
         if options.verbose:
             littlechef.verbose = True
-            sys.argv.remove('--verbose')
+            try:
+                sys.argv.remove('--verbose')
+            except ValueError:
+                sys.argv.remove('-V')
         if options.debug:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
-            sys.argv.remove('--debug')
+            try:
+                sys.argv.remove('--debug')
+            except ValueError:
+                sys.argv.remove('-d')
         if options.environment is not None:
-            # Check for mistakes:
-            # * fix --env list_nodes
-            # * fix --env nodes_with_role:bla role:authorization
             littlechef.chef_environment = options.environment
             try:
-                # --env=ENV
-                sys.argv.remove("--env={0}".format(options.environment))
+                # --env=5
+                sys.argv.remove('--env={0}'.format(options.environment))
             except ValueError:
-                # --env ENV
-                idx = sys.argv.index("--env")
-                sys.argv.pop(idx)
-                sys.argv.pop(idx)
-                if not len(args) or ":" in options.environment:
-                    parser.error("No value given for --env")
+                try:
+                    # -e 5
+                    sys.argv.remove('-e')
+                    sys.argv.remove(options.environment)
+                except ValueError:
+                    try:
+                        # --env 5
+                        sys.argv.remove('--env')
+                        sys.argv.remove(options.environment)
+                    except ValueError:
+                        pass
 
         # Otherwise, insert our fabfile at the correct place
+        if len(sys.argv) < 2:
+            parser.error(NO_ORDER)
         if fix_cmd:
             sys.argv[1:1] = ['-f', fabfile]
         else:
