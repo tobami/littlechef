@@ -95,7 +95,7 @@ else:
             print(VERSION.format(littlechef.__version__))
             sys.exit(0)
         if options.assume_yes:
-            littlechef.abort_on_prompts = True
+            littlechef.noninteractive = True
             try:
                 sys.argv.remove('--yes')
             except ValueError:

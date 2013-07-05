@@ -31,7 +31,7 @@ import fabric
 fabric.state.output['running'] = False
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
-env.abort_on_prompts = littlechef.abort_on_prompts
+env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
 
@@ -166,21 +166,17 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
-    if ask == "yes":
-        message = '\nAre you sure you want to install Chef {0}'.format(version)
-        message += ' on node {0}'.format(env.host_string)
-        if gems == "yes":
-            message += ', using gems for "{0}"?'.format(distro)
-        else:
-            message += ', using "{0}" packages?'.format(distro)
+    if gems == "yes":
+        method = 'using gems for "{0}"'.format(distro)
+    else:
+        method = '{0} using "{1}" packages'.format(version, distro)
+    if ask == "no" or littlechef.noninteractive:
+        print("Deploying Chef {0}...".format(method))
+    else:
+        message = ('\nAre you sure you want to install Chef '
+                   '{0} on node {1}?'.format(method, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
-    else:
-        if gems == "yes":
-            method = 'using gems for "{0}"'.format(distro)
-        else:
-            method = '{0} using "{1}" packages'.format(version, distro)
-        print("Deploying Chef {0}...".format(method))
 
     _configure_fabric_for_platform(platform)
 
