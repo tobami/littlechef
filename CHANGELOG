@@ -3,6 +3,17 @@ LittleChef Changelog
 ====================
 
 
+Version 1.5.2 July 8, 2013
+----------------------------------------
+New features:
+* #165: caleb added support for FreeBSD
+* #167: New noninteractive option
+
+Bugs fixed:
+* #160: jonasekl fixed Scientific Linux identification
+* #162: pin gem install to Chef 10
+
+
 Version 1.5.1 March 15, 2013
 ----------------------------------------
 Bugs fixed:

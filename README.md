@@ -86,8 +86,8 @@ You can find example plugins in the [repository plugins directory](https://githu
 
 ### Desktop support
 
-Tested on all three major desktops:  
-  Linux, Mac OS X, and Windows
+Tested on all major operating systems:
+  Linux, Mac OS X, Windows and FreeBSD
 
 ### Requirements
 
