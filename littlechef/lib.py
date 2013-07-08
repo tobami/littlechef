@@ -422,7 +422,10 @@ def get_cookbook_path(cookbook_name):
 
 def global_confirm(question, default=True):
     """Shows a confirmation that applies to all hosts
-    by temporarily disabling parallel execution in Fabric"""
+    by temporarily disabling parallel execution in Fabric
+    """
+    if env.abort_on_prompts:
+        return True
     original_parallel = env.parallel
     env.parallel = False
     result = confirm(question, default)
