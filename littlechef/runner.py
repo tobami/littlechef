@@ -1,4 +1,4 @@
-#Copyright 2010-2012 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import fabric
 fabric.state.output['running'] = False
 env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
+env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
 
@@ -143,7 +144,7 @@ def _node_runner():
         env.user = env.host_string.split('@')[0]
     node = lib.get_node(env.host_string)
 
-    _configure_fabric_for_platform(node["platform"])
+    _configure_fabric_for_platform(node.get("platform"))
 
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
@@ -165,21 +166,17 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
-    if ask == "yes":
-        message = '\nAre you sure you want to install Chef {0}'.format(version)
-        message += ' on node {0}'.format(env.host_string)
-        if gems == "yes":
-            message += ', using gems for "{0}"?'.format(distro)
-        else:
-            message += ', using "{0}" packages?'.format(distro)
+    if gems == "yes":
+        method = 'using gems for "{0}"'.format(distro)
+    else:
+        method = '{0} using "{1}" packages'.format(version, distro)
+    if ask == "no" or littlechef.noninteractive:
+        print("Deploying Chef {0}...".format(method))
+    else:
+        message = ('\nAre you sure you want to install Chef '
+                   '{0} on node {1}?'.format(method, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
-    else:
-        if gems == "yes":
-            method = 'using gems for "{0}"'.format(distro)
-        else:
-            method = '{0} using "{1}" packages'.format(version, distro)
-        print("Deploying Chef {0}...".format(method))
 
     _configure_fabric_for_platform(platform)
 
@@ -187,7 +184,8 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         solo.install(distro_type, distro, gems, version, stop_client)
         solo.configure()
 
-        # Build a basic node file if there isn't one already with some properties from ohai
+        # Build a basic node file if there isn't one already
+        # with some properties from ohai
         with settings(hide('stdout'), warn_only=True):
             output = sudo('ohai -l warn')
         if output.succeeded:
@@ -199,7 +197,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
             node = {"run_list": []}
             for prop in ["ipaddress", "platform", "platform_family",
                          "platform_version"]:
-                if ohai[prop]:
+                if ohai.get(prop):
                     node[prop] = ohai[prop]
             chef.save_config(node)
 

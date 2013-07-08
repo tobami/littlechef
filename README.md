@@ -198,6 +198,7 @@ List of commands:
 
 * `fix -v`: Shows the version number
 * `fix -l`: Show a list of all available orders
+* `fix -y`: Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
 * `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file. Nodes with the attribute
 `dummy` set to `true` will *not* be configured
 * `fix node:MYNODE role:MYROLE`: The same as above but role-based
