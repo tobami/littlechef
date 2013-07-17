@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from optparse import OptionParser
+
+import argparse
 
 import sys
 import os
@@ -9,8 +10,8 @@ import os
 # Messages
 NO_ORDER = "No order given. Type 'fix -l' for a list of orders\n"
 VERSION = 'LittleChef {0}'
-INSTALL_ERROR = "LittleChef was not correctly installed: "\
-              "Couldn't import littlechef.py"
+INSTALL_ERROR = ("LittleChef was not correctly installed: "
+                 "Couldn't import littlechef.py")
 
 ## Try to import package and set the fabfile path ##
 fabfile = None
@@ -25,48 +26,60 @@ except ImportError:
     sys.exit(1)
 
 
-class LittlechefOptionParser(OptionParser):
+def get_commands():
+    from fabric.main import list_commands, state, load_fabfile
+    docstring, callables, default = load_fabfile(fabfile)
+    state.commands.update(callables)
+    commands_str = ""
+    for c in list_commands("\n", "normal"):
+        commands_str += c + "\n"
+    return commands_str
 
-    def print_help(self, file=None):
-        from fabric.main import list_commands, state, load_fabfile
-        OptionParser.print_help(self, file)
-        docstring, callables, default = load_fabfile(fabfile)
-        state.commands.update(callables)
-        for c in list_commands("\n", "normal"):
-            print(c)
-        sys.exit(0)
+
+def parse_arguments():
+    """Gets the console arguments for Littlechef's fix command"""
+    parser = argparse.ArgumentParser(
+        description="Starts a Chef Solo configuration run",
+        epilog=get_commands(),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    parser.add_argument(
+        "-v", "--version", action='version',
+        version=VERSION.format(littlechef.__version__),
+        help="Print littlechef version"
+    )
+    parser.add_argument(
+        "-l", dest="list_commands", action="store_true", default=False,
+        help="List all available orders"
+    )
+    parser.add_argument(
+        "--no-report", dest="no_report", action="store_true", default=False,
+        help="Don't save the chef-solo output as a report on the node"
+    )
+    parser.add_argument(
+        "--why-run", dest="whyrun", action="store_true", default=False,
+        help="Do a configuration Whyrun, where no changes are performed to the node"
+    )
+    parser.add_argument(
+        "--verbose", dest="verbose", action="store_true", default=False,
+        help="Output 'processing' statements"
+    )
+    parser.add_argument(
+        "--debug", dest="debug", action="store_true", default=False,
+        help="Ask chef-solo for verbose and debugging output"
+    )
+    parser.add_argument(
+        "--env", dest="environment", default=None,
+        help="Using a certain chef environment"
+    )
+
+    return parser, vars(parser.parse_args())
+
 
 # commandline options
-parser = LittlechefOptionParser()
-parser.add_option(
-    "-v", "--version", dest="version", action="store_true", default=False,
-    help="Print littlechef version"
-)
-parser.add_option(
-    "-l", dest="list_commands", action="store_true", default=False,
-    help="List all available orders"
-)
-parser.add_option(
-    "--no-report", dest="no_report", action="store_true", default=False,
-    help="Don't save the chef-solo output as a report on the node"
-)
-parser.add_option(
-    "--why-run", dest="whyrun", action="store_true", default=False,
-    help="Do a configuration Whyrun, where no changes are performed to the node"
-)
-parser.add_option(
-    "--verbose", dest="verbose", action="store_true", default=False,
-    help="Output 'processing' statements"
-)
-parser.add_option(
-    "--debug", dest="debug", action="store_true", default=False,
-    help="Ask chef-solo for verbose and debugging output"
-)
-parser.add_option(
-    "--env", dest="environment", default=None,
-    help="Using a certain chef environment"
-)
-(options, args) = parser.parse_args()
+args = parse_arguments()
+
 
 ## Process args list and call fabric's main() ##
 if not sys.argv:
@@ -82,37 +95,34 @@ else:
         print(NO_ORDER)
     else:
         # Check for version, that overrides everything else.
-        if options.version:
-            print(VERSION.format(littlechef.__version__))
-            sys.exit(0)
-        if options.no_report:
+        if args.no_report:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
-        if options.whyrun:
+        if args.whyrun:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
-        if options.verbose:
+        if args.verbose:
             littlechef.verbose = True
             sys.argv.remove('--verbose')
-        if options.debug:
+        if args.debug:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
             sys.argv.remove('--debug')
-        if options.environment is not None:
+        if args.environment is not None:
             # Check for mistakes:
             # * fix --env list_nodes
             # * fix --env nodes_with_role:bla role:authorization
-            littlechef.chef_environment = options.environment
+            littlechef.chef_environment = args.environment
             try:
                 # --env=ENV
-                sys.argv.remove("--env={0}".format(options.environment))
+                sys.argv.remove("--env={0}".format(args.environment))
             except ValueError:
                 # --env ENV
                 idx = sys.argv.index("--env")
                 sys.argv.pop(idx)
                 sys.argv.pop(idx)
-                if not len(args) or ":" in options.environment:
-                    parser.error("No value given for --env")
+                if not len(args) or ":" in args.environment:
+                    raise argparse.ArgumentTypeError("No value given for --env")
 
         # Otherwise, insert our fabfile at the correct place
         if fix_cmd:
