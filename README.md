@@ -91,7 +91,7 @@ Tested on all three major desktops:
 
 ### Requirements
 
-* Python 2.6+
+* Python 2.6+ 
 * Fabric 1.3.2+
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
@@ -100,6 +100,9 @@ or
 `yum install python-pip python-devel` for RHEL and CentOS
 
 pip will then take care of the extra Python dependencies
+
+The `argparse` library should be installed separately if running with Python 2.6:
+`pip install argparse`
 
 ### Installation
 
