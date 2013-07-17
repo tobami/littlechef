@@ -1,4 +1,4 @@
-#Copyright 2010-2012 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -21,19 +21,27 @@ import simplejson as json
 from fabric.api import *
 from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
-from ssh.config import SSHConfig as _SSHConfig
+from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo
-from littlechef import lib
-from littlechef import chef
-
+from littlechef import solo, lib, chef
 
 # Fabric settings
 import fabric
 fabric.state.output['running'] = False
-env.loglevel = "info"
-env.output_prefix = False
+env.loglevel = littlechef.loglevel
+env.verbose = littlechef.verbose
+env.abort_on_prompts = littlechef.noninteractive
+env.chef_environment = littlechef.chef_environment
+env.node_work_path = littlechef.node_work_path
+
+if littlechef.concurrency:
+    env.output_prefix = True
+    env.parallel = True
+    env.pool_size = littlechef.concurrency
+else:
+    env.output_prefix = False
+
 __testing__ = False
 
 
@@ -63,12 +71,12 @@ def new_kitchen():
             print >> configfh, "password = "
             print >> configfh, "keypair-file = "
             print >> configfh, "ssh-config = "
+            print >> configfh, "encrypted_data_bag_secret = "
             print >> configfh, "[kitchen]"
             print >> configfh, "node_work_path = /tmp/chef-solo/"
             print "config.cfg file created..."
 
 
-@hosts('setup')
 def nodes_with_role(rolename):
     """Sets a list of nodes that have the given role
     in their run list and calls node()
@@ -89,9 +97,9 @@ def nodes_with_role(rolename):
     return node(*nodes_in_env)
 
 
-@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
+    chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
     elif nodes[0] == 'all':
@@ -106,35 +114,47 @@ def node(*nodes):
             message += " in the {0} environment".format(env.chef_environment)
         message += "?"
         if not __testing__:
-            if not confirm(message):
+            if not lib.global_confirm(message):
                 abort('Aborted by user')
     else:
         # A list of nodes was given
         env.hosts = list(nodes)
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
-    if len(env.hosts) > 1:
-        print "Configuring nodes: {0}...".format(", ".join(env.hosts))
 
     # Check whether another command was given in addition to "node:"
-    execute = True
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
             'nodes_with_role:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
-        for hostname in env.hosts:
-            env.host = hostname
-            env.host_string = hostname
-            node = lib.get_node(env.host)
-            lib.print_header("Configuring {0}".format(env.host))
-            if __testing__:
-                print "TEST: would now configure {0}".format(env.host)
-            else:
-                chef.sync_node(node)
+        with settings():
+            execute(_node_runner)
+        chef.remove_local_node_data_bag()
+
+def _configure_fabric_for_platform(platform):
+    """Configures fabric for a specific platform"""
+    if platform == "freebsd":
+        env.shell = "/bin/sh -c"
+
+def _node_runner():
+    """This is only used by node so that we can execute in parallel"""
+    if not env.host_string:
+        abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
+    if '@' in env.host_string:
+        env.user = env.host_string.split('@')[0]
+    node = lib.get_node(env.host_string)
+
+    _configure_fabric_for_platform(node.get("platform"))
+
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
-    distro_type=None, distro=None, stop_client='yes'):
+    distro_type=None, distro=None, platform=None, stop_client='yes'):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
@@ -143,28 +163,43 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
         abort('Wrong Chef version specified. Valid versions are {0}'.format(
             ", ".join(chef_versions)))
     if distro_type is None and distro is None:
-        distro_type, distro = solo.check_distro()
+        distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
-    if ask == "yes":
-        message = '\nAre you sure you want to install Chef {0}'.format(version)
-        message += ' at the node {0}'.format(env.host_string)
-        if gems == "yes":
-            message += ', using gems for "{0}"?'.format(distro)
-        else:
-            message += ', using "{0}" packages?'.format(distro)
+    if gems == "yes":
+        method = 'using gems for "{0}"'.format(distro)
+    else:
+        method = '{0} using "{1}" packages'.format(version, distro)
+    if ask == "no" or littlechef.noninteractive:
+        print("Deploying Chef {0}...".format(method))
+    else:
+        message = ('\nAre you sure you want to install Chef '
+                   '{0} on node {1}?'.format(method, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
-    else:
-        if gems == "yes":
-            method = 'using gems for "{0}"'.format(distro)
-        else:
-            method = '{0} using "{1}" packages'.format(version, distro)
-        print("Deploying Chef {0}...".format(method))
+
+    _configure_fabric_for_platform(platform)
 
     if not __testing__:
         solo.install(distro_type, distro, gems, version, stop_client)
         solo.configure()
+
+        # Build a basic node file if there isn't one already
+        # with some properties from ohai
+        with settings(hide('stdout'), warn_only=True):
+            output = sudo('ohai -l warn')
+        if output.succeeded:
+            try:
+                ohai = json.loads(output)
+            except json.JSONDecodeError:
+                abort("Could not parse ohai's output"
+                      ":\n  {0}".format(output))
+            node = {"run_list": []}
+            for prop in ["ipaddress", "platform", "platform_family",
+                         "platform_version"]:
+                if ohai.get(prop):
+                    node[prop] = ohai[prop]
+            chef.save_config(node)
 
 
 def recipe(recipe):
@@ -214,11 +249,9 @@ def ssh(name):
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
         if name.startswith("sudo "):
-            with lib.credentials():
-                sudo(name[5:])
+            sudo(name[5:])
         else:
-            with lib.credentials():
-                run(name)
+            run(name)
 
 
 def plugin(name):
@@ -229,7 +262,8 @@ def plugin(name):
     if not env.host_string:
         abort('No node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
     plug = lib.import_plugin(name)
-    print("Executing plugin '{0}' on {1}".format(name, env.host_string))
+    lib.print_header("Executing plugin '{0}' on "
+                     "{1}".format(name, env.host_string))
     node = lib.get_node(env.host_string)
     if node == {'run_list': []}:
         node['name'] = env.host_string
@@ -325,59 +359,85 @@ def _readconfig():
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
     if not in_a_kitchen:
-        msg = "Couldn't find {0}. ".format(missing_str(missing))
-        msg += "Are you are executing 'fix' outside of a kitchen?\n"\
-               "To create a new kitchen in the current directory "\
-               " type 'fix new_kitchen'"
-        abort(msg)
+        abort("Couldn't find {0}. "
+              "Are you executing 'fix' outside of a kitchen?\n"
+              "To create a new kitchen in the current directory "
+              " type 'fix new_kitchen'".format(missing_str(missing)))
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
-    env.ssh_config = None
     try:
-        ssh_config = config.get('userinfo', 'ssh-config')
+        env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
-        msg = 'You need to define a "userinfo" section'
-        msg += ' in config.cfg. Refer to the README for help'
-        msg += ' (http://github.com/tobami/littlechef)'
-        abort(msg)
+        abort('You need to define a "userinfo" section'
+              ' in config.cfg. Refer to the README for help'
+              ' (http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
-        ssh_config = None
+        env.ssh_config_path = None
 
-    if ssh_config:
+    if env.ssh_config_path:
         env.ssh_config = _SSHConfig()
+        env.ssh_config_path = os.path.expanduser(env.ssh_config_path)
+        env.use_ssh_config = True
         try:
-            env.ssh_config.parse(open(os.path.expanduser(ssh_config)))
+            env.ssh_config.parse(open(env.ssh_config_path))
         except IOError:
-            msg = "Couldn't open the ssh-config file '{0}'".format(ssh_config)
-            abort(msg)
+            abort("Couldn't open the ssh-config file "
+                  "'{0}'".format(env.ssh_config_path))
         except Exception:
-            msg = "Couldn't parse the ssh-config file '{0}'".format(ssh_config)
-            abort(msg)
+            abort("Couldn't parse the ssh-config file "
+                  "'{0}'".format(env.ssh_config_path))
+    else:
+        env.ssh_config = None
+
+    # Check for an encrypted_data_bag_secret file and set the env option
+    try:
+        env.encrypted_data_bag_secret = config.get('userinfo',
+                                                   'encrypted_data_bag_secret')
+    except ConfigParser.NoOptionError:
+        env.encrypted_data_bag_secret = None
+
+    if env.encrypted_data_bag_secret:
+        env.encrypted_data_bag_secret = os.path.expanduser(
+            env.encrypted_data_bag_secret)
+        try:
+            open(env.encrypted_data_bag_secret)
+        except IOError as e:
+            abort("Failed to open encrypted_data_bag_secret file at "
+                  "'{0}'".format(env.encrypted_data_bag_secret))
+
+    try:
+        sudo_prefix = config.get('ssh', 'sudo_prefix', raw=True)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        pass
+    else:
+        env.sudo_prefix = sudo_prefix
 
     try:
         env.user = config.get('userinfo', 'user')
-        user_specified = True
     except ConfigParser.NoOptionError:
-        if not ssh_config:
+        if not env.ssh_config_path:
             msg = 'You need to define a user in the "userinfo" section'
             msg += ' of config.cfg. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
             abort(msg)
         user_specified = False
+    else:
+        user_specified = True
 
     try:
         env.password = config.get('userinfo', 'password') or None
     except ConfigParser.NoOptionError:
         pass
+
     try:
         #If keypair-file is empty, assign None or fabric will try to read key "
         env.key_filename = config.get('userinfo', 'keypair-file') or None
     except ConfigParser.NoOptionError:
         pass
 
-    if user_specified and not env.password and not env.ssh_config:
-        abort('You need to define a password or a ssh-config file in config.cfg')
+    if user_specified and not env.password and not env.key_filename and not env.ssh_config:
+        abort('You need to define a password, keypair file, or ssh-config file in config.cfg')
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
@@ -388,7 +448,7 @@ def _readconfig():
     else:
         if not env.node_work_path:
             abort('The "node_work_path" option cannot be empty')
-    
+
     # Follow symlinks
     try:
         env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
@@ -397,11 +457,6 @@ def _readconfig():
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
-env.chef_environment = littlechef.chef_environment
-env.loglevel = littlechef.loglevel
-env.verbose = littlechef.verbose
-env.node_work_path = littlechef.node_work_path
-
 if littlechef.__cooking__:
     # Called from command line
     if env.chef_environment:
@@ -411,3 +466,5 @@ if littlechef.__cooking__:
 else:
     # runner module has been imported
     env.ssh_config = None
+    env.follow_symlinks = False
+    env.encrypted_data_bag_secret = None

@@ -56,6 +56,7 @@ class BaseTest(unittest.TestCase):
         runner.env.ssh_config =  None
         runner.env.key_filename = None
         runner.env.node_work_path = None
+        runner.env.encrypted_data_bag_secret = None
 
 
 class TestRunner(BaseTest):
@@ -63,11 +64,13 @@ class TestRunner(BaseTest):
         """Should read configuration from config file when config.cfg is found
         """
         runner._readconfig()
+        self.assertEqual(runner.env.ssh_config_path, None)
         self.assertEqual(runner.env.ssh_config, None)
         self.assertEqual(runner.env.user, "testuser")
         self.assertEqual(runner.env.password, "testpass")
         self.assertEqual(runner.env.key_filename, None)
         self.assertEqual(runner.env.node_work_path, "/tmp/chef-solo")
+        self.assertEqual(runner.env.encrypted_data_bag_secret, None)
 
     def test_not_a_kitchen(self):
         """Should abort when no config file found"""
@@ -132,8 +135,9 @@ class TestLib(BaseTest):
     def test_get_node(self):
         """Should get data for a given node, empty when it doesn't exist"""
         # Unexisting node
-        expected = {'run_list': []}
-        self.assertEqual(lib.get_node('Idon"texist'), expected)
+        name = 'Idon"texist'
+        expected = {'name': name, 'run_list': []}
+        self.assertEqual(lib.get_node(name), expected)
         # Existing node
         expected = {
             'chef_environment': 'production',
@@ -271,7 +275,7 @@ class TestLib(BaseTest):
 
 class TestChef(BaseTest):
     def tearDown(self):
-        chef._remove_local_node_data_bag()
+        chef.remove_local_node_data_bag()
         super(TestChef, self).tearDown()
 
     def test_save_config(self):
@@ -339,7 +343,7 @@ class TestChef(BaseTest):
 
     def test_build_node_data_bag(self):
         """Should create a node data bag with one item per node"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode1.json')
         self.assertTrue(os.path.exists(item_path))
         with open(item_path, 'r') as f:
@@ -364,7 +368,7 @@ class TestChef(BaseTest):
     def test_build_node_data_bag_nonalphanumeric(self):
         """Should create a node data bag when node name contains invalid chars
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         # A node called testnode3.mydomain.com will have the data bag id
         # 'testnode3', because dots are not allowed.
         filename = 'testnode3_mydomain_com'
@@ -378,7 +382,7 @@ class TestChef(BaseTest):
 
     def test_automatic_attributes(self):
         """Should add Chef's automatic attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         # Check node with single word fqdn
         testnode1_path = os.path.join('data_bags', 'node', 'testnode1.json')
         with open(testnode1_path, 'r') as f:
@@ -406,11 +410,11 @@ class TestChef(BaseTest):
         # Save new node with a non-existing cookbook assigned
         env.host_string = 'extranode'
         chef.save_config({"run_list": ["recipe[phantom_cookbook]"]})
-        self.assertRaises(SystemExit, chef._build_node_data_bag)
+        self.assertRaises(SystemExit, chef.build_node_data_bag)
 
     def test_attribute_merge_cookbook_default(self):
         """Should have the value found in recipe/attributes/default.rb"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -419,7 +423,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_cookbook_boolean(self):
         """Should have real boolean values for default cookbook attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join(
             'data_bags', 'node', 'testnode3_mydomain_com.json')
         with open(item_path, 'r') as f:
@@ -432,7 +436,7 @@ class TestChef(BaseTest):
         site_cookbooks/xx/recipe/attributes/default.rb
 
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -444,11 +448,11 @@ class TestChef(BaseTest):
         # Save new node with a non-existing cookbook assigned
         env.host_string = 'extranode'
         chef.save_config({"run_list": ["role[phantom_role]"]})
-        self.assertRaises(SystemExit, chef._build_node_data_bag)
+        self.assertRaises(SystemExit, chef.build_node_data_bag)
 
     def test_attribute_merge_role_default(self):
         """Should have the value found in the roles default attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -460,7 +464,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_node_normal(self):
         """Should have the value found in the node attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -469,7 +473,7 @@ class TestChef(BaseTest):
 
     def test_attribute_merge_role_override(self):
         """Should have the value found in the roles override attributes"""
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -479,7 +483,7 @@ class TestChef(BaseTest):
     def test_attribute_merge_deep_dict(self):
         """Should deep-merge a dict when it is defined in two different places
         """
-        chef._build_node_data_bag()
+        chef.build_node_data_bag()
         item_path = os.path.join('data_bags', 'node', 'testnode2.json')
         with open(item_path, 'r') as f:
             data = json.loads(f.read())
@@ -509,39 +513,6 @@ class TestChef(BaseTest):
         mock_ipaddress.return_value = False
         test_node = {'name': 'extranode', 'dummy': False, 'run_list': []}
         self.assertTrue(chef.sync_node(test_node))
-
-
-class TestCredentials(unittest.TestCase):
-    """Tests for the credentials function in lib"""
-    def setUp(self):
-        self.ssh_config = {
-            'identityfile': '/Users/myuser/.ssh/id_rsa',
-            'loglevel': 'ERROR',
-            'hostname': '1.1.1.1',
-            'passwordauthentication': 'no',
-            'userknownhostsfile': '/dev/null',
-            'user': 'myuser',
-            'stricthostkeychecking': 'no',
-            'port': '22'
-        }
-        runner.__testing__ = True
-        runner.env.ssh_config = mock.MagicMock()
-        runner.env.ssh_config.lookup.return_value = self.ssh_config
-        runner.env.host = 'nodename'
-
-        self.old_log_level = runner.env.loglevel
-        runner.env.loglevel = 'original_loglevel'
-
-    def tearDown(self):
-        runner.env.ssh_config = None
-        runner.env.host = None
-        runner.env.loglevel = self.old_log_level
-
-    def test_credentials_ignores_ssh_config_loglevel(self):
-        """Ignores LogLevel in ssh config"""
-        with lib.credentials():
-            runner.env.ssh_config.lookup.assert_called_once_with('nodename')
-            self.assertEqual(runner.env.loglevel, 'original_loglevel')
 
 
 if __name__ == "__main__":

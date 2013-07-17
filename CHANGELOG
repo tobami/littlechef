@@ -2,12 +2,60 @@
 LittleChef Changelog
 ====================
 
-Version 1.?
------------
+
+Version 1.5.2 July 8, 2013
+----------------------------------------
+New features:
+* #165: caleb added support for FreeBSD
+* #167: New noninteractive option
 
 Bugs fixed:
-* `default_attributes` and `override_attributes` are no longer required in
-  JSON role definitions.
+* #160: jonasekl fixed Scientific Linux identification
+* #162: pin gem install to Chef 10
+
+
+Version 1.5.1 March 15, 2013
+----------------------------------------
+Bugs fixed:
+* #152: chrismoos node:all with concurrency
+* #153: runner was still using the ssh library, dropped for paramiko
+
+
+Version 1.5.0 March 8, 2013
+----------------------------------------
+New features:
+* #147: philk added optional parallel configuration runs
+
+Bugs fixed:
+* #146: Make ssh config work for all commands
+* #145: pawelpacana fixed a typo in chef_environment search query.
+* #149: Make deploy_chef work for Debian Wheezy
+* #151: Fixed "Failed to upload solo.rb" by pinning the fabric version to 1.5
+
+
+Version 1.4.1 January 21, 2013
+----------------------------------------
+Bugs fixed:
+* #136: philk made save_config output sorted JSON keys
+* #135: fix for wrong logpath
+* #142: mborho fixed "ohai ipaddress" output displaying debug info
+* #140: Fix "Can't read sshconfig file"
+
+
+Version 1.4.0 December 27, 2012
+----------------------------------------
+New features:
+* #64: dnedbaylo added support for following symlinks on rsync
+* #96: philk added support for Encrypted data bags
+
+Bugs fixed:
+* winhamwr changed roles handling so that `default_attributes` and
+    `override_attributes` are no longer required in JSON role definitions.
+* #124: pawelpacana fixed LittleChef not passing ssh_config to fabric
+* #128: cburyta updated the yum epel repo url
+* #130: dnedbaylo made the "node" command use the user name in the node connection
+    string, making it consistent with what fabric does for "recipe" and "role"
+
 
 Version 1.3.0 October 26, 2012
 ----------------------------------------
@@ -19,7 +67,6 @@ New features:
 Bugs fixed:
 * #113: cyli fixed prevented SSH config's LogLevel from overriding env's loglevel
 * node_work_path was not being set to the default value when using as a library
-
 
 
 Version 1.2.2 October 12, 2012

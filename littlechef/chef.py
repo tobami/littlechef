@@ -1,4 +1,4 @@
-#Copyright 2010-2012 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -26,11 +26,8 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun
-from littlechef import lib
-from littlechef import solo
+from littlechef import cookbook_paths, whyrun, lib, solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
-
 
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
@@ -50,7 +47,7 @@ def save_config(node, force=False):
         files_to_create.append(filepath)
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
-            f.write(json.dumps(node, indent=4))
+            f.write(json.dumps(node, indent=4, sort_keys=True))
     return tmp_filename
 
 
@@ -61,7 +58,7 @@ def _get_ipaddress(node):
     """
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
-            output = sudo('ohai ipaddress')
+            output = sudo('ohai -l warn ipaddress')
         if output.succeeded:
             try:
                 node['ipaddress'] = json.loads(output)[0]
@@ -80,25 +77,21 @@ def sync_node(node):
     if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
-    # Get merged attributes
-    current_node = _build_node_data_bag()
-    with lib.credentials():
-        # Always configure Chef Solo
-        solo.configure(current_node)
-        ipaddress = _get_ipaddress(node)
+    current_node = lib.get_node(node['name'])
+    # Always configure Chef Solo
+    solo.configure(current_node)
+    ipaddress = _get_ipaddress(node)
     # Everything was configured alright, so save the node configuration
     # This is done without credentials, so that we keep the node name used
     # by the user and not the hostname or IP translated by .ssh/config
     filepath = save_config(node, ipaddress)
-    with lib.credentials():
-        try:
-            # Synchronize the kitchen directory
-            _synchronize_node(filepath, node)
-            # Execute Chef Solo
-            _configure_node()
-        finally:
-            _remove_local_node_data_bag()
-            _node_cleanup()
+    try:
+        # Synchronize the kitchen directory
+        _synchronize_node(filepath, node)
+        # Execute Chef Solo
+        _configure_node()
+    finally:
+        _node_cleanup()
     return True
 
 
@@ -110,26 +103,36 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
-    print "Synchronizing node, cookbooks, roles and data bags..."
+    msg = "Synchronizing node, cookbooks, roles and data bags..."
+    if env.parallel:
+        msg = "[{0}]: {1}".format(env.host_string, msg)
+    print(msg)
     # First upload node.json
     remote_file = '/etc/chef/node.json'
     put(configfile, remote_file, use_sudo=True, mode=400)
-    root_user = "root"
-    if node.get('platform') in ["freebsd", "mac_os_x"]:
-        root_user = "wheel"
     with hide('stdout'):
-        sudo('chown root:{0} {1}'.format(root_user, remote_file))
+        sudo('chown root:$(id -g -n root) {0}'.format(remote_file))
     # Remove local temporary node file
     os.remove(configfile)
     # Synchronize kitchen
     extra_opts = "-q"
     if env.follow_symlinks:
         extra_opts += " --copy-links"
+    ssh_opts = ""
+    if env.ssh_config_path:
+        ssh_opts += " -F %s" % os.path.expanduser(env.ssh_config_path)
+    if env.encrypted_data_bag_secret:
+        put(env.encrypted_data_bag_secret,
+            "/etc/chef/encrypted_data_bag_secret",
+            use_sudo=True,
+            mode=0600)
+        sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
     rsync_project(
         env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
+        ssh_opts=ssh_opts
     )
     _add_search_patch()
 
@@ -236,7 +239,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     node.update(attributes)
 
 
-def _build_node_data_bag():
+def build_node_data_bag():
     """Builds one 'node' data bag item per file found in the 'nodes' directory
 
     Automatic attributes for a node item:
@@ -251,16 +254,11 @@ def _build_node_data_bag():
         All default cookbook attributes corresponding to the node
         All attributes found in nodes/<item>.json file
         Default and override attributes from all roles
-
-    Returns the node object of the node which is about to be configured, or
-    None if this node object cannot be found.
-
     """
-    current_node = None
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
     # In case there are leftovers
-    _remove_local_node_data_bag()
+    remove_local_node_data_bag()
     os.makedirs(node_data_bag_path)
     all_recipes = lib.get_recipes()
     all_roles = lib.get_roles()
@@ -290,12 +288,9 @@ def _build_node_data_bag():
         with open(os.path.join(
                     'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
-        if node['name'] == env.host_string:
-            current_node = node
-    return current_node
 
 
-def _remove_local_node_data_bag():
+def remove_local_node_data_bag():
     """Removes generated 'node' data_bag locally"""
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
@@ -315,6 +310,8 @@ def _node_cleanup():
             _remove_remote_node_data_bag()
             with settings(warn_only=True):
                 sudo("rm '/etc/chef/node.json'")
+                if env.encrypted_data_bag_secret:
+                    sudo("rm '/etc/chef/encrypted_data_bag_secret'")
 
 
 def _add_search_patch():
@@ -323,8 +320,8 @@ def _add_search_patch():
 
     """
     # Create extra cookbook dir
-    lib_path = os.path.join(
-        env.node_work_path, cookbook_paths[0], 'chef_solo_search_lib', 'libraries')
+    lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
+                            'chef_solo_search_lib', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Add search and environment patch to the node's cookbooks
@@ -335,7 +332,11 @@ def _add_search_patch():
 
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
-    print("\nCooking...")
+    msg = "Cooking..."
+    if env.parallel:
+        msg = "[{0}]: {1}".format(env.host_string, msg)
+    print("")
+    print(msg)
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
@@ -359,7 +360,7 @@ def _configure_node():
                 colors.red(
                     "\nFAILED: Chef Solo is not installed on this node"))
             print(
-                "Type 'fix nodes:{0} deploy_chef' to install it".format(
+                "Type 'fix node:{0} deploy_chef' to install it".format(
                     env.host))
             abort("")
         else:
@@ -368,4 +369,8 @@ def _configure_node():
             import sys
             sys.exit(1)
     else:
-        print(colors.green("\nSUCCESS: Node correctly configured"))
+        msg = "\n"
+        if env.parallel:
+            msg += "[{0}]: ".format(env.host_string)
+        msg += "SUCCESS: Node correctly configured"
+        print(colors.green(msg))

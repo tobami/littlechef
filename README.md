@@ -36,7 +36,7 @@ be in code, revision controlled.
 
 #### Data bag Search ####
 
-Chef Solo does not currently (as of 0.10.4) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
+Chef Solo does not currently (as of 10.18) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
 [cookbook library that implements search][].
 
 Thus, most examples in the [search wiki page][] are now possible, including the
@@ -55,7 +55,7 @@ result from merging cookbook, node and role attributes, following the standard
 [Chef attribute preference rules][]. Some [automatic attributes][] are also added.
 
 ```ruby
-munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:node.chef_environment']}")`
+munin_servers = search(:node, "role:#{node['munin']['server_role']} AND chef_environment:#{node.chef_environment}")
 ```
 
 #### Logs ####
@@ -86,13 +86,13 @@ You can find example plugins in the [repository plugins directory](https://githu
 
 ### Desktop support
 
-Tested on all three major desktops:  
-  Linux, Mac OS X, and Windows
+Tested on all major operating systems:
+  Linux, Mac OS X, Windows and FreeBSD
 
 ### Requirements
 
-* Python 2.6+ 
-* Fabric 1.3.2+
+* Python 2.6+
+* Fabric 1.5
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
 `sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
@@ -159,6 +159,17 @@ kitchen to:
 node_work_path = /tmp/chef-solo
 ```
 
+If you're using encrypted data bags you can specify a path for the encrypted_data_bag_secret file:
+
+```ini
+[userinfo]
+encrypted_data_bag_secret = ~/path/to/encrypted_data_bag_secret
+```
+
+This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_secret` with permissions root:root with perms 0600.
+Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
+It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
+
 ### Deploying
 
 For convenience, there is a command that allows you to deploy chef-solo
@@ -190,6 +201,7 @@ List of commands:
 
 * `fix -v`: Shows the version number
 * `fix -l`: Show a list of all available orders
+* `fix -y`: Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
 * `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file. Nodes with the attribute
 `dummy` set to `true` will *not* be configured
 * `fix node:MYNODE role:MYROLE`: The same as above but role-based
@@ -214,6 +226,14 @@ deleted from the node, and verbose will also be true
 * `fix --why-run node:MYNODE`: will configure the node in [Whyrun][] mode
 
 Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
+
+### Configuring nodes in parallel
+
+By default LittleChef configures nodes serially however it can also use Fabric's parallel SSH support to configure multiple nodes in parallel. All commands are supported (node, nodes_with_role, ssh, role, and recipe)
+
+* `fix --concurrency node:NODELIST`: will configure multiple nodes in parallel
+* `fix --concurrency node:NODELIST ssh:COMMAND`: will run an ssh command on multiple nodes in parallel
+* `fix --concurrency 5 node:NODELIST`: will configure multiple nodes in parallel but limit to 5 connections
 
 ### Consulting the inventory
 
