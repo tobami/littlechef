@@ -101,9 +101,6 @@ or
 
 pip will then take care of the extra Python dependencies
 
-The `argparse` library should be installed separately if running with Python 2.6:
-`pip install argparse`
-
 ### Installation
 
 You can install LittleChef directly from the PyPI:  
