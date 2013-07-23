@@ -129,7 +129,7 @@ def check_distro():
                 distro = "squeeze"
                 distro_type = "debian"
                 platform = "debian"
-            elif 'Debian GNU/Linux 7.0' in output:
+            elif 'Debian GNU/Linux 7' in output:
                 distro = "wheezy"
                 distro_type = "debian"
                 platform = "debian"
