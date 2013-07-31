@@ -19,7 +19,7 @@ setup(
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/tags",
     keywords=["chef", "devops", "operations", "sysadmin"],
-    install_requires=['fabric==1.5.4', 'simplejson>=2.1.0'],
+    install_requires=['fabric==1.5.4', 'simplejson>=2.1.0', 'argparse'],
     packages=['littlechef'],
     package_data={
         'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
@@ -34,7 +34,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         'Topic :: System :: Systems Administration',
-        ],
+    ],
     long_description="""\
 Cook with Chef without a Chef Server
 -------------------------------------
