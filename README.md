@@ -167,7 +167,7 @@ This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_sec
 Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
 It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
-If you need your nodes are not directly accessible, you might want to specify a gateway host. The fix command will connect
+If your nodes are not directly accessible, you might want to specify a gateway host. The fix command will connect
 to the host specified and issue all following connections from this host. All ssh communication will be tunneled through this
 gateway connection. This can be used if your nodes are behind a firewall and only one host is accessible from your current
 network location.
