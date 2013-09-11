@@ -393,9 +393,7 @@ def _readconfig():
     # check for a gateway
     try:
         env.gateway = config.get('connection', 'gateway')
-    except ConfigParser.NoOptionError:
-        env.gateway = None
-    except ConfigParser.NoSectionError:
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.gateway = None
 
     # Check for an encrypted_data_bag_secret file and set the env option
