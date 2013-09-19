@@ -27,13 +27,25 @@ except ImportError:
 
 
 def get_commands():
-    from fabric.main import list_commands, state, load_fabfile
-    docstring, callables, default = load_fabfile(fabfile)
-    state.commands.update(callables)
-    commands_str = ""
-    for c in list_commands("\n", "normal"):
-        commands_str += c + "\n"
-    return commands_str
+    return """Available commands:
+
+    deploy_chef             Install chef-solo on a node
+    list_nodes              List all configured nodes
+    list_nodes_detailed     Show a detailed list of all nodes
+    list_nodes_with_recipe  Show all nodes which have asigned a given recipe
+    list_nodes_with_role    Show all nodes which have asigned a given role
+    list_plugins            Show all available plugins
+    list_recipes            Show a list of all available recipes
+    list_recipes_detailed   Show detailed information for all recipes
+    list_roles              Show a list of all available roles
+    list_roles_detailed     Show detailed information for all roles
+    new_kitchen             Create LittleChef directory structure (Kitchen)
+    node                    Selects and configures a list of nodes. 'all' configures all nodes
+    nodes_with_role         Sets a list of nodes that have the given role
+    plugin                  Executes the selected plugin
+    recipe                  Apply the given recipe to a node
+    role                    Apply the given role to a node
+    ssh                     Executes the given command"""
 
 
 def parse_arguments():
@@ -44,7 +56,7 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("commands", type=str, default="", nargs='?',
+    parser.add_argument("commands", type=str, default="", nargs='*',
         help="Littlechef commands")
 
     parser.add_argument(
@@ -93,7 +105,6 @@ if __name__ == '__main__':
     # commandline options
     parser, args = parse_arguments()
 
-
     ## Process args list and call fabric's main() ##
     if not sys.argv:
         parser.parse_args(['-h'])
@@ -103,11 +114,12 @@ if __name__ == '__main__':
             fix_cmd = sys.argv[0]
         else:
             fix_cmd = None
-        if len(sys.argv) == 1 and fix_cmd:
+        if (len(sys.argv) == 1 and fix_cmd) or (len(sys.argv) == 2 and fix_cmd and '-l' in sys.argv):
             # All that is in sys.argv is the fix command.
             parser.parse_args(['-h'])
         else:
             # Check for version, that overrides everything else.
+            commands = args['commands']
             if args['assume_yes']:
                 littlechef.noninteractive = True
             if args['no_report']:
@@ -125,12 +137,9 @@ if __name__ == '__main__':
                 littlechef.loglevel = 'debug'
                 littlechef.verbose = True
             if args['environment'] is not None:
+                if not commands or ":" in args['environment']:
+                    parser.error("No value given for --env")
                 littlechef.chef_environment = args['environment']
-
-            if args['commands']:
-                commands = args['commands'].split(' ')
-            else:
-                commands = []
 
             # overwrite all commandline arguments and proxy
             # execution to the fabric script
