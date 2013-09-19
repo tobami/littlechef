@@ -44,6 +44,8 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
+    parser.add_argument("command", type=str, help="Littlechef command")
+
     parser.add_argument(
         "-v", "--version", action='version',
         version=VERSION.format(littlechef.__version__),
@@ -83,8 +85,7 @@ def parse_arguments():
         "-c", "--concurrency", default=False,
         help="Execute commands concurrently"
     )
-
-    return parser, vars(parser.parse_args())
+    return vars(parser.parse_args())
 
 
 # commandline options
@@ -105,70 +106,67 @@ else:
         print(NO_ORDER)
     else:
         # Check for version, that overrides everything else.
-        if args.version:
-            print(VERSION.format(littlechef.__version__))
-            sys.exit(0)
-        if args.assume_yes:
+        if args['assume_yes']:
             littlechef.noninteractive = True
             try:
                 sys.argv.remove('--yes')
             except ValueError:
                 sys.argv.remove('-y')
-        if args.no_report:
+        if args['no_report']:
             littlechef.enable_logs = False
             sys.argv.remove('--no-report')
-        if args.whyrun:
+        if args['whyrun']:
             littlechef.whyrun = True
             sys.argv.remove('--why-run')
-        if args.concurrency:
+        if args['concurrency']:
             try:
                 # --concurrency=5
-                sys.argv.remove('--concurrency={0}'.format(args.concurrency))
+                sys.argv.remove('--concurrency={0}'.format(args['concurrency']))
             except ValueError:
                 try:
                     # -c 5
                     sys.argv.remove('-c')
-                    sys.argv.remove(args.concurrency)
+                    sys.argv.remove(args['concurrency'])
                 except ValueError:
                     try:
                         # --concurrency 5
                         sys.argv.remove('--concurrency')
-                        sys.argv.remove(args.concurrency)
+                        sys.argv.remove(args['concurrency'])
                     except ValueError:
                         pass
             try:
-                c = int(args.concurrency)
+                c = int(args['concurrency'])
             except ValueError:
                 c = False
             littlechef.concurrency = c
-        if args.verbose:
+        if args['verbose']:
             littlechef.verbose = True
             try:
                 sys.argv.remove('--verbose')
             except ValueError:
                 sys.argv.remove('-V')
-        if args.debug:
+        if args['debug']:
             littlechef.loglevel = 'debug'
             littlechef.verbose = True
             try:
                 sys.argv.remove('--debug')
             except ValueError:
                 sys.argv.remove('-d')
-        if args.environment is not None:
-            littlechef.chef_environment = args.environment
+        if args['environment'] is not None:
+            littlechef.chef_environment = args['environment']
             try:
                 # --env=5
-                sys.argv.remove('--env={0}'.format(args.environment))
+                sys.argv.remove('--env={0}'.format(args['environment']))
             except ValueError:
                 try:
                     # -e 5
                     sys.argv.remove('-e')
-                    sys.argv.remove(args.environment)
+                    sys.argv.remove(args['environment'])
                 except ValueError:
                     try:
                         # --env 5
                         sys.argv.remove('--env')
-                        sys.argv.remove(args.environment)
+                        sys.argv.remove(args['environment'])
                     except ValueError:
                         pass
 
