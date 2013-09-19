@@ -44,8 +44,8 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("command", type=str, default="", nargs='?',
-        help="Littlechef command")
+    parser.add_argument("commands", type=str, default="", nargs='?',
+        help="Littlechef commands")
 
     parser.add_argument(
         "-v", "--version", action='version',
@@ -127,15 +127,17 @@ if __name__ == '__main__':
             if args['environment'] is not None:
                 littlechef.chef_environment = args['environment']
 
-            # Otherwise, insert our fabfile at the correct place
-            if len(sys.argv) < 2:
-                parser.parse_args(['-h'])
-            if fix_cmd:
-                sys.argv[1:1] = ['-f', fabfile]
+            if args['commands']:
+                commands = args['commands'].split(' ')
             else:
-                sys.argv[0:0] = ['-f', fabfile]
-            # Pass control over to fabric
-            # Fabric should now import runner with COOKING = True
+                commands = []
+
+            # overwrite all commandline arguments and proxy
+            # execution to the fabric script
+            if fix_cmd:
+                sys.argv[:] = [fix_cmd] + ['-f', fabfile] + commands
+            else:
+                sys.argv[:] = ['-f', fabfile] + commands
             littlechef.__cooking__ = True
             from fabric import main
             main.main()
