@@ -103,14 +103,7 @@ def _ensure_environments_exist():
     for environment in environments:
         filename = os.path.join("environments", "{0}.json".format(environment))
         if not os.path.exists(filename):
-            data = {
-                "name": environment,
-                "default_attributes": {  },
-                "json_class": "Chef::Environment",
-                "description": "",
-                "cookbook_versions": { },
-                "chef_type": "environment"
-            }
+            data = lib._env_from_template(environment)
             with open(filename, 'w') as fd:
                 json.dump(data, fd, indent=4)
 
@@ -205,9 +198,11 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     -AttributeTypeandPrecedence
     LittleChef implements, in precedence order:
         - Cookbook default
+        - Environment default
         - Role default
         - Node normal
         - Role override
+        - Environment override
 
     NOTE: In order for cookbook attributes to be read, they need to be
         correctly defined in its metadata.json
@@ -240,6 +235,11 @@ def _add_merged_attributes(node, all_recipes, all_roles):
             if role == r['name']:
                 update_dct(attributes, r.get('default_attributes', {}))
 
+    # Get default environment attributes
+    environment = lib.get_environment(node['chef_environment'])
+    update_dct(attributes, environment.get('default_attributes', {}))
+
+
     # Get normal node attributes
     non_attribute_fields = [
         'id', 'name', 'role', 'roles', 'recipes', 'run_list', 'ipaddress']
@@ -255,6 +255,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r.get('override_attributes', {}))
+
+    # Get override environment attributes
+    update_dct(attributes, environment.get('override_attributes', {}))
+
     # Merge back to the original node object
     node.update(attributes)
 
