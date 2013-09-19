@@ -95,6 +95,26 @@ def sync_node(node):
     return True
 
 
+def _ensure_environments_exist():
+    """ """
+    environments = lib.get_used_environments()
+    if not os.path.isdir("environments"):
+        os.mkdir("environments")
+    for environment in environments:
+        filename = os.path.join("environments", "{0}.json".format(environment))
+        if not os.path.exists(filename):
+            data = {
+                "name": environment,
+                "default_attributes": {  },
+                "json_class": "Chef::Environment",
+                "description": "",
+                "cookbook_versions": { },
+                "chef_type": "environment"
+            }
+            with open(filename, 'w') as fd:
+                json.dump(data, fd, indent=4)
+
+
 def _synchronize_node(configfile, node):
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
@@ -127,14 +147,14 @@ def _synchronize_node(configfile, node):
             use_sudo=True,
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
+    _ensure_environments_exist()
     rsync_project(
-        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
+        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-    _add_environment_patch()
 
 
 def build_dct(dic, keys, value):
@@ -312,20 +332,6 @@ def _node_cleanup():
                 sudo("rm '/etc/chef/node.json'")
                 if env.encrypted_data_bag_secret:
                     sudo("rm '/etc/chef/encrypted_data_bag_secret'")
-
-
-def _add_environment_patch():
-    """ Adds chef_solo_senvironment_lib cookbook, which provides a library to
-    handle environments in chef-solo
-    """
-    # Create extra cookbook dir
-    lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
-                            'chef_solo_senvironment_lib', 'libraries')
-    with hide('running', 'stdout'):
-        sudo('mkdir -p {0}'.format(lib_path))
-    # Add environment patch to the node's cookbooks
-    put(os.path.join(basedir, 'environment.rb'),
-        os.path.join(lib_path, 'environment.rb'), use_sudo=True)
 
 
 def _configure_node():

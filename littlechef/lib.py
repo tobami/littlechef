@@ -84,6 +84,14 @@ def get_nodes_with_role(role_name, environment=None):
                 yield n
 
 
+def get_used_environments():
+    """Get all chef_environments which are used"""
+    environments = set()
+    for node in get_nodes():
+        environments.add(node.get('chef_environment'))
+    return filter(None, environments)
+
+
 def get_nodes_with_recipe(recipe_name, environment=None):
     """Get all nodes which include a given recipe,
     prefix-searches are also supported

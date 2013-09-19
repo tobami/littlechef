@@ -2,4 +2,3 @@ include README.md
 include LICENSE
 include NOTICE
 include littlechef/solo.rb
-include littlechef/environment.rb
