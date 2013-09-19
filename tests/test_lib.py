@@ -272,6 +272,26 @@ class TestLib(BaseTest):
         self.assertEqual(len(plugins), 2)
         self.assertEqual(plugins[0]['bad'], "Plugin has a syntax error")
 
+    def test_get_used_environments(self):
+        """Should get a list of all used environments"""
+        environments = lib.get_used_environments()
+        self.assertEqual(sorted(environments),
+            ['production', 'role_testing', 'staging'])
+
+    def test_get_existing_environment(self):
+        """Should return an existing environment object from the kitchen"""
+        environment = lib.get_environment('production')
+        self.assertTrue('subversion' in environment['default_attributes'])
+        self.assertEqual(environment['default_attributes']['subversion']['user'], 'tom')
+
+    def test_get_nonexisting_environment(self):
+        """Should create a missing environment on the flight"""
+        environment = lib.get_environment('not-exists')
+        self.assertEqual(environment['name'], 'not-exists')
+        self.assertEqual(environment['default_attributes'], {})
+        self.assertEqual(environment['chef_type'], 'environment')
+        self.assertEqual(environment['json_class'], 'Chef::Environment')
+
 
 class TestChef(BaseTest):
     def tearDown(self):
@@ -420,6 +440,15 @@ class TestChef(BaseTest):
             data = json.loads(f.read())
         self.assertTrue('subversion' in data)
         self.assertTrue(data['subversion']['repo_name'] == 'repo')
+
+    def test_attribute_merge_environment_default(self):
+        """Should have the value found in environment/ENV.json"""
+        chef.build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertEqual(data['subversion']['user'], 'tom')
 
     def test_attribute_merge_cookbook_boolean(self):
         """Should have real boolean values for default cookbook attributes"""
