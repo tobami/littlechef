@@ -22,7 +22,7 @@ from copy import deepcopy
 
 from fabric.api import *
 from fabric.contrib.files import exists
-from fabric import colors
+from fabric import colors, context_managers
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
@@ -325,9 +325,8 @@ def _add_search_patch():
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
     # Add search and environment patch to the node's cookbooks
-    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
-        put(os.path.join(basedir, filename),
-            os.path.join(lib_path, filename), use_sudo=True)
+    with context_managers.lcd(basedir + '/search_lib'):
+        put(".", lib_path, use_sudo=True)
 
 
 def _configure_node():

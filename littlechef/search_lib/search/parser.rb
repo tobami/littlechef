@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-require 'treetop'
 require 'chef/solr_query/query_transform'
 
 # mock QueryTransform such that we can access the location of the lucene grammar
@@ -77,7 +76,19 @@ module Lucene
   class FiledRange < Treetop::Runtime::SyntaxNode
   end
 
-  class InclFieldRange < FieldRange
+  # we handle '[* TO *]' as a special case since it is common in
+  # cookbooks for matching the existence of keys
+  class InclFieldRange
+    def match(item)
+      field = self.elements[0].text_value
+      range_start = self.elements[1].transform
+      range_end = self.elements[2].transform
+      if range_start == "*" and range_end == "*"
+        !!item[field]
+      else
+        raise "Ranges not really supported yet"
+      end
+    end
   end
 
   class ExclFieldRange < FieldRange

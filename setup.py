@@ -22,7 +22,12 @@ setup(
     install_requires=['fabric==1.5.4', 'simplejson>=2.1.0', 'argparse'],
     packages=['littlechef'],
     package_data={
-        'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
+        'littlechef': [
+            'search_lib/*.rb',
+            'search_lib/search/*',
+            'search_lib/vendor/chef/solr_query/*',
+            'solo.rb'
+        ]
     },
     scripts=['fix'],
     test_suite='nose.collector',
