@@ -95,17 +95,21 @@ def sync_node(node):
     return True
 
 
-def _ensure_environments_exist():
-    """ """
-    environments = lib.get_used_environments()
+def _ensure_environments_exist(create_from_template=False):
+    """Make sure environments exists in the kitchen.
+    Optionally it is also ensured that all used environment definitions
+    exist.
+    """
     if not os.path.isdir("environments"):
         os.mkdir("environments")
-    for environment in environments:
-        filename = os.path.join("environments", "{0}.json".format(environment))
-        if not os.path.exists(filename):
-            data = lib._env_from_template(environment)
-            with open(filename, 'w') as fd:
-                json.dump(data, fd, indent=4)
+    if create_from_template:
+        environments = lib.get_used_environments()
+        for environment in environments:
+            filename = os.path.join("environments", "{0}.json".format(environment))
+            if not os.path.exists(filename):
+                data = lib._env_from_template(environment)
+                with open(filename, 'w') as fd:
+                    json.dump(data, fd, indent=4)
 
 
 def _synchronize_node(configfile, node):
