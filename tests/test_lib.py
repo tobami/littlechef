@@ -509,6 +509,15 @@ class TestChef(BaseTest):
         self.assertTrue('subversion' in data)
         self.assertEqual(data['subversion']['password'], 'role_override_pass')
 
+    def test_attribute_merge_environment_override(self):
+        """Should have the value found in the environment override attributes"""
+        chef.build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertEqual(data['subversion']['password'], 'env_override_pass')
+
     def test_attribute_merge_deep_dict(self):
         """Should deep-merge a dict when it is defined in two different places
         """
