@@ -62,7 +62,7 @@ class TestConfig(BaseTest):
         # Change to parent dir, which has no nodes/cookbooks/roles dir
         self.set_location(littlechef_top)
         # Call fix from the current directory above "tests/"
-        resp, error = self.execute([fix, '-l'])
+        resp, error = self.execute([fix, 'node:a'])
         self.assertTrue("Fatal error" in error, resp)
         self.assertTrue('No config.cfg file found' in error, error)
         self.assertEquals(resp, "", resp)
@@ -72,17 +72,20 @@ class TestConfig(BaseTest):
     def test_version(self):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([fix, '-v'])
-        self.assertEquals(error, "", error)
+        self.assertEquals(resp, "", "Response should be empty, version should be in stderr")
         self.assertTrue(
-            'LittleChef {0}'.format(littlechef.__version__) in resp)
+            'LittleChef {0}'.format(littlechef.__version__) in error)
 
     def test_list_commands(self):
         """Should output a list of available commands"""
         resp, error = self.execute([fix, '-l'])
         self.assertEquals(error, "")
-        expected = "LittleChef: Configuration Management using Chef Solo"
+        expected = "Starts a Chef Solo configuration run"
         self.assertTrue(expected in resp)
-        self.assertEquals(len(resp.split('\n')), 22)
+        commands = resp.split('\nAvailable commands:\n')[-1]
+        commands = filter(None, commands.split('\n'))
+        self.assertEquals(len(commands), 17)
+
 
     #def test_verbose(self):
         #"""Should turn on verbose output"""
@@ -103,7 +106,7 @@ class TestEnvironment(BaseTest):
         resp, error = self.execute([fix, 'list_nodes', '--env'])
         self.assertEquals(resp, "")
         self.assertTrue(
-            "error: --env option requires an argument" in error, error)
+            "error: argument -e/--env: expected one argument" in error, error)
 
         resp, error = self.execute([fix, '--env', 'list_nodes'])
         self.assertEquals(resp, "")
@@ -243,7 +246,6 @@ class TestListRoles(BaseTest):
         """Should show a detailed list of all roles"""
         resp, error = self.execute([fix, 'list_roles_detailed'])
         self.assertTrue('base' in resp and 'example aplication' in resp)
-        print resp
 
 
 class TestListNodes(BaseTest):
