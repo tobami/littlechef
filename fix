@@ -26,33 +26,38 @@ except ImportError:
     sys.exit(1)
 
 
-def get_commands():
-    return """Available commands:
+class DynamicFabOperations(object):
 
-    deploy_chef             Install chef-solo on a node
-    list_nodes              List all configured nodes
-    list_nodes_detailed     Show a detailed list of all nodes
-    list_nodes_with_recipe  Show all nodes which have asigned a given recipe
-    list_nodes_with_role    Show all nodes which have asigned a given role
-    list_plugins            Show all available plugins
-    list_recipes            Show a list of all available recipes
-    list_recipes_detailed   Show detailed information for all recipes
-    list_roles              Show a list of all available roles
-    list_roles_detailed     Show detailed information for all roles
-    new_kitchen             Create LittleChef directory structure (Kitchen)
-    node                    Selects and configures a list of nodes. 'all' configures all nodes
-    nodes_with_role         Sets a list of nodes that have the given role
-    plugin                  Executes the selected plugin
-    recipe                  Apply the given recipe to a node
-    role                    Apply the given role to a node
-    ssh                     Executes the given command"""
+    _commands = None
+
+    @staticmethod
+    def get_commands():
+        from fabric.main import list_commands, state, load_fabfile
+        docstring, callables, default = load_fabfile(fabfile)
+        state.commands.update(callables)
+        commands_str = ""
+        for c in list_commands("\n", "normal"):
+            commands_str += c + "\n"
+        return commands_str
+
+    @property
+    def commands(self):
+        if self._commands is None:
+            self._commands = self.get_commands()
+        return self._commands
+
+    def __contains__(self, item):
+        return item in self.commands
+
+    def splitlines(self, keepends=False):
+        return self.commands.splitlines(keepends)
 
 
 def parse_arguments():
     """Gets the console arguments for Littlechef's fix command"""
     parser = argparse.ArgumentParser(
         description="Starts a Chef Solo configuration run",
-        epilog=get_commands(),
+        epilog=DynamicFabOperations(),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
