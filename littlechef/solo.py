@@ -28,16 +28,20 @@ from littlechef import LOGFILE
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 
-def install(distro_type, distro, gems, version, stop_client):
+def install(distro_type, distro, gems, version, stop_client, omnibus="no"):
     """Calls the appropriate installation function for the given distro"""
     if distro_type == "debian":
         if gems == "yes":
             _gem_apt_install()
+        elif omnibus == "yes":
+            _omnibus_install()
         else:
             _apt_install(distro, version, stop_client)
     elif distro_type == "rpm":
         if gems == "yes":
             _gem_rpm_install()
+        elif omnibus == "yes":
+            _omnibus_install()
         else:
             _rpm_install()
     elif distro_type == "gentoo":
@@ -222,6 +226,11 @@ def _gem_ports_install():
         sudo('which -s perl || pkg_add -r perl')
         sudo('which -s m4 || pkg_add -r m4')
         sudo('which -s chef || (cd /usr/ports/sysutils/rubygem-chef && make -DBATCH install)')
+
+def _omnibus_install():
+    """Install Chef using the omnibus installer"""
+    with hide('stdout', 'running'):
+        sudo("""python -c "import urllib; print urllib.urlopen('https://www.opscode.com/chef/install.sh').read()"| bash""")
 
 def _apt_install(distro, version, stop_client='yes'):
     """Install Chef for debian based distros"""
