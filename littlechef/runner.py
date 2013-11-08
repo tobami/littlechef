@@ -154,20 +154,19 @@ def _node_runner():
 
 
 def deploy_chef(gems="no", ask="yes", version="0.10",
-    distro_type=None, distro=None, platform=None, stop_client='yes'):
+                distro_type=None, distro=None, platform=None, stop_client='yes',
+                omnibus='no'):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
-    chef_versions = ["0.9", "0.10"]
-    if version not in chef_versions:
-        abort('Wrong Chef version specified. Valid versions are {0}'.format(
-            ", ".join(chef_versions)))
     if distro_type is None and distro is None:
         distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
     if gems == "yes":
         method = 'using gems for "{0}"'.format(distro)
+    elif omnibus == "yes":
+        method = "using omnibus installer"
     else:
         method = '{0} using "{1}" packages'.format(version, distro)
     if ask == "no" or littlechef.noninteractive:
@@ -181,7 +180,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
-        solo.install(distro_type, distro, gems, version, stop_client)
+        solo.install(distro_type, distro, gems, version, stop_client, omnibus)
         solo.configure()
 
         # Build a basic node file if there isn't one already
