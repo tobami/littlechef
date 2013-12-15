@@ -64,7 +64,7 @@ def new_kitchen():
     for cookbook_path in littlechef.cookbook_paths:
         _mkdir(cookbook_path)
     # Add skeleton config.cfg
-    if not os.path.exists("config.cfg"):
+    if not os.path.exists("config/config.cfg"):
         with open("config.cfg", "w") as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = "
@@ -353,7 +353,7 @@ def _readconfig():
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
-        abort('No config.cfg file found in the current directory')
+        abort('No config.cfg file found in the config/ directory')
 
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
