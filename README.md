@@ -284,12 +284,14 @@ For help regarding the use of LittleChef, or to share any ideas or suggestions y
 
 ### Reporting bugs
 
+[![Build Status](https://travis-ci.org/tobami/littlechef.png?branch=master)](https://travis-ci.org/tobami/littlechef)
+
 If you find bugs please report it on [https://github.com/tobami/littlechef/issues](https://github.com/tobami/littlechef/issues)
 
 Happy cooking!
 
-  [Chef]: http://www.opscode.com/chef
-  [Nodes]: http://wiki.opscode.com/display/chef/Nodes
+  [Chef]: http://www.getchef.com/chef/
+  [Nodes]: http://docs.opscode.com/essentials_node_object.html
   [Cookbooks]: http://wiki.opscode.com/display/chef/Cookbooks
   [Roles]: http://wiki.opscode.com/display/chef/Roles
   [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags

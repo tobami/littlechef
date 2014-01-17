@@ -130,47 +130,6 @@ class TestRunner(BaseTest):
         resp, error = self.execute([fix, 'node:'])
         self.assertTrue("Fatal error: No node was given" in error)
 
-    def test_one_node(self):
-        """Should try to configure the given node"""
-        resp, error = self.execute([fix, 'node:testnode2'])
-        self.assertTrue("== Configuring testnode2 ==" in resp)
-        # Will try to configure testnode2 and will fail DNS lookup
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error,
-                        error)
-    #def test_dummy_node(self): # FIXME: Needs mocking
-        """Should *not* configure a node when dummy is set to true"""
-        #resp, error = self.execute([fix, 'node:testnode4'])
-        #self.assertTrue("== Skipping dummy: testnode4 ==" in resp)
-
-    def test_several_nodes(self):
-        """Should try to configure two nodes"""
-        resp, error = self.execute([fix, 'node:testnode2,testnode1'])
-        self.assertTrue("== Configuring testnode2 ==" in resp)
-        # Will try to configure *first* testnode2 and will fail DNS lookup
-        self.assertTrue("tal error: Name lookup failed for testnode2" in error)
-
-    def test_recipe(self):
-        """Should configure node with the given recipe"""
-        resp, error = self.execute(
-            [fix, 'node:testnode1', 'recipe:subversion'])
-        self.assertTrue("plying recipe 'subversion' on node testnode1" in resp)
-        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
-
-    def test_role(self):
-        """Should configure node with the given role"""
-        resp, error = self.execute([fix, 'node:testnode1', 'role:base'])
-        self.assertTrue("== Applying role 'base' to testnode1 ==" in resp)
-        self.assertTrue("tal error: Name lookup failed for testnode1" in error)
-
-    def test_ssh(self):
-        """Should execute the given ssh command"""
-        resp, error = self.execute([fix, 'node:testnode2', 'ssh:"my command"'])
-        expected = "Executing the command '\"my command\"' on the node"
-        expected += " testnode2..."
-        self.assertTrue(expected in resp)
-        expected = "tal error: Name lookup failed for testnode2"
-        self.assertTrue(expected in error, error)
-
     def test_plugin(self):
         """Should execute the given plugin"""
         resp, error = self.execute([fix, 'node:testnode1', 'plugin:notthere'])
@@ -277,7 +236,3 @@ class TestListNodes(BaseTest):
 
         resp, error = self.execute([fix, 'list_nodes_with_recipe:apache2'])
         self.assertFalse('testnode1' in resp)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -243,7 +243,7 @@ def ssh(name):
     """Executes the given command"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES ssh:COMMAND')
-    print("\nExecuting the command '{0}' on the node {1}...".format(
+    print("\nExecuting the command '{0}' on node {1}...".format(
           name, env.host_string))
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
