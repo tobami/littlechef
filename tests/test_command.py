@@ -165,7 +165,7 @@ class TestRunner(BaseTest):
     def test_ssh(self):
         """Should execute the given ssh command"""
         resp, error = self.execute([fix, 'node:testnode2', 'ssh:"my command"'])
-        expected = "Executing the command '\"my command\"' on the node"
+        expected = "Executing the command '\"my command\"' on node"
         expected += " testnode2..."
         self.assertTrue(expected in resp)
         expected = "tal error: Name lookup failed for testnode2"
