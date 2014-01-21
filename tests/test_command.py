@@ -64,7 +64,8 @@ class TestConfig(BaseTest):
         # Call fix from the current directory above "tests/"
         resp, error = self.execute([fix, 'node:a'])
         self.assertTrue("Fatal error" in error, resp)
-        self.assertTrue('No config.cfg file found' in error, error)
+        self.assertTrue(
+            'No {0} file found'.format(littlechef.CONFIGFILE) in error, error)
         self.assertEquals(resp, "", resp)
         # Return to test dir
         self.set_location()
@@ -72,7 +73,8 @@ class TestConfig(BaseTest):
     def test_version(self):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([fix, '-v'])
-        self.assertEquals(resp, "", "Response should be empty, version should be in stderr")
+        self.assertEquals(resp, "",
+                          "Response should be empty, version should be in stderr")
         self.assertTrue(
             'LittleChef {0}'.format(littlechef.__version__) in error)
 
