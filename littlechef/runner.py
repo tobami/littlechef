@@ -353,7 +353,8 @@ def _readconfig():
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
-        abort('No config.cfg file found in the current directory')
+        abort('No {0} file found in the current '
+              'directory'.format(littlechef.CONFIGFILE))
 
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
@@ -369,8 +370,8 @@ def _readconfig():
         env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
         abort('You need to define a "userinfo" section'
-              ' in config.cfg. Refer to the README for help'
-              ' (http://github.com/tobami/littlechef)')
+              ' in {0}. Refer to the README for help (http://github.com'
+              '/tobami/littlechef)'.format(littlechef.CONFIGFILE))
     except ConfigParser.NoOptionError:
         env.ssh_config_path = None
 

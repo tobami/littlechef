@@ -64,7 +64,8 @@ class TestConfig(BaseTest):
         # Call fix from the current directory above "tests/"
         resp, error = self.execute([fix, 'node:a'])
         self.assertTrue("Fatal error" in error, resp)
-        self.assertTrue('No config.cfg file found' in error, error)
+        self.assertTrue(
+            'No {0} file found'.format(littlechef.CONFIGFILE) in error, error)
         self.assertEquals(resp, "", resp)
         # Return to test dir
         self.set_location()
