@@ -279,6 +279,16 @@ lc.recipe('MYRECIPE') #Applies <MYRECIPE> to <MyHostnameOrIP>
 lc.node('MyHostnameOrIP') #Applies the saved nodes/MyHostnameOrIP.json configuration
 ```
 
+### Performance Tips
+
+You can greatly reduce the SSH connection setup time by reusing existing connections.
+On Unix systems, you can do so by adding the `ControlMaster` directive to your ssh config:
+
+    #~/.ssh/config
+    Host *
+      ControlMaster auto
+      ControlPath /tmp/ssh-%r@%h:%p
+
 ### Other tutorial material
 
 * [Automated Deployments with LittleChef][], nice introduction to Chef
