@@ -73,7 +73,8 @@ class TestConfig(BaseTest):
     def test_version(self):
         """Should output the correct Little Chef version"""
         resp, error = self.execute([fix, '-v'])
-        self.assertEquals(resp, "", "Response should be empty, version should be in stderr")
+        self.assertEquals(resp, "",
+                          "Response should be empty, version should be in stderr")
         self.assertTrue(
             'LittleChef {0}'.format(littlechef.__version__) in error)
 

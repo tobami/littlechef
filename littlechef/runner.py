@@ -19,7 +19,6 @@ import sys
 import simplejson as json
 
 from fabric.api import *
-from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
@@ -349,12 +348,20 @@ def _readconfig():
     """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
     try:
-        found = config.read([littlechef.CONFIGFILE, 'auth.cfg'])
+        found = config.read(littlechef.CONFIGFILE)
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
-        abort('No {0} file found in the current '
-              'directory'.format(littlechef.CONFIGFILE))
+        try:
+            found = config.read(['config.cfg', 'auth.cfg'])
+        except ConfigParser.ParsingError as e:
+            abort(str(e))
+        if len(found):
+            print('\nDeprecationWarning: deprecated name \'{0}\'for config'
+                  ' file. Use {1}'.format(found[0], littlechef.CONFIGFILE))
+        else:
+            abort('No {0} file found in the current '
+                  'directory'.format(littlechef.CONFIGFILE))
 
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
@@ -370,8 +377,8 @@ def _readconfig():
         env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
         abort('You need to define a "userinfo" section'
-              ' in {0}. Refer to the README for help (http://github.com'
-              '/tobami/littlechef)'.format(littlechef.CONFIGFILE))
+              ' in the config file. Refer to the README for help '
+              '(http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
         env.ssh_config_path = None
 
