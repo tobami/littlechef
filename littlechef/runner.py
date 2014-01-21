@@ -357,8 +357,8 @@ def _readconfig():
         except ConfigParser.ParsingError as e:
             abort(str(e))
         if len(found):
-            print('\nDeprecationWarning: deprecated name \'{0}\'for config'
-                  ' file. Use {1}'.format(found[0], littlechef.CONFIGFILE))
+            print('\nDeprecationWarning: deprecated config file name \'{0}\'.'
+                  ' Use {1}'.format(found[0], littlechef.CONFIGFILE))
         else:
             abort('No {0} file found in the current '
                   'directory'.format(littlechef.CONFIGFILE))
