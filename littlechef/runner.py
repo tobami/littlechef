@@ -1,4 +1,4 @@
-#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -130,10 +130,12 @@ def node(*nodes):
             execute(_node_runner)
         chef.remove_local_node_data_bag()
 
+
 def _configure_fabric_for_platform(platform):
     """Configures fabric for a specific platform"""
     if platform == "freebsd":
         env.shell = "/bin/sh -c"
+
 
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
@@ -152,34 +154,42 @@ def _node_runner():
         chef.sync_node(node)
 
 
-def deploy_chef(gems="no", ask="yes", version="0.10",
-                distro_type=None, distro=None, platform=None, stop_client='yes',
-                omnibus='no'):
+def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
+                distro=None, platform=None, stop_client='yes', method=None):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
+    deprecated_parameters = [distro_type, distro, platform]
+    if any(param is not None for param in deprecated_parameters) or gems != 'no':
+        print("DeprecationWarning: the parameters 'gems', distro_type',"
+              " 'distro' and 'platform' will no longer be supported "
+              "in future versions of LittleChef. Use 'method' instead")
     if distro_type is None and distro is None:
         distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
-    if gems == "yes":
-        method = 'using gems for "{0}"'.format(distro)
-    elif omnibus == "yes":
-        method = "using omnibus installer"
+    if method:
+        if method not in ['omnibus', 'gentoo', 'pacman']:
+            abort('Invalid omnibus method {0}. Supported methods are '
+                  'omnibus, gentoo and pacman'.format(method))
+        msg = "{0} using the {1} installer".format(version, method)
     else:
-        method = '{0} using "{1}" packages'.format(version, distro)
-    if ask == "no" or littlechef.noninteractive:
-        print("Deploying Chef {0}...".format(method))
+        if gems == "yes":
+            msg = 'using gems for "{0}"'.format(distro)
+        else:
+            msg = '{0} using "{1}" packages'.format(version, distro)
+    if method == 'omnibus' or ask == "no" or littlechef.noninteractive:
+        print("Deploying Chef {0}...".format(msg))
     else:
         message = ('\nAre you sure you want to install Chef '
-                   '{0} on node {1}?'.format(method, env.host_string))
+                   '{0} on node {1}?'.format(msg, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
 
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
-        solo.install(distro_type, distro, gems, version, stop_client, omnibus)
+        solo.install(distro_type, distro, gems, version, stop_client, method)
         solo.configure()
 
         # Build a basic node file if there isn't one already
@@ -193,10 +203,10 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
                 abort("Could not parse ohai's output"
                       ":\n  {0}".format(output))
             node = {"run_list": []}
-            for prop in ["ipaddress", "platform", "platform_family",
+            for attribute in ["ipaddress", "platform", "platform_family",
                          "platform_version"]:
-                if ohai.get(prop):
-                    node[prop] = ohai[prop]
+                if ohai.get(attribute):
+                    node[attribute] = ohai[attribute]
             chef.save_config(node)
 
 
