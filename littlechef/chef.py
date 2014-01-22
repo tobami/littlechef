@@ -341,7 +341,7 @@ def _configure_node():
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
     # Build chef-solo command
-    cmd = "chef-solo "
+    cmd = "RUBYOPT=-Ku chef-solo "
     if whyrun:
         cmd += "--why-run "
     cmd += '-l {0} -j /etc/chef/node.json'.format(env.loglevel)
