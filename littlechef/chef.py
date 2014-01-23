@@ -341,15 +341,15 @@ def _configure_node():
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
     # Build chef-solo command
-    cmd = "chef-solo "
+    cmd = "chef-solo"
     if whyrun:
-        cmd += "--why-run "
-    cmd += '-l {0} -j /etc/chef/node.json'.format(env.loglevel)
+        cmd += " --why-run"
+    cmd += ' -l {0} -j /etc/chef/node.json'.format(env.loglevel)
     if ENABLE_LOGS:
         cmd += ' | tee {0}'.format(LOGFILE)
     if env.loglevel == "debug":
-        print(
-            "Executing Chef Solo with the following command:\n{0}".format(cmd))
+        print("Executing Chef Solo with the following command:\n"
+              "{0}".format(cmd))
     with settings(hide('warnings', 'running'), warn_only=True):
         output = sudo(cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
