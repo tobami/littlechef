@@ -26,7 +26,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import whyrun, lib, solo
+from littlechef import cookbook_paths, whyrun, lib, solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 
 # Path to local patch
@@ -152,6 +152,7 @@ def _synchronize_node(configfile, node):
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
+    _add_search_patch()  # NOTE: Chef 10 only
 
 
 def build_dct(dic, keys, value):
@@ -242,7 +243,6 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     # Get default environment attributes
     environment = lib.get_environment(node['chef_environment'])
     update_dct(attributes, environment.get('default_attributes', {}))
-
 
     # Get normal node attributes
     non_attribute_fields = [
@@ -340,6 +340,23 @@ def _node_cleanup():
                 sudo("rm '/etc/chef/node.json'")
                 if env.encrypted_data_bag_secret:
                     sudo("rm '/etc/chef/encrypted_data_bag_secret'")
+
+
+def _add_search_patch():
+    """Adds chef_solo_search_lib cookbook, which provides a library to read
+    and search data bags
+    NOTE: Cher 10 only
+
+    """
+    # Create extra cookbook dir
+    lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
+                            'chef_solo_search_lib', 'libraries')
+    with hide('running', 'stdout'):
+        sudo('mkdir -p {0}'.format(lib_path))
+    # Add search and environment patch to the node's cookbooks
+    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
+        put(os.path.join(basedir, filename),
+            os.path.join(lib_path, filename), use_sudo=True)
 
 
 def _configure_node():

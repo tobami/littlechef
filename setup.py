@@ -22,7 +22,8 @@ setup(
     install_requires=['fabric>=1.5.4', 'argparse'],
     packages=['littlechef'],
     package_data={
-        'littlechef': ['solo.rb']
+        'littlechef': ['solo.rb', 'search.rb', 'parser.rb', 'environment.rb']
+        # NOTE: Chef 10 only (search, parser and environment)
     },
     scripts=['fix'],
     setup_requires=['nose>=1.0'],
