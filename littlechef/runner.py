@@ -143,6 +143,7 @@ def _node_runner():
         abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
     if '@' in env.host_string:
         env.user = env.host_string.split('@')[0]
+    env.host_string = lib.resolve_hostname(env.host_string)
     node = lib.get_node(env.host_string)
 
     _configure_fabric_for_platform(node.get("platform"))

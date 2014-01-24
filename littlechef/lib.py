@@ -19,13 +19,22 @@ import subprocess
 import imp
 
 from fabric import colors
-from fabric.api import env, settings
+from fabric.api import env
 from fabric.contrib.console import confirm
 from fabric.utils import abort
 
 from littlechef import cookbook_paths
 
 knife_installed = True
+
+
+def resolve_hostname(name):
+    """Returns resolved hostname using the ssh config"""
+    if not os.path.exists(os.path.join("nodes", name + ".json")):
+        resolved_name = env.ssh_config.lookup(name)['hostname']
+        if os.path.exists(os.path.join("nodes", resolved_name + ".json")):
+            name = resolved_name
+    return name
 
 
 def get_node(name, merged=False):
