@@ -16,7 +16,7 @@
 import ConfigParser
 import os
 import sys
-import simplejson as json
+import json
 
 from fabric.api import *
 from fabric.contrib.console import confirm

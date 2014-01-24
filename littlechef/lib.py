@@ -14,7 +14,7 @@
 #
 """library for parsing and printing role, cookbook and node information"""
 import os
-import simplejson as json
+import json
 import subprocess
 import imp
 

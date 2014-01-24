@@ -17,7 +17,7 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 """
 import os
 import shutil
-import simplejson as json
+import json
 from copy import deepcopy
 
 from fabric.api import *
@@ -26,7 +26,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun, lib, solo
+from littlechef import whyrun, lib, solo
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 
 # Path to local patch
