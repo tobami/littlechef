@@ -25,6 +25,7 @@ setup(
         'littlechef': ['solo.rb']
     },
     scripts=['fix'],
+    setup_requires=['nose>=1.0'],
     test_suite='nose.collector',
     classifiers=[
         "Programming Language :: Python",

@@ -1,4 +1,4 @@
-#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import sys
 import simplejson as json
 
 from fabric.api import *
-from fabric.contrib.files import append, exists
 from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
@@ -131,10 +130,12 @@ def node(*nodes):
             execute(_node_runner)
         chef.remove_local_node_data_bag()
 
+
 def _configure_fabric_for_platform(platform):
     """Configures fabric for a specific platform"""
     if platform == "freebsd":
         env.shell = "/bin/sh -c"
+
 
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
@@ -142,6 +143,7 @@ def _node_runner():
         abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
     if '@' in env.host_string:
         env.user = env.host_string.split('@')[0]
+    env.host_string = lib.resolve_hostname(env.host_string)
     node = lib.get_node(env.host_string)
 
     _configure_fabric_for_platform(node.get("platform"))
@@ -153,38 +155,42 @@ def _node_runner():
         chef.sync_node(node)
 
 
-def deploy_chef(gems="no", ask="yes", version="0.10",
-                distro_type=None, distro=None, platform=None, stop_client='yes',
-                omnibus='no'):
+def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
+                distro=None, platform=None, stop_client='yes', method=None):
     """Install chef-solo on a node"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
-    chef_versions = ["0.9", "0.10"]
-    if version not in chef_versions:
-        abort('Wrong Chef version specified. Valid versions are {0}'.format(
-            ", ".join(chef_versions)))
+    deprecated_parameters = [distro_type, distro, platform]
+    if any(param is not None for param in deprecated_parameters) or gems != 'no':
+        print("DeprecationWarning: the parameters 'gems', distro_type',"
+              " 'distro' and 'platform' will no longer be supported "
+              "in future versions of LittleChef. Use 'method' instead")
     if distro_type is None and distro is None:
         distro_type, distro, platform = solo.check_distro()
     elif distro_type is None or distro is None:
         abort('Must specify both or neither of distro_type and distro')
-    if gems == "yes":
-        method = 'using gems for "{0}"'.format(distro)
-    elif omnibus == "yes":
-        method = "using omnibus installer"
+    if method:
+        if method not in ['omnibus', 'gentoo', 'pacman']:
+            abort('Invalid omnibus method {0}. Supported methods are '
+                  'omnibus, gentoo and pacman'.format(method))
+        msg = "{0} using the {1} installer".format(version, method)
     else:
-        method = '{0} using "{1}" packages'.format(version, distro)
-    if ask == "no" or littlechef.noninteractive:
-        print("Deploying Chef {0}...".format(method))
+        if gems == "yes":
+            msg = 'using gems for "{0}"'.format(distro)
+        else:
+            msg = '{0} using "{1}" packages'.format(version, distro)
+    if method == 'omnibus' or ask == "no" or littlechef.noninteractive:
+        print("Deploying Chef {0}...".format(msg))
     else:
         message = ('\nAre you sure you want to install Chef '
-                   '{0} on node {1}?'.format(method, env.host_string))
+                   '{0} on node {1}?'.format(msg, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
 
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
-        solo.install(distro_type, distro, gems, version, stop_client, omnibus)
+        solo.install(distro_type, distro, gems, version, stop_client, method)
         solo.configure()
 
         # Build a basic node file if there isn't one already
@@ -198,10 +204,10 @@ def deploy_chef(gems="no", ask="yes", version="0.10",
                 abort("Could not parse ohai's output"
                       ":\n  {0}".format(output))
             node = {"run_list": []}
-            for prop in ["ipaddress", "platform", "platform_family",
+            for attribute in ["ipaddress", "platform", "platform_family",
                          "platform_version"]:
-                if ohai.get(prop):
-                    node[prop] = ohai[prop]
+                if ohai.get(attribute):
+                    node[attribute] = ohai[attribute]
             chef.save_config(node)
 
 
@@ -247,7 +253,7 @@ def ssh(name):
     """Executes the given command"""
     if not env.host_string:
         abort('no node specified\nUsage: fix node:MYNODES ssh:COMMAND')
-    print("\nExecuting the command '{0}' on the node {1}...".format(
+    print("\nExecuting the command '{0}' on node {1}...".format(
           name, env.host_string))
     # Execute remotely using either the sudo or the run fabric functions
     with settings(hide("warnings"), warn_only=True):
@@ -353,11 +359,20 @@ def _readconfig():
     """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
     try:
-        found = config.read([littlechef.CONFIGFILE, 'auth.cfg'])
+        found = config.read(littlechef.CONFIGFILE)
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
-        abort('No config.cfg file found in the current directory')
+        try:
+            found = config.read(['config.cfg', 'auth.cfg'])
+        except ConfigParser.ParsingError as e:
+            abort(str(e))
+        if len(found):
+            print('\nDeprecationWarning: deprecated config file name \'{0}\'.'
+                  ' Use {1}'.format(found[0], littlechef.CONFIGFILE))
+        else:
+            abort('No {0} file found in the current '
+                  'directory'.format(littlechef.CONFIGFILE))
 
     in_a_kitchen, missing = _check_appliances()
     missing_str = lambda m: ' and '.join(', '.join(m).rsplit(', ', 1))
@@ -373,8 +388,8 @@ def _readconfig():
         env.ssh_config_path = config.get('userinfo', 'ssh-config')
     except ConfigParser.NoSectionError:
         abort('You need to define a "userinfo" section'
-              ' in config.cfg. Refer to the README for help'
-              ' (http://github.com/tobami/littlechef)')
+              ' in the config file. Refer to the README for help '
+              '(http://github.com/tobami/littlechef)')
     except ConfigParser.NoOptionError:
         env.ssh_config_path = None
 

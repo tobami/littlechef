@@ -1,4 +1,4 @@
-#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -28,20 +28,24 @@ from littlechef import LOGFILE
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
 
-def install(distro_type, distro, gems, version, stop_client, omnibus="no"):
+def install(distro_type, distro, gems, version, stop_client, method):
     """Calls the appropriate installation function for the given distro"""
     if distro_type == "debian":
         if gems == "yes":
             _gem_apt_install()
-        elif omnibus == "yes":
-            _omnibus_install()
+        elif method == "omnibus":
+            _omnibus_install(version=version)
         else:
+            chef_versions = ["0.9", "0.10"]
+            if version not in chef_versions:
+                abort('Wrong Chef version specified. Valid versions are {0}'.format(
+                    ", ".join(chef_versions)))
             _apt_install(distro, version, stop_client)
     elif distro_type == "rpm":
         if gems == "yes":
             _gem_rpm_install()
-        elif omnibus == "yes":
-            _omnibus_install()
+        elif method == "omnibus":
+            _omnibus_install(version=version)
         else:
             _rpm_install()
     elif distro_type == "gentoo":
@@ -96,7 +100,8 @@ def configure(current_node=None):
     with settings(hide('everything')):
         try:
             upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
-                context=data, use_sudo=True, backup=False, mode=0400)
+                            context=data, use_sudo=True, backup=False,
+                            mode=0400)
         except SystemExit:
             error = ("Failed to upload '/etc/chef/solo.rb'\n"
             "This can happen when the deployment user does not have a "
@@ -216,6 +221,7 @@ def _gem_pacman_install():
         sudo('pacman -S --noconfirm ruby base-devel wget rsync')
     sudo('gem install --no-rdoc --no-ri chef')
 
+
 def _gem_ports_install():
     """Install Chef from gems for FreeBSD"""
     with hide('stdout', 'running'):
@@ -227,10 +233,17 @@ def _gem_ports_install():
         sudo('which -s m4 || pkg_add -r m4')
         sudo('which -s chef || (cd /usr/ports/sysutils/rubygem-chef && make -DBATCH install)')
 
-def _omnibus_install():
+
+def _omnibus_install(version):
     """Install Chef using the omnibus installer"""
+    url = "https://www.opscode.com/chef/install.sh"
     with hide('stdout', 'running'):
-        sudo("""python -c "import urllib; print urllib.urlopen('https://www.opscode.com/chef/install.sh').read()"| bash""")
+        local("""python -c "import urllib; print urllib.urlopen('{0}').read()" > /tmp/install.sh""".format(url))
+        put('/tmp/install.sh', '/tmp/install.sh')
+    print("Downloading and installing Chef {0}...".format(version))
+    with hide('stdout'):
+        sudo("""bash /tmp/install.sh -v {0}""".format(version))
+
 
 def _apt_install(distro, version, stop_client='yes'):
     """Install Chef for debian based distros"""

@@ -15,7 +15,7 @@ It also adds features to Chef Solo that are currently only available for Chef Se
 
 It all starts in the **kitchen**, which you should keep under version control:
 
-* `config.cfg`: Configuration, including authentication and run-time options.
+* `littlechef.cfg`: Configuration, including authentication and run-time options.
 * `nodes/`: After recipes are run on [Nodes][], their configuration is stored here in
 JSON format. You can manually edit them or even add new ones. The name of a node
 should be its FQDN
@@ -92,14 +92,12 @@ Tested on all major operating systems:
 ### Requirements
 
 * Python 2.6+
-* Fabric 1.5
+* Fabric 1.5+
 
 The best way to install LittleChef is using pip. Required packages are installed by typing:  
 `sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
 or  
 `yum install python-pip python-devel` for RHEL and CentOS
-
-pip will then take care of the extra Python dependencies
 
 ### Installation
 
@@ -117,17 +115,24 @@ Careful what you do with your nodes!:
 
 ### Local Setup
 
-`fix new_kitchen` will create inside the current directory a few files and directories for LittleChef to be able to cook: `config.cfg`, `roles/`, `data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like on your computer.
+`fix new_kitchen` will create inside the current directory a few files and directories
+for LittleChef to be able to cook: `littlechef.cfg`, `roles/`, `data_bags/`, `nodes/`,
+`cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like
+on your computer.
 
 ### Authentication
 
-To be able to issue commands to remote nodes, you need to enter a user and a password with sudo rights. `new_kitchen` will have created a file named `config.cfg`. You can edit it now to enter needed authentication data. There are several possibilities:
+To be able to issue commands to remote nodes, you need to enter a user and a password
+with sudo rights. `new_kitchen` will have created a file named `littlechef.cfg`. You can
+edit it now to enter needed authentication data. There are several possibilities:
 
 * username and password
 * username, password and keypair-file
 * A reference to an ssh-config file
 
-The last one allows the most flexibility, as it allows you to define different usernames, passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by default, but you can always specify another path in `config.cfg`:
+The last one allows the most flexibility, as it allows you to define different usernames,
+passwords and/or keypair-files per hostname. LittleChef will look at `~/.ssh/config` by
+default, but you can always specify another path in `littlechef.cfg`:
 
 ```ini
 [userinfo]
@@ -167,10 +172,11 @@ This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_sec
 Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
 It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
-If your nodes are not directly accessible, you might want to specify a gateway host. The fix command will connect
-to the host specified and issue all following connections from this host. All ssh communication will be tunneled through this
-gateway connection. This can be used if your nodes are behind a firewall and only one host is accessible from your current
-network location.
+If your nodes are not directly accessible, you might want to specify a gateway host.
+The fix command will connect to the host specified and issue all following connections
+from this host. All ssh communication will be tunneled through this gateway connection.
+This can be used if your nodes are behind a firewall and only one host is accessible
+from your current network location.
 
 ```ini
 [connection]
@@ -180,7 +186,7 @@ gateway = hub.example.com
 After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
 hub.example.com.
 
-### Deploying
+### Deploying chef-solo
 
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
@@ -273,6 +279,16 @@ lc.recipe('MYRECIPE') #Applies <MYRECIPE> to <MyHostnameOrIP>
 lc.node('MyHostnameOrIP') #Applies the saved nodes/MyHostnameOrIP.json configuration
 ```
 
+### Performance Tips
+
+You can greatly reduce the SSH connection setup time by reusing existing connections.
+On Unix systems, you can do so by adding the `ControlMaster` directive to your ssh config:
+
+    #~/.ssh/config
+    Host *
+      ControlMaster auto
+      ControlPath /tmp/ssh-%r@%h:%p
+
 ### Other tutorial material
 
 * [Automated Deployments with LittleChef][], nice introduction to Chef
@@ -284,12 +300,14 @@ For help regarding the use of LittleChef, or to share any ideas or suggestions y
 
 ### Reporting bugs
 
+[![Build Status](https://travis-ci.org/tobami/littlechef.png?branch=master)](https://travis-ci.org/tobami/littlechef)
+
 If you find bugs please report it on [https://github.com/tobami/littlechef/issues](https://github.com/tobami/littlechef/issues)
 
 Happy cooking!
 
-  [Chef]: http://www.opscode.com/chef
-  [Nodes]: http://wiki.opscode.com/display/chef/Nodes
+  [Chef]: http://www.getchef.com/chef/
+  [Nodes]: http://docs.opscode.com/essentials_node_object.html
   [Cookbooks]: http://wiki.opscode.com/display/chef/Cookbooks
   [Roles]: http://wiki.opscode.com/display/chef/Roles
   [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags
