@@ -16,7 +16,6 @@ import os
 import json
 from ConfigParser import SafeConfigParser
 
-import mock
 from mock import patch
 from fabric.api import env
 
