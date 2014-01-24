@@ -62,7 +62,7 @@ def _get_ipaddress(node):
         if output.succeeded:
             try:
                 node['ipaddress'] = json.loads(output)[0]
-            except json.JSONDecodeError:
+            except ValueError:
                 abort("Could not parse ohai's output for ipaddress"
                       ":\n  {0}".format(output))
             return True

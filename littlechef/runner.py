@@ -200,7 +200,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
         if output.succeeded:
             try:
                 ohai = json.loads(output)
-            except json.JSONDecodeError:
+            except ValueError:
                 abort("Could not parse ohai's output"
                       ":\n  {0}".format(output))
             node = {"run_list": []}

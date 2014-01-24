@@ -48,7 +48,7 @@ def get_node(name, merged=False):
         with open(node_path, 'r') as f:
             try:
                 node = json.loads(f.read())
-            except json.JSONDecodeError as e:
+            except ValueError as e:
                 msg = 'LittleChef found the following error in'
                 msg += ' "{0}":\n                {1}'.format(node_path, str(e))
                 abort(msg)
@@ -67,7 +67,7 @@ def get_environment(name):
         with open(filename) as f:
             try:
                 environment = json.loads(f.read())
-            except json.JSONDecodeError as e:
+            except ValueError as e:
                 msg = 'LittleChef found the following error in'
                 msg += ' "{0}":\n                {1}'.format(filename, str(e))
                 abort(msg)
@@ -238,7 +238,7 @@ def get_recipes_in_cookbook(name):
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
                 try:
                     cookbook = json.loads(f.read())
-                except json.JSONDecodeError as e:
+                except ValueError as e:
                     msg = "Little Chef found the following error in your"
                     msg += " {0} file:\n  {1}".format(
                         os.path.join(path, 'metadata.json'), e)
@@ -364,7 +364,7 @@ def _get_role(rolename):
     with open(path, 'r') as f:
         try:
             role = json.loads(f.read())
-        except json.JSONDecodeError as e:
+        except ValueError as e:
             msg = "Little Chef found the following error in your"
             msg += " {0}.json file:\n  {1}".format(rolename, str(e))
             abort(msg)
