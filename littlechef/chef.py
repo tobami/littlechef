@@ -95,6 +95,23 @@ def sync_node(node):
     return True
 
 
+def _ensure_environments_exist(create_from_template=False):
+    """Make sure environments exists in the kitchen.
+    Optionally it is also ensured that all used environment definitions
+    exist.
+    """
+    if not os.path.isdir("environments"):
+        os.mkdir("environments")
+    if create_from_template:
+        environments = lib.get_used_environments()
+        for environment in environments:
+            filename = os.path.join("environments", "{0}.json".format(environment))
+            if not os.path.exists(filename):
+                data = lib._env_from_template(environment)
+                with open(filename, 'w') as fd:
+                    json.dump(data, fd, indent=4)
+
+
 def _synchronize_node(configfile, node):
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
@@ -127,14 +144,14 @@ def _synchronize_node(configfile, node):
             use_sudo=True,
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
+    _ensure_environments_exist()
     rsync_project(
-        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
+        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-    _add_search_patch()
 
 
 def build_dct(dic, keys, value):
@@ -185,9 +202,11 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     -AttributeTypeandPrecedence
     LittleChef implements, in precedence order:
         - Cookbook default
+        - Environment default
         - Role default
         - Node normal
         - Role override
+        - Environment override
 
     NOTE: In order for cookbook attributes to be read, they need to be
         correctly defined in its metadata.json
@@ -220,6 +239,11 @@ def _add_merged_attributes(node, all_recipes, all_roles):
             if role == r['name']:
                 update_dct(attributes, r.get('default_attributes', {}))
 
+    # Get default environment attributes
+    environment = lib.get_environment(node['chef_environment'])
+    update_dct(attributes, environment.get('default_attributes', {}))
+
+
     # Get normal node attributes
     non_attribute_fields = [
         'id', 'name', 'role', 'roles', 'recipes', 'run_list', 'ipaddress']
@@ -235,6 +259,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r.get('override_attributes', {}))
+
+    # Get override environment attributes
+    update_dct(attributes, environment.get('override_attributes', {}))
+
     # Merge back to the original node object
     node.update(attributes)
 
@@ -312,22 +340,6 @@ def _node_cleanup():
                 sudo("rm '/etc/chef/node.json'")
                 if env.encrypted_data_bag_secret:
                     sudo("rm '/etc/chef/encrypted_data_bag_secret'")
-
-
-def _add_search_patch():
-    """ Adds chef_solo_search_lib cookbook, which provides a library to read
-    and search data bags
-
-    """
-    # Create extra cookbook dir
-    lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
-                            'chef_solo_search_lib', 'libraries')
-    with hide('running', 'stdout'):
-        sudo('mkdir -p {0}'.format(lib_path))
-    # Add search and environment patch to the node's cookbooks
-    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
-        put(os.path.join(basedir, filename),
-            os.path.join(lib_path, filename), use_sudo=True)
 
 
 def _configure_node():

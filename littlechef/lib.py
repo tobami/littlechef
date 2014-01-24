@@ -60,6 +60,22 @@ def get_node(name, merged=False):
     return node
 
 
+def get_environment(name):
+    """Returns a JSON environment file as a dictionary"""
+    filename = os.path.join("environments", name + ".json")
+    if os.path.exists(filename):
+        with open(filename) as f:
+            try:
+                environment = json.loads(f.read())
+            except json.JSONDecodeError as e:
+                msg = 'LittleChef found the following error in'
+                msg += ' "{0}":\n                {1}'.format(filename, str(e))
+                abort(msg)
+    else:
+        environment = _env_from_template(name)
+    return environment
+
+
 def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
     if not os.path.exists('nodes'):
@@ -91,6 +107,14 @@ def get_nodes_with_role(role_name, environment=None):
         else:
             if role_name in roles:
                 yield n
+
+
+def get_used_environments():
+    """Get all chef_environments which are used"""
+    environments = set()
+    for node in get_nodes():
+        environments.add(node.get('chef_environment'))
+    return filter(None, environments)
 
 
 def get_nodes_with_recipe(recipe_name, environment=None):
@@ -467,3 +491,14 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
+
+def _env_from_template(name):
+    """Returns the simpliest possible environment struct"""
+    return {
+        "name": name,
+        "default_attributes": { },
+        "json_class": "Chef::Environment",
+        "description": "",
+        "cookbook_versions": { },
+        "chef_type": "environment"
+    }
