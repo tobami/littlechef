@@ -146,13 +146,14 @@ def _synchronize_node(configfile, node):
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
     _ensure_environments_exist()
     rsync_project(
-        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
+        env.node_work_path,
+        './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-    _add_search_patch()  # NOTE: Chef 10 only
+    _add_environment_lib()  # NOTE: Chef 10 only
 
 
 def build_dct(dic, keys, value):
@@ -342,21 +343,20 @@ def _node_cleanup():
                     sudo("rm '/etc/chef/encrypted_data_bag_secret'")
 
 
-def _add_search_patch():
-    """Adds chef_solo_search_lib cookbook, which provides a library to read
-    and search data bags
-    NOTE: Cher 10 only
+def _add_environment_lib():
+    """Adds the chef_solo_envs cookbook, which provides a library that adds
+    environment attribute compatibility for chef-solo v10
+    NOTE: Chef 10 only
 
     """
     # Create extra cookbook dir
     lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
-                            'chef_solo_search_lib', 'libraries')
+                            'chef_solo_envs', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
-    # Add search and environment patch to the node's cookbooks
-    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
-        put(os.path.join(basedir, filename),
-            os.path.join(lib_path, filename), use_sudo=True)
+    # Add environment patch to the node's cookbooks
+    put(os.path.join(basedir, 'environment.rb'),
+        os.path.join(lib_path, 'environment.rb'), use_sudo=True)
 
 
 def _configure_node():
