@@ -57,6 +57,7 @@ class BaseTest(unittest.TestCase):
 
 
 class TestConfig(BaseTest):
+
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to parent dir, which has no nodes/cookbooks/roles dir
@@ -86,20 +87,19 @@ class TestConfig(BaseTest):
         self.assertTrue(expected in resp)
         commands = resp.split('\nAvailable commands:\n')[-1]
         commands = filter(None, commands.split('\n'))
-        self.assertEquals(len(commands), 17)
+        self.assertEquals(len(commands), 18)
 
+    def test_verbose(self):
+        """Should turn on verbose output"""
+        resp, error = self.execute([fix, '--verbose', 'list_nodes'])
+        self.assertEquals(error, "", error)
+        self.assertTrue('Verbose output on' in resp, resp)
 
-    #def test_verbose(self):
-        #"""Should turn on verbose output"""
-        #resp, error = self.execute([fix, '--verbose', 'node:testnode1'])
-        #self.assertEquals(error, "", error)
-        #self.assertTrue('Verbose output on' in resp, resp)
-
-    #def test_debug(self):
-        #"""Should turn on debug loglevel"""
-        #resp, error = self.execute([fix, '--debug', 'node:testnode1'])
-        #self.assertEquals(error, "", error)
-        #self.assertTrue('Debug on' in resp, resp)
+    def test_debug(self):
+        """Should turn on debug loglevel"""
+        resp, error = self.execute([fix, '--debug', 'list_nodes'])
+        self.assertEquals(error, "", error)
+        self.assertTrue('Debug level on' in resp, resp)
 
 
 class TestEnvironment(BaseTest):

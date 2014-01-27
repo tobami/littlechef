@@ -16,15 +16,15 @@ import os
 import json
 from ConfigParser import SafeConfigParser
 
-import mock
 from mock import patch
 from fabric.api import env
+from nose.tools import raises
 
 import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.insert(0, env_path)
 
-from littlechef import runner, chef, lib, solo
+from littlechef import runner, chef, lib, solo, exceptions
 
 
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
@@ -132,19 +132,30 @@ class TestSolo(BaseTest):
 
 
 class TestLib(BaseTest):
-    def test_get_node(self):
-        """Should get data for a given node, empty when it doesn't exist"""
-        # Unexisting node
+
+    def test_get_node_not_found(self):
+        """Should get empty template when node is not found"""
         name = 'Idon"texist'
-        expected = {'name': name, 'run_list': []}
+        expected = {'chef_environment': '_default', 'name': name, 'run_list': []}
         self.assertEqual(lib.get_node(name), expected)
-        # Existing node
+
+    def test_get_node_found(self):
+        """Should get node data when node is found"""
         expected = {
             'chef_environment': 'production',
             'name': 'testnode1',
             'run_list': ['recipe[subversion]'],
         }
         self.assertEqual(lib.get_node('testnode1'), expected)
+
+    def test_get_node_default_env(self):
+        """Should set env to _default when node sets no chef_environment"""
+        expected = {
+            'chef_environment': '_default',
+            'name': 'nestedroles1',
+            'run_list': ['role[top_level_role]'],
+        }
+        self.assertEqual(lib.get_node('nestedroles1'), expected)
 
     def test_get_nodes(self):
         """Should return all configured nodes when no environment is given"""
@@ -271,6 +282,35 @@ class TestLib(BaseTest):
         plugins = [p for p in lib.get_plugins()]
         self.assertEqual(len(plugins), 2)
         self.assertEqual(plugins[0]['bad'], "Plugin has a syntax error")
+
+    def test_get_environments(self):
+        """Should get a list of all environments"""
+        environments = lib.get_environments()
+        self.assertEqual(sorted(env['name'] for env in environments),
+                         ['production', 'staging'])
+
+    def test_get_existing_environment(self):
+        """Should return an existing environment object from the kitchen"""
+        environment = lib.get_environment('production')
+        self.assertTrue('subversion' in environment['default_attributes'])
+        self.assertEqual(environment['default_attributes']['subversion']['user'], 'tom')
+
+    def test_get__default_environment(self):
+        """Should return empty env when name is '_default'"""
+        expected = {
+            "name": "_default",
+            "default_attributes": {},
+            "json_class": "Chef::Environment",
+            "chef_type": "environment",
+            "description": "",
+            "cookbook_versions": {}
+        }
+        self.assertEqual(lib.get_environment('_default'), expected)
+
+    @raises(exceptions.FileNotFoundError)
+    def test_get_nonexisting_environment(self):
+        """Should raise FileNotFoundError when environment does not exist"""
+        lib.get_environment('not-exists')
 
 
 class TestChef(BaseTest):
@@ -421,6 +461,15 @@ class TestChef(BaseTest):
         self.assertTrue('subversion' in data)
         self.assertTrue(data['subversion']['repo_name'] == 'repo')
 
+    def test_attribute_merge_environment_default(self):
+        """Should have the value found in environment/ENV.json"""
+        chef.build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertEqual(data['subversion']['user'], 'tom')
+
     def test_attribute_merge_cookbook_boolean(self):
         """Should have real boolean values for default cookbook attributes"""
         chef.build_node_data_bag()
@@ -480,6 +529,15 @@ class TestChef(BaseTest):
         self.assertTrue('subversion' in data)
         self.assertEqual(data['subversion']['password'], 'role_override_pass')
 
+    def test_attribute_merge_environment_override(self):
+        """Should have the value found in the environment override attributes"""
+        chef.build_node_data_bag()
+        item_path = os.path.join('data_bags', 'node', 'testnode1.json')
+        with open(item_path, 'r') as f:
+            data = json.loads(f.read())
+        self.assertTrue('subversion' in data)
+        self.assertEqual(data['subversion']['password'], 'env_override_pass')
+
     def test_attribute_merge_deep_dict(self):
         """Should deep-merge a dict when it is defined in two different places
         """
@@ -513,7 +571,3 @@ class TestChef(BaseTest):
         mock_ipaddress.return_value = False
         test_node = {'name': 'extranode', 'dummy': False, 'run_list': []}
         self.assertTrue(chef.sync_node(test_node))
-
-
-if __name__ == "__main__":
-    unittest.main()

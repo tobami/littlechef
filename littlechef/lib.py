@@ -14,7 +14,7 @@
 #
 """library for parsing and printing role, cookbook and node information"""
 import os
-import simplejson as json
+import json
 import subprocess
 import imp
 
@@ -24,6 +24,7 @@ from fabric.contrib.console import confirm
 from fabric.utils import abort
 
 from littlechef import cookbook_paths
+from littlechef.exceptions import FileNotFoundError
 
 knife_installed = True
 
@@ -37,6 +38,47 @@ def resolve_hostname(name):
     return name
 
 
+def env_from_template(name):
+    """Returns a basic environment structure"""
+    return {
+        "name": name,
+        "default_attributes": {},
+        "json_class": "Chef::Environment",
+        "chef_type": "environment",
+        "description": "",
+        "cookbook_versions": {}
+    }
+
+
+def get_environment(name):
+    """Returns a JSON environment file as a dictionary"""
+    if name == "_default":
+        return env_from_template(name)
+    filename = os.path.join("environments", name + ".json")
+    try:
+        with open(filename) as f:
+            try:
+                return json.loads(f.read())
+            except ValueError as e:
+                msg = 'LittleChef found the following error in'
+                msg += ' "{0}":\n                {1}'.format(filename, str(e))
+                abort(msg)
+    except IOError:
+        raise FileNotFoundError('File {0} not found'.format(filename))
+
+
+def get_environments():
+    """Gets all environments found in the 'environments' directory"""
+    envs = []
+    for root, subfolders, files in os.walk('environments'):
+        for filename in files:
+            if filename.endswith(".json"):
+                path = os.path.join(
+                    root[len('environments'):], filename[:-len('.json')])
+                envs.append(get_environment(path))
+    return sorted(envs, key=lambda x: x['name'])
+
+
 def get_node(name, merged=False):
     """Returns a JSON node file as a dictionary"""
     if merged:
@@ -48,7 +90,7 @@ def get_node(name, merged=False):
         with open(node_path, 'r') as f:
             try:
                 node = json.loads(f.read())
-            except json.JSONDecodeError as e:
+            except ValueError as e:
                 msg = 'LittleChef found the following error in'
                 msg += ' "{0}":\n                {1}'.format(node_path, str(e))
                 abort(msg)
@@ -57,6 +99,8 @@ def get_node(name, merged=False):
         node = {'run_list': []}
     # Add node name so that we can tell to which node it is
     node['name'] = name
+    if not node.get('chef_environment'):
+        node['chef_environment'] = '_default'
     return node
 
 
@@ -65,9 +109,10 @@ def get_nodes(environment=None):
     if not os.path.exists('nodes'):
         return []
     nodes = []
-    for filename in sorted([f for f in os.listdir('nodes')
-                                if not os.path.isdir(f) and f.endswith(".json")
-                                    and not f.startswith('.')]):
+    for filename in sorted(
+            [f for f in os.listdir('nodes')
+             if (not os.path.isdir(f)
+                 and f.endswith(".json") and not f.startswith('.'))]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
         node = get_node(fqdn)
         if environment is None or node.get('chef_environment') == environment:
@@ -156,8 +201,8 @@ def _generate_metadata(path, cookbook_path, name):
     metadata_path_json = os.path.join(path, 'metadata.json')
     if (os.path.exists(metadata_path_rb) and
             (not os.path.exists(metadata_path_json) or
-            os.stat(metadata_path_rb).st_mtime > \
-            os.stat(metadata_path_json).st_mtime)):
+             os.stat(metadata_path_rb).st_mtime >
+             os.stat(metadata_path_json).st_mtime)):
         error_msg = "Warning: metadata.json for {0}".format(name)
         error_msg += " in {0} is older that metadata.rb".format(cookbook_path)
         error_msg += ", cookbook attributes could be out of date\n\n"
@@ -166,10 +211,10 @@ def _generate_metadata(path, cookbook_path, name):
                 ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             resp, error = proc.communicate()
-            if ('ERROR:' in resp or 'FATAL:' in resp \
-                or 'Generating metadata for' not in resp):
+            if ('ERROR:' in resp or 'FATAL:' in resp
+                    or 'Generating metadata for' not in resp):
                 if("No user specified, pass via -u or specifiy 'node_name'"
-                    in error):
+                        in error):
                     error_msg += "You need to have an up-to-date (>=0.10.x)"
                     error_msg += " version of knife installed locally in order"
                     error_msg += " to generate metadata.json.\nError "
@@ -214,7 +259,7 @@ def get_recipes_in_cookbook(name):
             with open(os.path.join(path, 'metadata.json'), 'r') as f:
                 try:
                     cookbook = json.loads(f.read())
-                except json.JSONDecodeError as e:
+                except ValueError as e:
                     msg = "Little Chef found the following error in your"
                     msg += " {0} file:\n  {1}".format(
                         os.path.join(path, 'metadata.json'), e)
@@ -340,7 +385,7 @@ def _get_role(rolename):
     with open(path, 'r') as f:
         try:
             role = json.loads(f.read())
-        except json.JSONDecodeError as e:
+        except ValueError as e:
             msg = "Little Chef found the following error in your"
             msg += " {0}.json file:\n  {1}".format(rolename, str(e))
             abort(msg)
@@ -429,6 +474,7 @@ def get_cookbook_path(cookbook_name):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
 
+
 def global_confirm(question, default=True):
     """Shows a confirmation that applies to all hosts
     by temporarily disabling parallel execution in Fabric
@@ -440,6 +486,7 @@ def global_confirm(question, default=True):
     result = confirm(question, default)
     env.parallel = original_parallel
     return result
+
 
 def _pprint(dic):
     """Prints a dictionary with one indentation level"""

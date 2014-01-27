@@ -16,7 +16,7 @@
 import ConfigParser
 import os
 import sys
-import simplejson as json
+import json
 
 from fabric.api import *
 from fabric.contrib.console import confirm
@@ -200,7 +200,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
         if output.succeeded:
             try:
                 ohai = json.loads(output)
-            except json.JSONDecodeError:
+            except ValueError:
                 abort("Could not parse ohai's output"
                       ":\n  {0}".format(output))
             node = {"run_list": []}
@@ -305,6 +305,16 @@ def list_nodes_with_role(role):
 
 
 @hosts('api')
+def list_envs():
+    """List all environments"""
+    for env in lib.get_environments():
+        margin_left = lib.get_margin(len(env['name']))
+        print("{0}{1}{2}".format(
+            env['name'], margin_left,
+            env.get('description', '(no description)')))
+
+
+@hosts('api')
 def list_recipes():
     """Show a list of all available recipes"""
     for recipe in lib.get_recipes():
@@ -349,7 +359,7 @@ def _check_appliances():
     """
     filenames = os.listdir(os.getcwd())
     missing = []
-    for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+    for dirname in ['nodes', 'environments', 'roles', 'cookbooks', 'data_bags']:
         if (dirname not in filenames) or (not os.path.isdir(dirname)):
             missing.append(dirname)
     return (not bool(missing)), missing
@@ -485,6 +495,10 @@ if littlechef.__cooking__:
     # Called from command line
     if env.chef_environment:
         print("\nEnvironment: {0}".format(env.chef_environment))
+    if env.verbose:
+        print("\nVerbose output on")
+    if env.loglevel == "debug":
+        print("\nDebug level on")
     if 'new_kitchen' not in sys.argv:
         _readconfig()
 else:

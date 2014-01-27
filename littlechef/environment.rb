@@ -1,5 +1,5 @@
 #
-# Copyright 2011, edelight GmbH
+# Copyright 2011-2014, edelight GmbH
 #
 # Authors:
 #       Markus Korn <markus.korn@edelight.de>
@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+# NOTE: Chef 10 only
 if Chef::Config[:solo]
 
   class Chef

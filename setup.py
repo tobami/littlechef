@@ -19,10 +19,11 @@ setup(
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/tags",
     keywords=["chef", "devops", "operations", "sysadmin"],
-    install_requires=['fabric==1.5.4', 'simplejson>=2.1.0', 'argparse'],
+    install_requires=['fabric>=1.5.4', 'argparse'],
     packages=['littlechef'],
     package_data={
-        'littlechef': ['search.rb', 'solo.rb', 'parser.rb', 'environment.rb']
+        'littlechef': ['solo.rb', 'environment.rb']
+        # NOTE: Chef 10 only (environment.rb)
     },
     scripts=['fix'],
     setup_requires=['nose>=1.0'],

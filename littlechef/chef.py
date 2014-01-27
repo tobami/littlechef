@@ -1,4 +1,4 @@
-#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 """
 import os
 import shutil
-import simplejson as json
+import json
 from copy import deepcopy
 
 from fabric.api import *
@@ -62,7 +62,7 @@ def _get_ipaddress(node):
         if output.succeeded:
             try:
                 node['ipaddress'] = json.loads(output)[0]
-            except json.JSONDecodeError:
+            except ValueError:
                 abort("Could not parse ohai's output for ipaddress"
                       ":\n  {0}".format(output))
             return True
@@ -103,7 +103,7 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
-    msg = "Synchronizing node, cookbooks, roles and data bags..."
+    msg = "Synchronizing nodes, environments, roles, cookbooks and data bags..."
     if env.parallel:
         msg = "[{0}]: {1}".format(env.host_string, msg)
     print(msg)
@@ -128,13 +128,14 @@ def _synchronize_node(configfile, node):
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
     rsync_project(
-        env.node_work_path, './cookbooks ./data_bags ./roles ./site-cookbooks',
+        env.node_work_path,
+        './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-    _add_search_patch()
+    _add_environment_lib()  # NOTE: Chef 10 only
 
 
 def build_dct(dic, keys, value):
@@ -181,13 +182,14 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     """Merges attributes from cookbooks, node and roles
 
     Chef Attribute precedence:
-    http://wiki.opscode.com/display/chef/Attributes#Attributes
-    -AttributeTypeandPrecedence
+    http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
     LittleChef implements, in precedence order:
         - Cookbook default
+        - Environment default
         - Role default
         - Node normal
         - Role override
+        - Environment override
 
     NOTE: In order for cookbook attributes to be read, they need to be
         correctly defined in its metadata.json
@@ -220,6 +222,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
             if role == r['name']:
                 update_dct(attributes, r.get('default_attributes', {}))
 
+    # Get default environment attributes
+    environment = lib.get_environment(node['chef_environment'])
+    update_dct(attributes, environment.get('default_attributes', {}))
+
     # Get normal node attributes
     non_attribute_fields = [
         'id', 'name', 'role', 'roles', 'recipes', 'run_list', 'ipaddress']
@@ -235,6 +241,10 @@ def _add_merged_attributes(node, all_recipes, all_roles):
         for r in all_roles:
             if role == r['name']:
                 update_dct(attributes, r.get('override_attributes', {}))
+
+    # Get override environment attributes
+    update_dct(attributes, environment.get('override_attributes', {}))
+
     # Merge back to the original node object
     node.update(attributes)
 
@@ -314,20 +324,20 @@ def _node_cleanup():
                     sudo("rm '/etc/chef/encrypted_data_bag_secret'")
 
 
-def _add_search_patch():
-    """ Adds chef_solo_search_lib cookbook, which provides a library to read
-    and search data bags
+def _add_environment_lib():
+    """Adds the chef_solo_envs cookbook, which provides a library that adds
+    environment attribute compatibility for chef-solo v10
+    NOTE: Chef 10 only
 
     """
     # Create extra cookbook dir
     lib_path = os.path.join(env.node_work_path, cookbook_paths[0],
-                            'chef_solo_search_lib', 'libraries')
+                            'chef_solo_envs', 'libraries')
     with hide('running', 'stdout'):
         sudo('mkdir -p {0}'.format(lib_path))
-    # Add search and environment patch to the node's cookbooks
-    for filename in ('search.rb', 'parser.rb', 'environment.rb'):
-        put(os.path.join(basedir, filename),
-            os.path.join(lib_path, filename), use_sudo=True)
+    # Add environment patch to the node's cookbooks
+    put(os.path.join(basedir, 'environment.rb'),
+        os.path.join(lib_path, 'environment.rb'), use_sudo=True)
 
 
 def _configure_node():

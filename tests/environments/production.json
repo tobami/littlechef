@@ -1,0 +1,17 @@
+{
+    "chef_type": "environment",
+    "default_attributes": {
+        "subversion": {
+            "user": "tom"
+        }
+    },
+    "override_attributes": {
+        "subversion": {
+            "password": "env_override_pass"
+        }
+    },
+    "name": "production",
+    "cookbook_versions": {},
+    "json_class": "Chef::Environment",
+    "description": ""
+}
