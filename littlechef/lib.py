@@ -37,6 +37,34 @@ def resolve_hostname(name):
     return name
 
 
+def get_environment(name):
+    """Returns a JSON environment file as a dictionary"""
+    filename = os.path.join("environments", name + ".json")
+    if os.path.exists(filename):
+        with open(filename) as f:
+            try:
+                environment = json.loads(f.read())
+            except ValueError as e:
+                msg = 'LittleChef found the following error in'
+                msg += ' "{0}":\n                {1}'.format(filename, str(e))
+                abort(msg)
+    else:
+        environment = _env_from_template(name)
+    return environment
+
+
+def get_environments():
+    """Gets all environments found in the 'environments' directory"""
+    envs = []
+    for root, subfolders, files in os.walk('environments'):
+        for filename in files:
+            if filename.endswith(".json"):
+                path = os.path.join(
+                    root[len('environments'):], filename[:-len('.json')])
+                envs.append(get_environment(path))
+    return sorted(envs, key=lambda x: x['name'])
+
+
 def get_node(name, merged=False):
     """Returns a JSON node file as a dictionary"""
     if merged:
@@ -60,30 +88,15 @@ def get_node(name, merged=False):
     return node
 
 
-def get_environment(name):
-    """Returns a JSON environment file as a dictionary"""
-    filename = os.path.join("environments", name + ".json")
-    if os.path.exists(filename):
-        with open(filename) as f:
-            try:
-                environment = json.loads(f.read())
-            except ValueError as e:
-                msg = 'LittleChef found the following error in'
-                msg += ' "{0}":\n                {1}'.format(filename, str(e))
-                abort(msg)
-    else:
-        environment = _env_from_template(name)
-    return environment
-
-
 def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
     if not os.path.exists('nodes'):
         return []
     nodes = []
-    for filename in sorted([f for f in os.listdir('nodes')
-                                if not os.path.isdir(f) and f.endswith(".json")
-                                    and not f.startswith('.')]):
+    for filename in sorted(
+            [f for f in os.listdir('nodes')
+             if (not os.path.isdir(f)
+                 and f.endswith(".json") and not f.startswith('.'))]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
         node = get_node(fqdn)
         if environment is None or node.get('chef_environment') == environment:
@@ -107,14 +120,6 @@ def get_nodes_with_role(role_name, environment=None):
         else:
             if role_name in roles:
                 yield n
-
-
-def get_used_environments():
-    """Get all chef_environments which are used"""
-    environments = set()
-    for node in get_nodes():
-        environments.add(node.get('chef_environment'))
-    return filter(None, environments)
 
 
 def get_nodes_with_recipe(recipe_name, environment=None):
@@ -453,6 +458,7 @@ def get_cookbook_path(cookbook_name):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
 
+
 def global_confirm(question, default=True):
     """Shows a confirmation that applies to all hosts
     by temporarily disabling parallel execution in Fabric
@@ -464,6 +470,7 @@ def global_confirm(question, default=True):
     result = confirm(question, default)
     env.parallel = original_parallel
     return result
+
 
 def _pprint(dic):
     """Prints a dictionary with one indentation level"""
@@ -491,6 +498,7 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
+
 
 def _env_from_template(name):
     """Returns the simpliest possible environment struct"""

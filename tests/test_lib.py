@@ -271,11 +271,11 @@ class TestLib(BaseTest):
         self.assertEqual(len(plugins), 2)
         self.assertEqual(plugins[0]['bad'], "Plugin has a syntax error")
 
-    def test_get_used_environments(self):
-        """Should get a list of all used environments"""
-        environments = lib.get_used_environments()
-        self.assertEqual(sorted(environments),
-            ['production', 'role_testing', 'staging'])
+    def test_get_environments(self):
+        """Should get a list of all environments"""
+        environments = lib.get_environments()
+        self.assertEqual(sorted(env['name'] for env in environments),
+                         ['production'])
 
     def test_get_existing_environment(self):
         """Should return an existing environment object from the kitchen"""

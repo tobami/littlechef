@@ -349,7 +349,7 @@ def _check_appliances():
     """
     filenames = os.listdir(os.getcwd())
     missing = []
-    for dirname in ['nodes', 'roles', 'cookbooks', 'data_bags']:
+    for dirname in ['nodes', 'environments', 'roles', 'cookbooks', 'data_bags']:
         if (dirname not in filenames) or (not os.path.isdir(dirname)):
             missing.append(dirname)
     return (not bool(missing)), missing

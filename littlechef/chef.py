@@ -95,23 +95,6 @@ def sync_node(node):
     return True
 
 
-def _ensure_environments_exist(create_from_template=False):
-    """Make sure environments exists in the kitchen.
-    Optionally it is also ensured that all used environment definitions
-    exist.
-    """
-    if not os.path.isdir("environments"):
-        os.mkdir("environments")
-    if create_from_template:
-        environments = lib.get_used_environments()
-        for environment in environments:
-            filename = os.path.join("environments", "{0}.json".format(environment))
-            if not os.path.exists(filename):
-                data = lib._env_from_template(environment)
-                with open(filename, 'w') as fd:
-                    json.dump(data, fd, indent=4)
-
-
 def _synchronize_node(configfile, node):
     """Performs the Synchronize step of a Chef run:
     Uploads all cookbooks, all roles and all databags to a node and add the
@@ -120,7 +103,7 @@ def _synchronize_node(configfile, node):
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
     """
-    msg = "Synchronizing node, cookbooks, roles and data bags..."
+    msg = "Synchronizing nodes, environments, roles, cookbooks and data bags..."
     if env.parallel:
         msg = "[{0}]: {1}".format(env.host_string, msg)
     print(msg)
@@ -144,7 +127,6 @@ def _synchronize_node(configfile, node):
             use_sudo=True,
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
-    _ensure_environments_exist()
     rsync_project(
         env.node_work_path,
         './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',

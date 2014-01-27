@@ -57,6 +57,7 @@ class BaseTest(unittest.TestCase):
 
 
 class TestConfig(BaseTest):
+
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to parent dir, which has no nodes/cookbooks/roles dir
