@@ -21,6 +21,7 @@ JSON format. You can manually edit them or even add new ones. The name of a node
 should be its FQDN
 * `cookbooks/`: This will be your [Cookbooks][] repository
 * `site-cookbooks/`: Here you can override upstream cookbooks (Opscode's, for example)
+* `environments/`: Where Chef [Environments][] are defined in JSON
 * `roles/`: Where Chef [Roles][] are defined in JSON
 * `data_bags/`: Chef [Data Bags][]. JSON databag items. Search is supported
 * `plugins/`: Your plugin tasks
@@ -34,18 +35,20 @@ The result is that you can configure your nodes exactly when and how you want, a
 without needing a Chef Server. And all your infrastructure, including your nodes, will
 be in code, revision controlled.
 
-#### Data bag Search ####
-
-Chef Solo does not currently (as of 10.18) support data bag search. LittleChef adds search support by automatically adding to your node cookbooks a
-[cookbook library that implements search][].
-
-Thus, most examples in the [search wiki page][] are now possible, including the
-following example: `search(:users, "married:true AND age:35")`
-
 #### Environments ####
 
-Chef Solo does not support Environments but, similarly to the search case, LittleChef will automatically add a cookbook library that will let you define `chef_environment`
-in a role or node.
+Chef 10 does not support Environments in Solo mode, but LittleChef will automatically
+add a cookbook library that will let you define `chef_environment` in a role or node.
+
+If you use Chef 11, all environment features except cookbook versioning work out of the
+box.
+
+#### Data bag Search ####
+
+Chef Solo does not support data bag search. To be able to use search, the [chef-solo-search library][] needs to be present in your cookbooks directory.
+
+Most examples in the [chef search documentation][] are possible, including stuff
+like: `search(:users, "married:true AND age:35")`.
 
 #### Node Search ####
 
@@ -257,6 +260,7 @@ By default LittleChef configures nodes serially however it can also use Fabric's
 * `fix list_nodes_detailed`: Same as above, but it also shows all attributes
 * `fix list_nodes_with_recipe:MYRECIPE`: Lists nodes which have associated the recipe `MYRECIPE`
 * `fix list_nodes_with_role:MYROLE`: Shows nodes which have associated the role `MYROLE`
+* `fix list_envs`: Lists all available environments
 * `fix list_recipes`: Lists all available recipes
 * `fix list_recipes_detailed`: Same as above, but shows description, version, dependencies and attributes
 * `fix list_roles`: Lists all available roles
@@ -308,15 +312,16 @@ Happy cooking!
 
   [Chef]: http://www.getchef.com/chef/
   [Nodes]: http://docs.opscode.com/essentials_node_object.html
-  [Cookbooks]: http://wiki.opscode.com/display/chef/Cookbooks
-  [Roles]: http://wiki.opscode.com/display/chef/Roles
-  [Data Bags]: http://wiki.opscode.com/display/chef/Data+Bags
+  [Cookbooks]: http://docs.opscode.com/essentials_cookbooks.html
+  [Environments]: http://docs.opscode.com/essentials_environments.html
+  [Roles]: http://docs.opscode.com/essentials_roles.html
+  [Data Bags]: http://docs.opscode.com/essentials_data_bags.html
   [cookbook library that implements search]: https://github.com/edelight/chef-solo-search
-  [Chef attribute preference rules]: http://wiki.opscode.com/display/chef/Attributes#Attributes-SettingAttributes
-  [automatic attributes]: http://wiki.opscode.com/display/chef/Recipes#Recipes-CommonAutomaticAttributes
-  [search wiki page]: http://wiki.opscode.com/display/chef/Search
-  [Opscode repository]: http://wiki.opscode.com/display/chef/Installation#Installation-InstallingChefClientandChefSolo
-  [Whyrun]: http://wiki.opscode.com/display/chef/Whyrun+Testing
+  [Chef attribute preference rules]: http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
+  [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
+  [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
+  [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
+  [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
   [discussion group]: http://groups.google.com/group/littlechef
   [https://github.com/tobami/littlechef/issues]: https://github.com/tobami/littlechef/issues
