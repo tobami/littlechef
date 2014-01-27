@@ -24,6 +24,7 @@ from fabric.contrib.console import confirm
 from fabric.utils import abort
 
 from littlechef import cookbook_paths
+from littlechef.exceptions import FileNotFoundError
 
 knife_installed = True
 
@@ -39,18 +40,19 @@ def resolve_hostname(name):
 
 def get_environment(name):
     """Returns a JSON environment file as a dictionary"""
+    if name == "_default":
+        return _env_from_template(name)
     filename = os.path.join("environments", name + ".json")
-    if os.path.exists(filename):
+    try:
         with open(filename) as f:
             try:
-                environment = json.loads(f.read())
+                return json.loads(f.read())
             except ValueError as e:
                 msg = 'LittleChef found the following error in'
                 msg += ' "{0}":\n                {1}'.format(filename, str(e))
                 abort(msg)
-    else:
-        environment = _env_from_template(name)
-    return environment
+    except IOError:
+        raise FileNotFoundError('File {0} not found'.format(filename))
 
 
 def get_environments():
@@ -85,6 +87,8 @@ def get_node(name, merged=False):
         node = {'run_list': []}
     # Add node name so that we can tell to which node it is
     node['name'] = name
+    if not node.get('chef_environment'):
+        node['chef_environment'] = '_default'
     return node
 
 
@@ -504,9 +508,9 @@ def _env_from_template(name):
     """Returns the simpliest possible environment struct"""
     return {
         "name": name,
-        "default_attributes": { },
+        "default_attributes": {},
         "json_class": "Chef::Environment",
+        "chef_type": "environment",
         "description": "",
-        "cookbook_versions": { },
-        "chef_type": "environment"
+        "cookbook_versions": {}
     }

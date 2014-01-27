@@ -18,12 +18,13 @@ from ConfigParser import SafeConfigParser
 
 from mock import patch
 from fabric.api import env
+from nose.tools import raises
 
 import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.insert(0, env_path)
 
-from littlechef import runner, chef, lib, solo
+from littlechef import runner, chef, lib, solo, exceptions
 
 
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
@@ -131,13 +132,15 @@ class TestSolo(BaseTest):
 
 
 class TestLib(BaseTest):
-    def test_get_node(self):
-        """Should get data for a given node, empty when it doesn't exist"""
-        # Unexisting node
+
+    def test_get_node_not_found(self):
+        """Should get empty template when node is not found"""
         name = 'Idon"texist'
-        expected = {'name': name, 'run_list': []}
+        expected = {'chef_environment': '_default', 'name': name, 'run_list': []}
         self.assertEqual(lib.get_node(name), expected)
-        # Existing node
+
+    def test_get_node_fount(self):
+        """Should get node data when node is found"""
         expected = {
             'chef_environment': 'production',
             'name': 'testnode1',
@@ -275,7 +278,7 @@ class TestLib(BaseTest):
         """Should get a list of all environments"""
         environments = lib.get_environments()
         self.assertEqual(sorted(env['name'] for env in environments),
-                         ['production'])
+                         ['production', 'staging'])
 
     def test_get_existing_environment(self):
         """Should return an existing environment object from the kitchen"""
@@ -283,13 +286,22 @@ class TestLib(BaseTest):
         self.assertTrue('subversion' in environment['default_attributes'])
         self.assertEqual(environment['default_attributes']['subversion']['user'], 'tom')
 
+    def test_get__default_environment(self):
+        """Should return empty env when name is '_default'"""
+        expected = {
+            "name": "_default",
+            "default_attributes": {},
+            "json_class": "Chef::Environment",
+            "chef_type": "environment",
+            "description": "",
+            "cookbook_versions": {}
+        }
+        self.assertEqual(lib.get_environment('_default'), expected)
+
+    @raises(exceptions.FileNotFoundError)
     def test_get_nonexisting_environment(self):
-        """Should create a missing environment on the flight"""
-        environment = lib.get_environment('not-exists')
-        self.assertEqual(environment['name'], 'not-exists')
-        self.assertEqual(environment['default_attributes'], {})
-        self.assertEqual(environment['chef_type'], 'environment')
-        self.assertEqual(environment['json_class'], 'Chef::Environment')
+        """Should raise FileNotFoundError when environment does not exist"""
+        lib.get_environment('not-exists')
 
 
 class TestChef(BaseTest):

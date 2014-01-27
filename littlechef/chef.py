@@ -1,4 +1,4 @@
-#Copyright 2010-2013 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -182,8 +182,7 @@ def _add_merged_attributes(node, all_recipes, all_roles):
     """Merges attributes from cookbooks, node and roles
 
     Chef Attribute precedence:
-    http://wiki.opscode.com/display/chef/Attributes#Attributes
-    -AttributeTypeandPrecedence
+    http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
     LittleChef implements, in precedence order:
         - Cookbook default
         - Environment default
