@@ -38,10 +38,22 @@ def resolve_hostname(name):
     return name
 
 
+def env_from_template(name):
+    """Returns a basic environment structure"""
+    return {
+        "name": name,
+        "default_attributes": {},
+        "json_class": "Chef::Environment",
+        "chef_type": "environment",
+        "description": "",
+        "cookbook_versions": {}
+    }
+
+
 def get_environment(name):
     """Returns a JSON environment file as a dictionary"""
     if name == "_default":
-        return _env_from_template(name)
+        return env_from_template(name)
     filename = os.path.join("environments", name + ".json")
     try:
         with open(filename) as f:
@@ -189,8 +201,8 @@ def _generate_metadata(path, cookbook_path, name):
     metadata_path_json = os.path.join(path, 'metadata.json')
     if (os.path.exists(metadata_path_rb) and
             (not os.path.exists(metadata_path_json) or
-            os.stat(metadata_path_rb).st_mtime > \
-            os.stat(metadata_path_json).st_mtime)):
+             os.stat(metadata_path_rb).st_mtime >
+             os.stat(metadata_path_json).st_mtime)):
         error_msg = "Warning: metadata.json for {0}".format(name)
         error_msg += " in {0} is older that metadata.rb".format(cookbook_path)
         error_msg += ", cookbook attributes could be out of date\n\n"
@@ -199,10 +211,10 @@ def _generate_metadata(path, cookbook_path, name):
                 ['knife', 'cookbook', 'metadata', '-o', cookbook_path, name],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             resp, error = proc.communicate()
-            if ('ERROR:' in resp or 'FATAL:' in resp \
-                or 'Generating metadata for' not in resp):
+            if ('ERROR:' in resp or 'FATAL:' in resp
+                    or 'Generating metadata for' not in resp):
                 if("No user specified, pass via -u or specifiy 'node_name'"
-                    in error):
+                        in error):
                     error_msg += "You need to have an up-to-date (>=0.10.x)"
                     error_msg += " version of knife installed locally in order"
                     error_msg += " to generate metadata.json.\nError "
@@ -502,15 +514,3 @@ def get_margin(length):
         margin_left = "\t\t\t\t"
         chars = 4
     return margin_left
-
-
-def _env_from_template(name):
-    """Returns the simpliest possible environment struct"""
-    return {
-        "name": name,
-        "default_attributes": {},
-        "json_class": "Chef::Environment",
-        "chef_type": "environment",
-        "description": "",
-        "cookbook_versions": {}
-    }

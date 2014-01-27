@@ -305,6 +305,16 @@ def list_nodes_with_role(role):
 
 
 @hosts('api')
+def list_envs():
+    """List all environments"""
+    for env in lib.get_environments():
+        margin_left = lib.get_margin(len(env['name']))
+        print("{0}{1}{2}".format(
+            env['name'], margin_left,
+            env.get('description', '(no description)')))
+
+
+@hosts('api')
 def list_recipes():
     """Show a list of all available recipes"""
     for recipe in lib.get_recipes():
