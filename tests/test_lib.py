@@ -139,7 +139,7 @@ class TestLib(BaseTest):
         expected = {'chef_environment': '_default', 'name': name, 'run_list': []}
         self.assertEqual(lib.get_node(name), expected)
 
-    def test_get_node_fount(self):
+    def test_get_node_found(self):
         """Should get node data when node is found"""
         expected = {
             'chef_environment': 'production',
@@ -147,6 +147,15 @@ class TestLib(BaseTest):
             'run_list': ['recipe[subversion]'],
         }
         self.assertEqual(lib.get_node('testnode1'), expected)
+
+    def test_get_node_default_env(self):
+        """Should set env to _default when node sets no chef_environment"""
+        expected = {
+            'chef_environment': '_default',
+            'name': 'nestedroles1',
+            'run_list': ['role[top_level_role]'],
+        }
+        self.assertEqual(lib.get_node('nestedroles1'), expected)
 
     def test_get_nodes(self):
         """Should return all configured nodes when no environment is given"""
