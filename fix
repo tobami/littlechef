@@ -2,10 +2,8 @@
 from __future__ import print_function
 
 import argparse
-
 import sys
 import os
-
 
 # Messages
 NO_ORDER = "No order given. Type 'fix -l' for a list of orders\n"

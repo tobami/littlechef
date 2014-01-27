@@ -485,6 +485,10 @@ if littlechef.__cooking__:
     # Called from command line
     if env.chef_environment:
         print("\nEnvironment: {0}".format(env.chef_environment))
+    if env.verbose:
+        print("\nVerbose output on")
+    if env.loglevel == "debug":
+        print("\nDebug level on")
     if 'new_kitchen' not in sys.argv:
         _readconfig()
 else:

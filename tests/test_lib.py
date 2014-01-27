@@ -550,7 +550,3 @@ class TestChef(BaseTest):
         mock_ipaddress.return_value = False
         test_node = {'name': 'extranode', 'dummy': False, 'run_list': []}
         self.assertTrue(chef.sync_node(test_node))
-
-
-if __name__ == "__main__":
-    unittest.main()

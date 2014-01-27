@@ -88,18 +88,17 @@ class TestConfig(BaseTest):
         commands = filter(None, commands.split('\n'))
         self.assertEquals(len(commands), 17)
 
+    def test_verbose(self):
+        """Should turn on verbose output"""
+        resp, error = self.execute([fix, '--verbose', 'list_nodes'])
+        self.assertEquals(error, "", error)
+        self.assertTrue('Verbose output on' in resp, resp)
 
-    #def test_verbose(self):
-        #"""Should turn on verbose output"""
-        #resp, error = self.execute([fix, '--verbose', 'node:testnode1'])
-        #self.assertEquals(error, "", error)
-        #self.assertTrue('Verbose output on' in resp, resp)
-
-    #def test_debug(self):
-        #"""Should turn on debug loglevel"""
-        #resp, error = self.execute([fix, '--debug', 'node:testnode1'])
-        #self.assertEquals(error, "", error)
-        #self.assertTrue('Debug on' in resp, resp)
+    def test_debug(self):
+        """Should turn on debug loglevel"""
+        resp, error = self.execute([fix, '--debug', 'list_nodes'])
+        self.assertEquals(error, "", error)
+        self.assertTrue('Debug level on' in resp, resp)
 
 
 class TestEnvironment(BaseTest):
