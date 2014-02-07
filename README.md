@@ -107,6 +107,9 @@ or
 You can install LittleChef directly from the PyPI:  
 `pip install littlechef`
 
+You can also install via source:
+`python setup.py install`
+
 ## Usage
 
 ### Disclaimer
