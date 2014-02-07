@@ -60,6 +60,7 @@ def new_kitchen():
     _mkdir("nodes")
     _mkdir("roles")
     _mkdir("data_bags")
+    _mkdir("environments")
     for cookbook_path in littlechef.cookbook_paths:
         _mkdir(cookbook_path)
     # Add skeleton config.cfg

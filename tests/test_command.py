@@ -15,6 +15,7 @@ import unittest
 import subprocess
 import os
 import platform
+import shutil
 from os.path import join, normpath, abspath, split
 
 import sys
@@ -58,6 +59,9 @@ class BaseTest(unittest.TestCase):
 
 class TestConfig(BaseTest):
 
+    def tearDown(self):
+        self.set_location()
+
     def test_not_a_kitchen(self):
         """Should exit with error when not a kitchen directory"""
         # Change to parent dir, which has no nodes/cookbooks/roles dir
@@ -68,8 +72,6 @@ class TestConfig(BaseTest):
         self.assertTrue(
             'No {0} file found'.format(littlechef.CONFIGFILE) in error, error)
         self.assertEquals(resp, "", resp)
-        # Return to test dir
-        self.set_location()
 
     def test_version(self):
         """Should output the correct Little Chef version"""
@@ -238,3 +240,40 @@ class TestListNodes(BaseTest):
 
         resp, error = self.execute([fix, 'list_nodes_with_recipe:apache2'])
         self.assertFalse('testnode1' in resp)
+
+
+class TestNewKitchen(BaseTest):
+
+    def setUp(self):
+        self.new_kitchen = join(test_path, 'test_new_kitchen')
+        os.mkdir(self.new_kitchen)
+        self.set_location(self.new_kitchen)
+
+    def tearDown(self):
+        shutil.rmtree(self.new_kitchen)
+        self.set_location()
+
+    def test_new_kitchen_creates_required_directories(self):
+        resp, error = self.execute([fix, 'new_kitchen'])
+        kitchen_contents = os.listdir(os.getcwd())
+
+        self.assertTrue('roles' in kitchen_contents)
+        self.assertTrue('cookbooks' in kitchen_contents)
+        self.assertTrue('site-cookbooks' in kitchen_contents)
+        self.assertTrue('data_bags' in kitchen_contents)
+        self.assertTrue('nodes' in kitchen_contents)
+        self.assertTrue('environments' in kitchen_contents)
+        self.assertTrue('config.cfg' in kitchen_contents)
+
+    def test_new_kitchen_can_list_nodes(self):
+        self.execute([fix, 'new_kitchen'])
+
+        with open("config.cfg", "w") as configfh:
+            print >> configfh, "[userinfo]"
+            print >> configfh, "user = testuser"
+            print >> configfh, "password = testpassword"
+
+        resp, error = self.execute([fix, 'list_nodes'])
+
+        self.assertTrue('Found 0 nodes' in resp)
+        self.assertEqual('', error)
