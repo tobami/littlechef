@@ -103,15 +103,21 @@ Tested on all major operating systems:
 * Python 2.6+
 * Fabric 1.5+
 
-The best way to install LittleChef is using pip. Required packages are installed by typing:  
-`sudo apt-get install python-pip python-dev` for Debian and Ubuntu  
-or  
-`yum install python-pip python-devel` for RHEL and CentOS
+The best way to install LittleChef is using pip. Required packages are installed by typing:
+
+    $ sudo apt-get install python-pip python-dev
+
+for Debian and Ubuntu, or
+
+    $ yum install python-pip python-devel
+
+for RHEL and CentOS.
 
 ### Installation
 
 You can install LittleChef directly from the PyPI:  
-`pip install littlechef`
+
+    $ pip install littlechef
 
 ## Usage
 
@@ -124,10 +130,14 @@ Careful what you do with your nodes!:
 
 ### Local Setup
 
-`fix new_kitchen` will create inside the current directory a few files and directories
-for LittleChef to be able to cook: `littlechef.cfg`, `roles/`, `data_bags/`, `nodes/`,
-`cookbooks/` and `site-cookbooks/`. You can create and have as many kitchens as you like
-on your computer.
+To create a new kitchen, type:
+
+    $ fix new_kitchen
+
+This will create a few files and directories inside the current directory which
+LittleChef needs to be able to cook: `littlechef.cfg`, `environments`, `roles/`, `
+data_bags/`, `nodes/`, `cookbooks/` and `site-cookbooks/`. You can create and have
+as many kitchens as you like on your computer.
 
 ### Authentication
 
