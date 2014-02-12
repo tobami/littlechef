@@ -48,8 +48,7 @@ your cookbooks, roles data bags and nodes, which will get rsynced to a node
 each time you start a Chef Solo configuration run with the bundled 'fix'
 command.
 
-It also adds features to Chef Solo that are currently only available for Chef
-Server users: data bag search, and node search.
+It also adds a library for chef_environment compatibility with Chef 10.
 
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 """

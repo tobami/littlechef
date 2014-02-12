@@ -237,22 +237,29 @@ List of commands:
 * `fix -v`: Shows the version number
 * `fix -l`: Show a list of all available orders
 * `fix -y`: Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
-* `fix node:MYNODE recipe:MYRECIPE`: Cook a recipe on a particular node by giving its hostname or IP. "Subrecipes" like `nginx::source` are supported. Note that the first time this is run for a node, a configuration file will be created at `nodes/myhostname.json`. You can then edit this file to override recipe attributes, for example. Further runs of this command will not overwrite this configuration file. Nodes with the attribute
-`dummy` set to `true` will *not* be configured
-* `fix node:MYNODE role:MYROLE`: The same as above but role-based
-* `fix node:MYNODE1,MYNODE2`: Configures several pre-configured nodes, in order
-* `fix node:all`: It will apply all roles, recipes and attributes defined for each and every node in `nodes/`
+* `fix node:MYNODE role:MYROLE`: Full chef-solo configuration run on the given node. Uses ssh_config hostname directives
+* `fix node:MYNODE1,MYNODE2`: Configures several nodes. For all "fix node" commands,
+nodes with the attribute `dummy` set to `true` will *not* be configured and will be
+skipped
+* `fix node:all`: It will apply all roles, recipes and attributes defined for each and
+every node in `nodes/`
 * `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
+* `fix node:MYNODE recipe:MYRECIPE`: Apply the given recipe on the given nodes
 * `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
-* `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which starts with 'ROL' in their run_list
+* `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which
+starts with 'ROL' in their run_list
 * `fix node:MYNODES ssh:"my shell command"`: Executes the given command on the node
 * `fix node:MYNODES plugin:save_ip`: Gets the actual IP for this node and saves it in
 the `ipaddress` attribute
 
 Options:
 
-* `fix --env=MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV which have a certain role in their run_list.
-* `fix --verbose node:MYNODE`: Chef 0.10.6 introduced the `verbose_logging` option. When false, the "processing" messages are not longer shown. That is the new default for LittleChef, so that you now only see what has changed in this configuration run. `--verbose` switches this back on.
+* `fix --env=MYENV nodes_with_role:ROLE1`: Configures all nodes in the environment MYENV
+which have a certain role in their run_list.
+* `fix --verbose node:MYNODE`: Chef 0.10.6 introduced the `verbose_logging` option. When
+false, the "processing" messages are not longer shown. That is the new default for
+LittleChef, so that you now only see what has changed in this configuration run.
+`--verbose` switches this back on.
 * `fix --debug node:MYNODE`: You can start all your commands with `fix --debug` to see
 all Chef Solo debugging information. Also, the node file and node databag wont't be
 deleted from the node, and verbose will also be true
@@ -260,11 +267,15 @@ deleted from the node, and verbose will also be true
 /var/log/chef/
 * `fix --why-run node:MYNODE`: will configure the node in [Whyrun][] mode
 
-Once a node has a config file, the command you will be using most often is `fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a node and rerun the configuration.
+Once a node has a config file, the command you will be using most often is
+`fix node:MYNODE`, which allows you to repeatedly tweak the recipes and attributes for a
+node and rerun the configuration.
 
 ### Configuring nodes in parallel
 
-By default LittleChef configures nodes serially however it can also use Fabric's parallel SSH support to configure multiple nodes in parallel. All commands are supported (node, nodes_with_role, ssh, role, and recipe)
+By default LittleChef configures nodes serially however it can also use Fabric's parallel
+SSH support to configure multiple nodes in parallel. All commands are supported (node,
+nodes_with_role, ssh, role, and recipe)
 
 * `fix --concurrency node:NODELIST`: will configure multiple nodes in parallel
 * `fix --concurrency node:NODELIST ssh:COMMAND`: will run an ssh command on multiple nodes in parallel

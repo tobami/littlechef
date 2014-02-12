@@ -3,6 +3,21 @@ LittleChef Changelog
 ====================
 
 
+Version 1.6.0 Feb 12, 2014
+----------------------------------------
+New features:
+* #171: Stefan Hojer implemented a "gateway" configuration option
+* #177: Markus added Omnibus installation method. This will be the default in
+        future versions
+* #183: travis integration tests
+* #134: New configuration file name: littlechef.cfg
+* #186: Use of ssh config to resolve node names, enables use of alias
+* #187: Markus added Chef 11 support. Full environment objects are now used. Note:
+        the chef-solo-search copy was out of date. It is now no longer bundled,
+        and you need to have the library in your cookbooks for it to work.
+* #100: Node sync speedups by not rsyncing chef-solo-search and documenting ControlMaster
+
+
 Version 1.5.2 July 8, 2013
 ----------------------------------------
 New features:
