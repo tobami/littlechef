@@ -85,6 +85,12 @@ plugins).
 
 You can find example plugins in the [repository plugins directory](https://github.com/tobami/littlechef/blob/master/plugins/)
 
+### Getting Big
+
+Beyond a small number of nodes it becomes more and more difficult to keep track of
+everything. To solve that problem we created [Kitchen][], an incredibly useful dashboard
+that provies an overview of all nodes and a graphical visualization of role dependencies.
+
 ## Installation
 
 ### Desktop support
@@ -319,6 +325,7 @@ Happy cooking!
   [cookbook library that implements search]: https://github.com/edelight/chef-solo-search
   [Chef attribute preference rules]: http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
   [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
+  [Kitchen]: https://github.com/edelight/kitchen/
   [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
   [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
   [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
