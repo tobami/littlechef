@@ -343,7 +343,7 @@ Happy cooking!
   [Environments]: http://docs.opscode.com/essentials_environments.html
   [Roles]: http://docs.opscode.com/essentials_roles.html
   [Data Bags]: http://docs.opscode.com/essentials_data_bags.html
-  [cookbook library that implements search]: https://github.com/edelight/chef-solo-search
+  [chef-solo-search library]: http://community.opscode.com/cookbooks/chef-solo-search
   [Chef attribute preference rules]: http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
   [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
   [Kitchen]: https://github.com/edelight/kitchen/
