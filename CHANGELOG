@@ -3,6 +3,12 @@ LittleChef Changelog
 ====================
 
 
+Version 1.6.1 Feb 20, 2014
+----------------------------------------
+Bugs fixed:
+* #191: Markus Korn fixed chef-solo and ruby 1.9 returning invalidByteSequenceError
+
+
 Version 1.6.0 Feb 12, 2014
 ----------------------------------------
 New features:
