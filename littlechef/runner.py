@@ -140,11 +140,7 @@ def _configure_fabric_for_platform(platform):
 
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
-    if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
-    if '@' in env.host_string:
-        env.user = env.host_string.split('@')[0]
-    env.host_string = lib.resolve_hostname(env.host_string)
+    env.host_string = lib.get_env_host_string()
     node = lib.get_node(env.host_string)
 
     _configure_fabric_for_platform(node.get("platform"))
@@ -159,8 +155,7 @@ def _node_runner():
 def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
                 distro=None, platform=None, stop_client='yes', method=None):
     """Install chef-solo on a node"""
-    if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES deploy_chef')
+    env.host_string = lib.get_env_host_string()
     deprecated_parameters = [distro_type, distro, platform]
     if any(param is not None for param in deprecated_parameters) or gems != 'no':
         print("DeprecationWarning: the parameters 'gems', distro_type',"
@@ -218,13 +213,11 @@ def recipe(recipe):
     If no nodes/hostname.json file exists, it creates one
 
     """
-    # Check that a node has been selected
-    if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES recipe:MYRECIPE')
+    env.host_string = lib.get_env_host_string()
     lib.print_header(
         "Applying recipe '{0}' on node {1}".format(recipe, env.host_string))
 
-    # Now create configuration and sync node
+    # Create configuration and sync node
     data = lib.get_node(env.host_string)
     data["run_list"] = ["recipe[{0}]".format(recipe)]
     if not __testing__:
@@ -237,9 +230,7 @@ def role(role):
     If no nodes/hostname.json file exists, it creates one
 
     """
-    # Check that a node has been selected
-    if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES role:MYROLE')
+    env.host_string = lib.get_env_host_string()
     lib.print_header(
         "Applying role '{0}' to {1}".format(role, env.host_string))
 
@@ -252,8 +243,7 @@ def role(role):
 
 def ssh(name):
     """Executes the given command"""
-    if not env.host_string:
-        abort('no node specified\nUsage: fix node:MYNODES ssh:COMMAND')
+    env.host_string = lib.get_env_host_string()
     print("\nExecuting the command '{0}' on node {1}...".format(
           name, env.host_string))
     # Execute remotely using either the sudo or the run fabric functions
@@ -269,8 +259,7 @@ def plugin(name):
     Plugins are expected to be found in the kitchen's 'plugins' directory
 
     """
-    if not env.host_string:
-        abort('No node specified\nUsage: fix node:MYNODES plugin:MYPLUGIN')
+    env.host_string = lib.get_env_host_string()
     plug = lib.import_plugin(name)
     lib.print_header("Executing plugin '{0}' on "
                      "{1}".format(name, env.host_string))
