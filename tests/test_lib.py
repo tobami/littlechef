@@ -134,10 +134,9 @@ class TestSolo(BaseTest):
     @patch('littlechef.solo.exists')
     def test_configure_bad_credentials(self, mock_exists):
         """Should return True when node has been synced"""
-        #env.host_string = 'extranode'
         mock_exists.side_effect = EOFError(
-           '/usr/lib64/python2.6/getpass.py:83: GetPassWarning: '
-           'Can not control echo on the terminal.')
+            '/usr/lib64/python2.6/getpass.py:83: GetPassWarning: '
+            'Can not control echo on the terminal.')
         solo.configure()
 
 
