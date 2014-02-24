@@ -117,7 +117,8 @@ if __name__ == '__main__':
             fix_cmd = sys.argv[0]
         else:
             fix_cmd = None
-        if (len(sys.argv) == 1 and fix_cmd) or (len(sys.argv) == 2 and fix_cmd and '-l' in sys.argv):
+        if ((len(sys.argv) == 1 and fix_cmd) or
+                (len(sys.argv) == 2 and fix_cmd and '-l' in sys.argv)):
             # All that is in sys.argv is the fix command.
             parser.parse_args(['-h'])
         else:

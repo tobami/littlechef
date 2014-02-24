@@ -63,7 +63,12 @@ def configure(current_node=None):
     current_node = current_node or {}
     # Ensure that the /tmp/chef-solo/cache directory exist
     cache_dir = "{0}/cache".format(env.node_work_path)
-    if not exists(cache_dir):
+    # First remote call, could go wrong
+    try:
+        cache_exists = exists(cache_dir)
+    except EOFError as e:
+        abort("Could not login to node, got: {0}".format(e))
+    if not cache_exists:
         with settings(hide('running', 'stdout'), warn_only=True):
             output = sudo('mkdir -p {0}'.format(cache_dir))
         if output.failed:
