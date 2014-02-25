@@ -11,113 +11,22 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-import unittest
 import os
 import json
-from ConfigParser import SafeConfigParser
 
-from mock import patch
 from fabric.api import env
+from mock import patch
 from nose.tools import raises
 
 import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.insert(0, env_path)
 
-from littlechef import runner, chef, lib, solo, exceptions
-
+from littlechef import chef, lib, solo, exceptions
+from test_base import BaseTest
 
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
 littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
-
-
-class BaseTest(unittest.TestCase):
-    def setUp(self):
-        self.nodes = [
-            'nestedroles1',
-            'testnode1',
-            'testnode2',
-            'testnode3.mydomain.com',
-            'testnode4'
-        ]
-        runner.__testing__ = True
-
-    def tearDown(self):
-        for nodename in self.nodes + ["extranode"]:
-            filename = 'tmp_' + nodename + '.json'
-            if os.path.exists(filename):
-                os.remove(filename)
-        extra_node = os.path.join("nodes", "extranode" + '.json')
-        if os.path.exists(extra_node):
-            os.remove(extra_node)
-        runner.env.chef_environment = None
-        runner.env.hosts = []
-        runner.env.all_hosts = []
-        runner.env.ssh_config =  None
-        runner.env.key_filename = None
-        runner.env.node_work_path = None
-        runner.env.encrypted_data_bag_secret = None
-
-
-class TestRunner(BaseTest):
-    def test_get_config(self):
-        """Should read configuration from config file when config.cfg is found
-        """
-        runner._readconfig()
-        self.assertEqual(runner.env.ssh_config_path, None)
-        self.assertEqual(runner.env.ssh_config, None)
-        self.assertEqual(runner.env.user, "testuser")
-        self.assertEqual(runner.env.password, "testpass")
-        self.assertEqual(runner.env.key_filename, None)
-        self.assertEqual(runner.env.node_work_path, "/tmp/chef-solo")
-        self.assertEqual(runner.env.encrypted_data_bag_secret, None)
-
-    def test_not_a_kitchen(self):
-        """Should abort when no config file found"""
-        with patch.object(SafeConfigParser, 'read') as mock_method:
-            mock_method.return_value = []
-            self.assertRaises(SystemExit, runner._readconfig)
-
-    def test_nodes_with_role(self):
-        """Should return a list of nodes with the given role in the run_list"""
-        runner.nodes_with_role("all_you_can_eat")
-        self.assertEqual(runner.env.hosts, ['testnode2'])
-
-    def test_nodes_with_role_in_env(self):
-        """Should return a filtered list of nodes when an env is given"""
-        runner.env.chef_environment = "staging"
-        runner.nodes_with_role("all_you_can_eat")
-        self.assertEqual(runner.env.hosts, ['testnode2'])
-
-    def test_nodes_with_role_in_env_empty(self):
-        """Should abort when no nodes with given role found in the environment
-        """
-        runner.env.chef_environment = "production"
-        self.assertRaises(
-            SystemExit, runner.nodes_with_role, "all_you_can_eat")
-        self.assertEqual(runner.env.hosts, [])
-
-    def test_nodes_one(self):
-        """Should configure one node when an existing node name is given"""
-        runner.node('testnode1')
-        self.assertEqual(runner.env.hosts, ['testnode1'])
-
-    def test_nodes_several(self):
-        """Should configure several nodes"""
-        runner.node('testnode1', 'testnode2')
-        self.assertEqual(runner.env.hosts, ['testnode1', 'testnode2'])
-
-    def test_nodes_all(self):
-        """Should configure all nodes when 'all' is given"""
-        runner.node('all')
-        self.assertEqual(runner.env.hosts, self.nodes)
-
-    def test_nodes_all_in_env(self):
-        """Should configure all nodes in a given environment when 'all' is
-        given and evironment is set"""
-        runner.env.chef_environment = "staging"
-        runner.node('all')
-        self.assertEqual(runner.env.hosts, ['testnode2'])
 
 
 class TestSolo(BaseTest):
