@@ -50,10 +50,12 @@ class BaseTest(unittest.TestCase):
         """Executes a command and returns stdout and stderr"""
         if WIN32:
             proc = subprocess.Popen(call,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
         else:
             proc = subprocess.Popen(call,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
         return proc.communicate()
 
 
@@ -157,7 +159,61 @@ class TestRunner(BaseTest):
         self.assertTrue("dummy: Dummy LittleChef plugin" in resp, resp)
 
 
-class TestCookbook(BaseTest):
+class TestNodesWith(BaseTest):
+    def test_nodes_with_role_not_found(self):
+        """Should print error message when no nodes where found with given role"""
+        resp, error = self.execute([fix, 'nodes_with_role:foobar'])
+        self.assertTrue("No nodes found with role 'foobar'" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+
+    def test_nodes_with_role(self):
+        """Should configure nodes with given role when given role is asigned"""
+        resp, error = self.execute([fix, 'nodes_with_role:base'])
+        self.assertFalse(error)
+        self.assertTrue("== Configuring nestedroles1 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+        self.assertTrue("== Configuring testnode2 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+
+    def test_nodes_with_role_and_env(self):
+        """Should configure nodes with given role in env when given role is asigned
+        and env is given"""
+        resp, error = self.execute(
+            [fix, 'nodes_with_role:base', '--env', 'staging'])
+        self.assertFalse(error)
+        self.assertTrue("== Configuring testnode2 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+        self.assertFalse("nestedroles1" in resp,
+                         "node 'nestedroles1' should not appear in output")
+
+    def test_nodes_with_recipe_not_found(self):
+        """Should print error message when no nodes where found with given recipe"""
+        resp, error = self.execute([fix, 'nodes_with_recipe:foobar'])
+        self.assertTrue("No nodes found with recipe 'foobar'" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+
+    def test_nodes_with_recipe(self):
+        """Should configure nodes with given recipe when given recipe is asigned"""
+        resp, error = self.execute([fix, 'nodes_with_recipe:man'])
+        self.assertFalse(error)
+        self.assertTrue("== Configuring testnode2 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+        self.assertTrue("== Configuring testnode4 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+
+    def test_nodes_with_recipe_and_env(self):
+        """Should configure nodes with given recipe in env when given recipe is asigned
+        and env is given"""
+        resp, error = self.execute(
+            [fix, 'nodes_with_recipe:man', '--env', 'staging'])
+        self.assertFalse(error)
+        self.assertTrue("== Configuring testnode2 ==" in resp,
+                        "Unexpected output:\n{0}{1}".format(resp, error))
+        self.assertFalse("testnode4" in resp,
+                         "node 'nestedroles1' should not appear in output")
+
+
+class TestCookbooks(BaseTest):
     def test_list_recipes(self):
         """Should list available recipes"""
         resp, error = self.execute([fix, 'list_recipes'])

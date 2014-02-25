@@ -296,7 +296,7 @@ def build_node_data_bag():
 
         # Save node data bag item
         with open(os.path.join(
-                    'data_bags', 'node', node['id'] + '.json'), 'w') as f:
+                  'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
 
 
@@ -342,10 +342,10 @@ def _add_environment_lib():
 
 def _configure_node():
     """Exectutes chef-solo to apply roles and recipes to a node"""
+    print("")
     msg = "Cooking..."
     if env.parallel:
         msg = "[{0}]: {1}".format(env.host_string, msg)
-    print("")
     print(msg)
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
@@ -364,7 +364,7 @@ def _configure_node():
         output = sudo(cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
             ("Chef Run complete" not in output and
-            "Report handlers complete" not in output)):
+             "Report handlers complete" not in output)):
         if 'chef-solo: command not found' in output:
             print(
                 colors.red(

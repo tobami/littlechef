@@ -78,23 +78,24 @@ def new_kitchen():
 
 
 def nodes_with_role(rolename):
-    """Sets a list of nodes that have the given role
-    in their run list and calls node()
-
-    """
-    nodes_in_env = []
-    nodes = lib.get_nodes_with_role(rolename)
-    if env.chef_environment is None:
-        # Pass all nodes
-        nodes_in_env = [n['name'] for n in nodes]
-    else:
-        # Only nodes in environment
-        nodes_in_env = [n['name'] for n in nodes \
-                        if n.get('chef_environment') == env.chef_environment]
-    if not len(nodes_in_env):
+    """Configures a list of nodes that have the given role in their run list"""
+    nodes = [n['name'] for n in
+             lib.get_nodes_with_role(rolename, env.chef_environment)]
+    if not len(nodes):
         print("No nodes found with role '{0}'".format(rolename))
         sys.exit(0)
-    return node(*nodes_in_env)
+    return node(*nodes)
+
+
+def nodes_with_recipe(recipename):
+    """Configures a list of nodes that have the given recipe in their run list
+    """
+    nodes = [n['name'] for n in
+             lib.get_nodes_with_recipe(recipename, env.chef_environment)]
+    if not len(nodes):
+        print("No nodes found with recipe '{0}'".format(recipename))
+        sys.exit(0)
+    return node(*nodes)
 
 
 def node(*nodes):
@@ -124,7 +125,8 @@ def node(*nodes):
     # Check whether another command was given in addition to "node:"
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
-            'nodes_with_role:' not in sys.argv[-1]):
+            'nodes_with_role:' not in sys.argv[-1] and
+            'nodes_with_recipe:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
         with settings():
@@ -201,7 +203,7 @@ def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
                       ":\n  {0}".format(output))
             node = {"run_list": []}
             for attribute in ["ipaddress", "platform", "platform_family",
-                         "platform_version"]:
+                              "platform_version"]:
                 if ohai.get(attribute):
                     node[attribute] = ohai[attribute]
             chef.save_config(node)

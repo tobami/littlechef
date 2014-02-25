@@ -108,9 +108,9 @@ def configure(current_node=None):
                             context=data, use_sudo=True, backup=False,
                             mode=0400)
         except SystemExit:
-            error = ("Failed to upload '/etc/chef/solo.rb'\n"
-            "This can happen when the deployment user does not have a "
-            "home directory, which is needed as a temporary location")
+            error = ("Failed to upload '/etc/chef/solo.rb'\nThis "
+                     "can happen when the deployment user does not have a "
+                     "home directory, which is needed as a temporary location")
             abort(error)
     with hide('stdout'):
         sudo('chown root:$(id -g -n root) {0}'.format('/etc/chef/solo.rb'))
