@@ -95,3 +95,25 @@ class TestNodesWithRecipe(BaseTest):
         """
         runner.env.chef_environment = "_default"
         runner.nodes_with_recipe('man')
+
+
+class TestNodesWithTag(BaseTest):
+
+    def test_nodes_with_tag(self):
+        """Should return a list of nodes with the given tag"""
+        runner.nodes_with_tag('top')
+        self.assertEqual(runner.env.hosts, ['nestedroles1'])
+
+    def test_nodes_with_tag_in_env(self):
+        """Should return a filtered list of nodes with tag when an env is given
+        """
+        runner.env.chef_environment = "production"
+        runner.nodes_with_tag('dummy')
+        self.assertEqual(runner.env.hosts, ['testnode4'])
+
+    @raises(SystemExit)
+    def test_nodes_with_tag_in_env_not_found(self):
+        """Should abort when no nodes with given tag found in the environment
+        """
+        runner.env.chef_environment = "production"
+        runner.nodes_with_role('top')

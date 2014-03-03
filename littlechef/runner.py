@@ -98,6 +98,18 @@ def nodes_with_recipe(recipename):
     return node(*nodes)
 
 
+def nodes_with_tag(tag):
+    """Sets a list of nodes that have the given tag assigned and calls node()"""
+    nodes = lib.get_nodes_with_tag(tag, env.chef_environment,
+                                   littlechef.include_guests)
+    nodes = [n['name'] for n in nodes]
+    if not len(nodes):
+        print("No nodes found with tag '{0}'".format(tag))
+        sys.exit(0)
+    return node(*nodes)
+
+
+@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     chef.build_node_data_bag()
@@ -126,7 +138,8 @@ def node(*nodes):
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
             'nodes_with_role:' not in sys.argv[-1] and
-            'nodes_with_recipe:' not in sys.argv[-1]):
+            'nodes_with_recipe:' not in sys.argv[-1] and
+            'nodes_with_tag:' not in sys.argv[-1]):
         # If user didn't type recipe:X, role:Y or deploy_chef,
         # configure the nodes
         with settings():
@@ -286,13 +299,13 @@ def list_nodes_detailed():
 
 @hosts('api')
 def list_nodes_with_recipe(recipe):
-    """Show all nodes which have asigned a given recipe"""
+    """Show all nodes which have assigned a given recipe"""
     lib.print_nodes(lib.get_nodes_with_recipe(recipe, env.chef_environment))
 
 
 @hosts('api')
 def list_nodes_with_role(role):
-    """Show all nodes which have asigned a given role"""
+    """Show all nodes which have assigned a given role"""
     lib.print_nodes(lib.get_nodes_with_role(role, env.chef_environment))
 
 
@@ -304,6 +317,13 @@ def list_envs():
         print("{0}{1}{2}".format(
             env['name'], margin_left,
             env.get('description', '(no description)')))
+
+
+@hosts('api')
+def list_nodes_with_tag(tag):
+    """Show all nodes which have assigned a given tag"""
+    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment,
+                                           littlechef.include_guests))
 
 
 @hosts('api')
@@ -462,8 +482,10 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    if user_specified and not env.password and not env.key_filename and not env.ssh_config:
-        abort('You need to define a password, keypair file, or ssh-config file in config.cfg')
+    if (user_specified and not env.password and not env.key_filename
+            and not env.ssh_config):
+        abort('You need to define a password, keypair file, or ssh-config '
+              'file in config.cfg')
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:

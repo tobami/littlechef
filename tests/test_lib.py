@@ -72,6 +72,7 @@ class TestLib(BaseTest):
             'chef_environment': '_default',
             'name': 'nestedroles1',
             'run_list': ['role[top_level_role]'],
+            'tags': ['top'],
         }
         self.assertEqual(lib.get_node('nestedroles1'), expected)
 
@@ -174,15 +175,27 @@ class TestLib(BaseTest):
         nodes = list(lib.get_nodes_with_recipe('vim', 'staging'))
         self.assertFalse(len(nodes))
 
+    def test_get_nodes_with_tag(self):
+        """Should list all nodes with tag 'top'"""
+        nodes = list(lib.get_nodes_with_tag('top'))
+        self.assertEqual(len(nodes), 1)
+
+    def test_get_nodes_with_tag_in_env(self):
+        """Should list all nodes with tag 'top' in the given environment"""
+        nodes = list(lib.get_nodes_with_tag('top', 'production'))
+        self.assertEqual(len(nodes), 0)
+        nodes = list(lib.get_nodes_with_tag('top', '_default'))
+        self.assertEqual(len(nodes), 1)
+
     def test_list_recipes(self):
         recipes = lib.get_recipes()
         self.assertEqual(len(recipes), 6)
         self.assertEqual(recipes[1]['name'], 'subversion')
         self.assertEqual(recipes[1]['description'],
-            'Includes the client recipe. Modified by site-cookbooks')
+                         'Includes the client recipe. Modified by site-cookbooks')
         self.assertEqual(recipes[2]['name'], 'subversion::client')
         self.assertEqual(recipes[2]['description'],
-            'Subversion Client installs subversion and some extra svn libs')
+                         'Subversion Client installs subversion and some extra svn libs')
         self.assertEqual(recipes[3]['name'], 'subversion::server')
         self.assertIn('subversion::testrecipe', [r['name'] for r in recipes])
 

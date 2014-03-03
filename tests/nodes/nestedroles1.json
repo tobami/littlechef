@@ -1,5 +1,6 @@
 {
     "run_list": [
         "role[top_level_role]"
-    ]
+    ],
+    "tags": ["top"]
 }

@@ -248,6 +248,9 @@ every node in `nodes/`
 * `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which
 starts with 'ROL' in their run_list
+* `fix nodes_with_tag:MYTAG`: Configures all nodes which have the tag `MYTAG`
+  assigned. `--include-guests` will also configure guest nodes belonging to each host
+  which has the given tag assigned
 * `fix node:MYNODES ssh:"my shell command"`: Executes the given command on the node
 * `fix node:MYNODES plugin:save_ip`: Gets the actual IP for this node and saves it in
 the `ipaddress` attribute
@@ -287,9 +290,13 @@ nodes_with_role, ssh, role, and recipe)
 * `fix list_nodes_detailed`: Same as above, but it also shows all attributes
 * `fix list_nodes_with_recipe:MYRECIPE`: Lists nodes which have associated the recipe `MYRECIPE`
 * `fix list_nodes_with_role:MYROLE`: Shows nodes which have associated the role `MYROLE`
+* `fix list_nodes_with_tag:MYTAG`: Shows nodes which have the tag `MYTAG` assigned.
+  `--include-guests` will also display guest nodes belonging to each host which has
+  the given tag assigned
 * `fix list_envs`: Lists all available environments
 * `fix list_recipes`: Lists all available recipes
-* `fix list_recipes_detailed`: Same as above, but shows description, version, dependencies and attributes
+* `fix list_recipes_detailed`: Same as above, but shows description, version,
+  dependencies and attributes
 * `fix list_roles`: Lists all available roles
 * `fix list_roles_detailed`: Same as above, but shows description and attributes
 * `fix list_plugins`: Show a list of available plugins

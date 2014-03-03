@@ -28,6 +28,7 @@ enable_logs = True
 LOGFILE = "/var/log/chef/solo.log"
 whyrun = False
 concurrency = False
+include_guests = False
 
 node_work_path = "/tmp/chef-solo"
 cookbook_paths = ['site-cookbooks', 'cookbooks']

@@ -59,7 +59,8 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("commands", type=str, default="", nargs='*',
+    parser.add_argument(
+        "commands", type=str, default="", nargs='*',
         help="Littlechef commands")
 
     parser.add_argument(
@@ -101,6 +102,12 @@ def parse_arguments():
         "-c", "--concurrency", default=False,
         help="Execute commands concurrently"
     )
+    parser.add_argument(
+        "-g", "--include-guests", dest="include_guests", action="store_true",
+        default=False,
+        help=("When searching for nodes with tags also include virtualized"
+              "guests of matching hosts")
+    )
     return parser, vars(parser.parse_args())
 
 
@@ -135,6 +142,8 @@ if __name__ == '__main__':
                     littlechef.concurrency = int(args['concurrency'])
                 except ValueError:
                     littlechef.concurrency = False
+            if args['include_guests']:
+                littlechef.include_guests = True
             if args['verbose']:
                 littlechef.verbose = True
             if args['debug']:
