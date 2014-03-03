@@ -1,7 +1,7 @@
 {
     "chef_environment": "production",
-    "dummy": true,
     "run_list": [
         "recipe[man]"
-    ]
+    ],
+    "tags": ["dummy"]
 }

@@ -100,7 +100,8 @@ def nodes_with_recipe(recipename):
 
 def nodes_with_tag(tag):
     """Sets a list of nodes that have the given tag assigned and calls node()"""
-    nodes = lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests)
+    nodes = lib.get_nodes_with_tag(tag, env.chef_environment,
+                                   littlechef.include_guests)
     nodes = [n['name'] for n in nodes]
     if not len(nodes):
         print("No nodes found with tag '{0}'".format(tag))
@@ -321,7 +322,8 @@ def list_envs():
 @hosts('api')
 def list_nodes_with_tag(tag):
     """Show all nodes which have assigned a given tag"""
-    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment, env.include_guests))
+    lib.print_nodes(lib.get_nodes_with_tag(tag, env.chef_environment,
+                                           littlechef.include_guests))
 
 
 @hosts('api')
@@ -480,8 +482,10 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         pass
 
-    if user_specified and not env.password and not env.key_filename and not env.ssh_config:
-        abort('You need to define a password, keypair file, or ssh-config file in config.cfg')
+    if (user_specified and not env.password and not env.key_filename
+            and not env.ssh_config):
+        abort('You need to define a password, keypair file, or ssh-config '
+              'file in config.cfg')
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
@@ -516,4 +520,3 @@ else:
     env.ssh_config = None
     env.follow_symlinks = False
     env.encrypted_data_bag_secret = None
-    env.include_guests = littlechef.include_guests

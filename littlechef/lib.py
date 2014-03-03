@@ -151,10 +151,16 @@ def get_nodes_with_tag(tag, environment=None, include_guests=False):
     nodes = get_nodes(environment)
     nodes_mapping = dict((n['name'], n) for n in nodes)
     for n in nodes:
-        if tag in n.get('tags', []) and \
-                n.get('virtualization', {}).get('role') == 'host':
+        if tag in n.get('tags', []):
+            # Remove from node mapping so it doesn't get added twice by
+            # guest walking below
+            try:
+                del nodes_mapping[n['fqdn']]
+            except KeyError:
+                pass
             yield n
-            if include_guests:
+            # Walk guest if it is a host
+            if include_guests and n.get('virtualization', {}).get('role') == 'host':
                 for guest in n['virtualization']['guests']:
                     try:
                         yield nodes_mapping[guest['fqdn']]
