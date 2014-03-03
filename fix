@@ -105,7 +105,8 @@ def parse_arguments():
     parser.add_argument(
         "-g", "--include-guests", dest="include_guests", action="store_true",
         default=False,
-        help="when searching for nodes with tags also include guests"
+        help=("When searching for nodes with tags also include virtualized"
+              "guests of matching hosts")
     )
     return parser, vars(parser.parse_args())
 
