@@ -31,7 +31,9 @@ knife_installed = True
 
 def _resolve_hostname(name):
     """Returns resolved hostname using the ssh config"""
-    if not os.path.exists(os.path.join("nodes", name + ".json")):
+    if env.ssh_config is None:
+        return name
+    elif not os.path.exists(os.path.join("nodes", name + ".json")):
         resolved_name = env.ssh_config.lookup(name)['hostname']
         if os.path.exists(os.path.join("nodes", resolved_name + ".json")):
             name = resolved_name
