@@ -23,7 +23,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
@@ -133,6 +133,9 @@ def node(*nodes):
         # A list of nodes was given
         env.hosts = list(nodes)
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
+
+    if env.berksfile:
+        chef.ensure_berksfile_cookbooks_are_installed()
 
     # Check whether another command was given in addition to "node:"
     if not(littlechef.__cooking__ and
@@ -502,6 +505,14 @@ def _readconfig():
         env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
+
+    try:
+        env.berksfile = config.get('kitchen', 'berksfile')
+        env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
+        littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+        env.berksfile = None
+        env.berksfile_cookbooks_directory = None
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
