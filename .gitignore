@@ -4,3 +4,4 @@ build
 dist
 littlechef.egg-info
 .coverage
+*.egg
