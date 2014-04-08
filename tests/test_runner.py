@@ -12,6 +12,7 @@ class TestConfig(BaseTest):
     def test_get_config(self):
         """Should read configuration from config file when config.cfg is found
         """
+        #runner.CONFIGFILE="./tests/littlechef.cfg"
         runner._readconfig()
         self.assertEqual(runner.env.ssh_config_path, None)
         self.assertEqual(runner.env.ssh_config, None)
@@ -20,6 +21,8 @@ class TestConfig(BaseTest):
         self.assertEqual(runner.env.key_filename, None)
         self.assertEqual(runner.env.node_work_path, "/tmp/chef-solo")
         self.assertEqual(runner.env.encrypted_data_bag_secret, None)
+        self.assertEqual(runner.env.sync_packages_dest_dir, "/srv/repos")
+        self.assertEqual(runner.env.sync_packages_local_dir, "./repos")
 
     def test_not_a_kitchen(self):
         """Should abort when no config file found"""
