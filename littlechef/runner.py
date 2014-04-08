@@ -506,14 +506,14 @@ def _readconfig():
     # Upload Directory
     try:
         env.sync_packages_dest_dir = config.get('sync-packages',
-                                                   'dest-dir')
+                                                'dest-dir')
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.sync_packages_dest_dir = None
 
     # Local Directory
     try:
         env.sync_packages_local_dir = config.get('sync-packages',
-                                                   'local-dir')
+                                                 'local-dir')
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.sync_packages_local_dir = None
 

@@ -12,7 +12,6 @@ class TestConfig(BaseTest):
     def test_get_config(self):
         """Should read configuration from config file when config.cfg is found
         """
-        #runner.CONFIGFILE="./tests/littlechef.cfg"
         runner._readconfig()
         self.assertEqual(runner.env.ssh_config_path, None)
         self.assertEqual(runner.env.ssh_config, None)
