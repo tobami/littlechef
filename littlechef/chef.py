@@ -120,7 +120,7 @@ def _synchronize_node(configfile, node):
         extra_opts += " --copy-links"
     ssh_opts = ""
     if env.ssh_config_path:
-        ssh_opts += " -F %s" % os.path.expanduser(env.ssh_config_pat.h)
+        ssh_opts += " -F %s" % os.path.expanduser(env.ssh_config_path)
     if env.encrypted_data_bag_secret:
         put(env.encrypted_data_bag_secret,
             "/etc/chef/encrypted_data_bag_secret",

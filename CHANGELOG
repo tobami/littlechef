@@ -2,6 +2,13 @@
 LittleChef Changelog
 ====================
 
+
+Version 1.7.1 Apr 9, 2014
+----------------------------------------
+Hotfix:
+* Fix ssh_config_path variable name
+
+
 Version 1.7.0 Apr 9, 2014
 ----------------------------------------
 New features:
