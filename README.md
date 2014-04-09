@@ -244,10 +244,14 @@ skipped
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and
 every node in `nodes/`
 * `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
+* `fix node:MYNODE role:MYROLE`: Apply the given role on the given nodes
 * `fix node:MYNODE recipe:MYRECIPE`: Apply the given recipe on the given nodes
-* `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
+* `fix nodes_with_role:ROLE1`: Configures all nodes which have the given role in
+their run_list
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which
 starts with 'ROL' in their run_list
+* `fix nodes_with_recipe:MYRECIPE`: Configures all nodes which have the given recipe
+in their run_list
 * `fix nodes_with_tag:MYTAG`: Configures all nodes which have the tag `MYTAG`
   assigned. `--include-guests` will also configure guest nodes belonging to each host
   which has the given tag assigned
