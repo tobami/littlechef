@@ -205,6 +205,14 @@ gateway = hub.example.com
 After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
 hub.example.com.
 
+The `sync-packages` section allows you to define remote and local directories, which will then be synchronized at every run.
+
+```ini
+[sync-packages]
+dest-dir = /srv/packages
+local-dir = ./packages
+```
+
 ### Deploying chef-solo
 
 For convenience, there is a command that allows you to deploy chef-solo
