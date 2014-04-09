@@ -503,6 +503,19 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
 
+    # Upload Directory
+    try:
+        env.sync_packages_dest_dir = config.get('sync-packages',
+                                                'dest-dir')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.sync_packages_dest_dir = None
+
+    # Local Directory
+    try:
+        env.sync_packages_local_dir = config.get('sync-packages',
+                                                 'local-dir')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.sync_packages_local_dir = None
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:
