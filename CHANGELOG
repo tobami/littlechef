@@ -2,6 +2,16 @@
 LittleChef Changelog
 ====================
 
+Version 1.7.0 Apr 9, 2014
+----------------------------------------
+New features:
+* #193: Markus Korn implemented "nodes_with_tags" command
+* New command "nodes_with_recipe"
+* #198: Adam Hamsik implemented the possibility of synchronizing a local directory to
+a node's remote directory
+Bugs fixed:
+* Use hostname resolution for all commands
+
 
 Version 1.6.1 Feb 20, 2014
 ----------------------------------------
