@@ -65,7 +65,7 @@ def new_kitchen():
         _mkdir(cookbook_path)
     # Add skeleton config.cfg
     if not os.path.exists("config.cfg"):
-        with open("config.cfg", "w") as configfh:
+        with open(CONFIGFILE, 'w') as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = "
             print >> configfh, "password = "
