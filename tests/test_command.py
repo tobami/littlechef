@@ -265,17 +265,17 @@ class TestNewKitchen(BaseTest):
         self.assertTrue('data_bags' in kitchen_contents)
         self.assertTrue('nodes' in kitchen_contents)
         self.assertTrue('environments' in kitchen_contents)
-        self.assertTrue('config.cfg' in kitchen_contents)
+        self.assertTrue(littlechef.CONFIGFILE in kitchen_contents)
 
     def test_new_kitchen_can_list_nodes(self):
         self.execute([fix, 'new_kitchen'])
 
-        with open("config.cfg", "w") as configfh:
+        with open(littlechef.CONFIGFILE, "w") as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = testuser"
             print >> configfh, "password = testpassword"
 
         resp, error = self.execute([fix, 'list_nodes'])
-
+        self.assertFalse(error)
         self.assertTrue('Found 0 nodes' in resp)
         self.assertEqual('', error)

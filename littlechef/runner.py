@@ -63,9 +63,9 @@ def new_kitchen():
     _mkdir("environments")
     for cookbook_path in littlechef.cookbook_paths:
         _mkdir(cookbook_path)
-    # Add skeleton config.cfg
-    if not os.path.exists("config.cfg"):
-        with open(CONFIGFILE, 'w') as configfh:
+    # Add skeleton config file
+    if not os.path.exists(littlechef.CONFIGFILE):
+        with open(littlechef.CONFIGFILE, 'w') as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = "
             print >> configfh, "password = "
@@ -74,7 +74,7 @@ def new_kitchen():
             print >> configfh, "encrypted_data_bag_secret = "
             print >> configfh, "[kitchen]"
             print >> configfh, "node_work_path = /tmp/chef-solo/"
-            print "config.cfg file created..."
+            print "{0} file created...".format(littlechef.CONFIGFILE)
 
 
 def nodes_with_role(rolename):
@@ -464,9 +464,9 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         if not env.ssh_config_path:
             msg = 'You need to define a user in the "userinfo" section'
-            msg += ' of config.cfg. Refer to the README for help'
+            msg += ' of {0}. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
-            abort(msg)
+            abort(msg.format(littlechef.CONFIGFILE))
         user_specified = False
     else:
         user_specified = True
@@ -485,7 +485,7 @@ def _readconfig():
     if (user_specified and not env.password and not env.key_filename
             and not env.ssh_config):
         abort('You need to define a password, keypair file, or ssh-config '
-              'file in config.cfg')
+              'file in {0}'.format(littlechef.CONFIGFILE))
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
