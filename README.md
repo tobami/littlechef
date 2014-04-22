@@ -220,7 +220,7 @@ to a node.
 
 #### Omnibus method
 The best way is to use the omnibus method [getchef][]:
-`fix node:MYNODE deploy_chef:method=omnibus`
+`fix node:MYNODE deploy_chef:method=omnibus,version=11.12`
 
 #### Other methods
 
