@@ -47,17 +47,26 @@ __testing__ = False
 @hosts('setup')
 def new_kitchen():
     """Create LittleChef directory structure (Kitchen)"""
-    def _mkdir(d):
+    def _mkdir(d, content=""):
         if not os.path.exists(d):
             os.mkdir(d)
-            # Add an empty README so that it can be added to version control
+            # Add a README so that it can be added to version control
             readme_path = os.path.join(d, 'README')
             if not os.path.exists(readme_path):
                 with open(readme_path, "w") as readme:
-                    print >> readme, ""
+                    print >> readme, content
             print "{0}/ directory created...".format(d)
 
-    _mkdir("nodes")
+    content = "# The /nodes directory contains your nodes as JSON files "
+    content += "representing a node.\n"
+    content += "# Example node file `nodes/myfqdn.json`:\n"
+    data = {
+        "chef_environment": "production",
+        "apt": {"cacher_port": 3143},
+        "run_list": ["recipe[apt]"]
+    }
+    content += "{0}".format(json.dumps(data, indent=2))
+    _mkdir("nodes", content)
     _mkdir("roles")
     _mkdir("data_bags")
     _mkdir("environments")
