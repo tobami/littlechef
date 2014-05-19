@@ -542,3 +542,5 @@ else:
     env.ssh_config = None
     env.follow_symlinks = False
     env.encrypted_data_bag_secret = None
+    env.sync_packages_dest_dir = None
+    env.sync_packages_local_dir = None
