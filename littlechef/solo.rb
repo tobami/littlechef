@@ -5,3 +5,4 @@ data_bag_path "%(node_work_path)s/data_bags"
 environment_path "%(node_work_path)s/environments"
 environment "%(environment)s"
 verbose_logging %(verbose)s
+verify_api_cert true
