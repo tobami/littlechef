@@ -173,6 +173,8 @@ def _node_runner():
         print "TEST: would now configure {0}".format(env.host_string)
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
+        if  env.autodeploy_chef and not chef.chef_test():
+            deploy_chef()
         chef.sync_node(node)
 
 
@@ -525,6 +527,11 @@ def _readconfig():
                                                  'local-dir')
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.sync_packages_local_dir = None
+
+    try:
+        env.autodeploy_chef = config.get('userinfo', 'autodeploy_chef') or None
+    except ConfigParser.NoOptionError:
+        pass
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:

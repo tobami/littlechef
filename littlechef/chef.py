@@ -68,6 +68,12 @@ def _get_ipaddress(node):
             return True
     return False
 
+def chef_test():
+    cmd="chef-solo --version"
+    output = sudo(cmd, warn_only=True, quiet=True)
+    if 'chef-solo: command not found' in output:
+        return False
+    return True
 
 def sync_node(node):
     """Builds, synchronizes and configures a node.

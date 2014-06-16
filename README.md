@@ -198,6 +198,13 @@ This can be used if your nodes are behind a firewall and only one host is access
 from your current network location.
 
 ```ini
+[kitchen]
+autodeploy_chef=true
+```
+
+This option will install default chef version wiht omnibus installation method on system when there is no chef installed.
+
+```ini
 [connection]
 gateway = hub.example.com
 ```
