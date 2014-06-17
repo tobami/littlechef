@@ -174,12 +174,12 @@ def _node_runner():
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
         if  env.autodeploy_chef and not chef.chef_test():
-            deploy_chef()
+            deploy_chef(method="omnibus")
         chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
-                distro=None, platform=None, stop_client='yes', method="omnibus"):
+                distro=None, platform=None, stop_client='yes', method=None):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()
     deprecated_parameters = [distro_type, distro, platform]
@@ -531,7 +531,7 @@ def _readconfig():
     try:
         env.autodeploy_chef = config.get('userinfo', 'autodeploy_chef') or None
     except ConfigParser.NoOptionError:
-        pass
+        env.autodeploy_chef = None
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:
