@@ -319,16 +319,16 @@ def ensure_berksfile_cookbooks_are_installed():
     msg = "Vendoring cookbooks from Berksfile {0} to directory {1}..."
     print(msg.format(env.berksfile, env.berksfile_cookbooks_directory))
 
-    run_vendor = False
+    run_vendor = True
     cookbooks_dir = env.berksfile_cookbooks_directory
+    berksfile_lock_path = cookbooks_dir+'/Berksfile.lock'
+
+    berksfile_lock_exists = os.path.isfile(berksfile_lock_path)
     cookbooks_dir_exists = os.path.isdir(cookbooks_dir)
 
-    if not cookbooks_dir_exists:
-        run_vendor = True
-
-    if cookbooks_dir_exists:
+    if cookbooks_dir_exists and berksfile_lock_exists:
         berksfile_mtime = os.stat('Berksfile').st_mtime
-        cookbooks_mtime = os.stat(cookbooks_dir).st_mtime
+        cookbooks_mtime = os.stat(berksfile_lock_path).st_mtime
         run_vendor = berksfile_mtime > cookbooks_mtime
 
     if run_vendor:

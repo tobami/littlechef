@@ -134,9 +134,6 @@ def node(*nodes):
         env.hosts = list(nodes)
     env.all_hosts = list(env.hosts)  # Shouldn't be needed
 
-    if env.berksfile:
-        chef.ensure_berksfile_cookbooks_are_installed()
-
     # Check whether another command was given in addition to "node:"
     if not(littlechef.__cooking__ and
             'node:' not in sys.argv[-1] and
@@ -508,11 +505,21 @@ def _readconfig():
 
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+        env.berksfile = None
+
+    try:
         env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
         littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
-        env.berksfile = None
-        env.berksfile_cookbooks_directory = None
+        if env.berksfile:
+            env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
+            littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+        else:
+            env.berksfile_cookbooks_directory = None
+
+    if env.berksfile:
+        chef.ensure_berksfile_cookbooks_are_installed()
 
 
 # Only read config if fix is being used and we are not creating a new kitchen
