@@ -516,16 +516,16 @@ def _readconfig():
         env.berksfile = config.get('kitchen', 'berksfile')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
         env.berksfile = None
-
-    try:
-        env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
-        littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
-        if env.berksfile:
-            env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
+    else:
+        try:
+            env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
             littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
-        else:
-            env.berksfile_cookbooks_directory = None
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+            if env.berksfile:
+                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
+                littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+            else:
+                env.berksfile_cookbooks_directory = None
 
     if env.berksfile:
         chef.ensure_berksfile_cookbooks_are_installed()

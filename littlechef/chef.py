@@ -356,7 +356,8 @@ def ensure_berksfile_cookbooks_are_installed():
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         # TODO: output better
-        print stdout, stderr
+        if env.verbose or p.returncode:
+            print stdout, stderr
 
 
 def _remove_remote_node_data_bag():
