@@ -47,25 +47,34 @@ __testing__ = False
 @hosts('setup')
 def new_kitchen():
     """Create LittleChef directory structure (Kitchen)"""
-    def _mkdir(d):
+    def _mkdir(d, content=""):
         if not os.path.exists(d):
             os.mkdir(d)
-            # Add an empty README so that it can be added to version control
+            # Add a README so that it can be added to version control
             readme_path = os.path.join(d, 'README')
             if not os.path.exists(readme_path):
                 with open(readme_path, "w") as readme:
-                    print >> readme, ""
+                    print >> readme, content
             print "{0}/ directory created...".format(d)
 
-    _mkdir("nodes")
+    content = "# The /nodes directory contains your nodes as JSON files "
+    content += "representing a node.\n"
+    content += "# Example node file `nodes/myfqdn.json`:\n"
+    data = {
+        "chef_environment": "production",
+        "apt": {"cacher_port": 3143},
+        "run_list": ["recipe[apt]"]
+    }
+    content += "{0}".format(json.dumps(data, indent=2))
+    _mkdir("nodes", content)
     _mkdir("roles")
     _mkdir("data_bags")
     _mkdir("environments")
     for cookbook_path in littlechef.cookbook_paths:
         _mkdir(cookbook_path)
-    # Add skeleton config.cfg
-    if not os.path.exists("config.cfg"):
-        with open("config.cfg", "w") as configfh:
+    # Add skeleton config file
+    if not os.path.exists(littlechef.CONFIGFILE):
+        with open(littlechef.CONFIGFILE, 'w') as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = "
             print >> configfh, "password = "
@@ -74,7 +83,7 @@ def new_kitchen():
             print >> configfh, "encrypted_data_bag_secret = "
             print >> configfh, "[kitchen]"
             print >> configfh, "node_work_path = /tmp/chef-solo/"
-            print "config.cfg file created..."
+            print "{0} file created...".format(littlechef.CONFIGFILE)
 
 
 def nodes_with_role(rolename):
@@ -464,9 +473,9 @@ def _readconfig():
     except ConfigParser.NoOptionError:
         if not env.ssh_config_path:
             msg = 'You need to define a user in the "userinfo" section'
-            msg += ' of config.cfg. Refer to the README for help'
+            msg += ' of {0}. Refer to the README for help'
             msg += ' (http://github.com/tobami/littlechef)'
-            abort(msg)
+            abort(msg.format(littlechef.CONFIGFILE))
         user_specified = False
     else:
         user_specified = True
@@ -485,7 +494,7 @@ def _readconfig():
     if (user_specified and not env.password and not env.key_filename
             and not env.ssh_config):
         abort('You need to define a password, keypair file, or ssh-config '
-              'file in config.cfg')
+              'file in {0}'.format(littlechef.CONFIGFILE))
 
     # Node's Chef Solo working directory for storing cookbooks, roles, etc.
     try:
@@ -521,6 +530,19 @@ def _readconfig():
     if env.berksfile:
         chef.ensure_berksfile_cookbooks_are_installed()
 
+    # Upload Directory
+    try:
+        env.sync_packages_dest_dir = config.get('sync-packages',
+                                                'dest-dir')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.sync_packages_dest_dir = None
+
+    # Local Directory
+    try:
+        env.sync_packages_local_dir = config.get('sync-packages',
+                                                 'local-dir')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.sync_packages_local_dir = None
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:
@@ -538,3 +560,5 @@ else:
     env.ssh_config = None
     env.follow_symlinks = False
     env.encrypted_data_bag_secret = None
+    env.sync_packages_dest_dir = None
+    env.sync_packages_local_dir = None

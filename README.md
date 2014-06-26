@@ -205,22 +205,40 @@ gateway = hub.example.com
 After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
 hub.example.com.
 
+The `sync-packages` section allows you to define remote and local directories, which will then be synchronized at every run.
+
+```ini
+[sync-packages]
+dest-dir = /srv/packages
+local-dir = ./packages
+```
+
 ### Deploying chef-solo
 
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
-The best way is to use the packages from the [Opscode repository][]:  
-`fix node:MYNODE deploy_chef`
+#### Omnibus method
+The best way is to use the omnibus method [getchef][]:
+`fix node:MYNODE deploy_chef:method=omnibus,version=11.12`
 
-LittleChef will try to autodetect the distro type and version of that node, and will use the appropriate installation method and packages.
+#### Other methods
+
+The default installation method:
+`fix node:MYNODE deploy_chef` uses the packages from the [Opscode repository][], which
+are no longer updated, so its use is no longer recommended. LittleChef will try to
+autodetect the distro type and version of that node, and will use the appropriate
+installation method and packages. LittleChef 2.x will use the omnibus method as default
+instead.
 
 You can also install Chef Solo with gems and/or without asking for confirmation:  
 `fix node:MYNODE deploy_chef:gems=yes,ask=no`
 
-Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL, Scientific Linux, Gentoo, and Arch Linux.
+Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL,
+Scientific Linux, Gentoo, and Arch Linux.
 
-When using the Debian repository, you need to take into account that Opscode has separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
+When using the Debian repository, you need to take into account that Opscode has
+separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
 `fix node:MYNODE deploy_chef:version=0.9`
 
 Also, if you still want to keep the chef-client around in debian, use the `stop_client`
@@ -244,10 +262,14 @@ skipped
 * `fix node:all`: It will apply all roles, recipes and attributes defined for each and
 every node in `nodes/`
 * `fix --env=MYENV node:all`: Configures all nodes which have the attribute `chef_environment` set to `MYENV`
+* `fix node:MYNODE role:MYROLE`: Apply the given role on the given nodes
 * `fix node:MYNODE recipe:MYRECIPE`: Apply the given recipe on the given nodes
-* `fix nodes_with_role:ROLE1`: Configures all nodes which have a certain role in their run_list
+* `fix nodes_with_role:ROLE1`: Configures all nodes which have the given role in
+their run_list
 * `fix nodes_with_role:ROL*`: Configures all nodes which have at least one role which
 starts with 'ROL' in their run_list
+* `fix nodes_with_recipe:MYRECIPE`: Configures all nodes which have the given recipe
+in their run_list
 * `fix nodes_with_tag:MYTAG`: Configures all nodes which have the tag `MYTAG`
   assigned. `--include-guests` will also configure guest nodes belonging to each host
   which has the given tag assigned
@@ -355,6 +377,7 @@ Happy cooking!
   [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
   [Kitchen]: https://github.com/edelight/kitchen/
   [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
+  [getchef]: http://www.getchef.com/chef/install/
   [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
   [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html

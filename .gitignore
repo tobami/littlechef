@@ -1,4 +1,5 @@
 *.pyc
+*.egg
 MANIFEST
 build
 dist
