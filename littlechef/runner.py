@@ -526,8 +526,6 @@ def _readconfig():
                 littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
             else:
                 env.berksfile_cookbooks_directory = None
-
-    if env.berksfile:
         chef.ensure_berksfile_cookbooks_are_installed()
 
     # Upload Directory
