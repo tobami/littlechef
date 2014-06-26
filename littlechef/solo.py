@@ -101,7 +101,8 @@ def configure(current_node=None):
         'cookbook_paths_list': cookbook_paths_list,
         'environment': current_node.get('chef_environment', '_default'),
         'verbose': "true" if env.verbose else "false",
-        'http_proxy': env.http_proxy
+        'http_proxy': env.http_proxy,
+        'https_proxy': env.https_proxy
     }
     with settings(hide('everything')):
         try:

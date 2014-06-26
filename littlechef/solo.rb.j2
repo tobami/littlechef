@@ -10,3 +10,7 @@ verify_api_cert true
 {% if http_proxy %}
 http_proxy "{{http_proxy}}"
 {% endif %}
+
+{% if https_proxy %}
+http_proxy "{{https_proxy}}"
+{% endif %}
