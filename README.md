@@ -198,6 +198,13 @@ This can be used if your nodes are behind a firewall and only one host is access
 from your current network location.
 
 ```ini
+[kitchen]
+autodeploy_chef=true
+```
+
+if set to true, a check will be performed before each deployment for chef-solo, and if it is not present it will be installed using the omnibus method.
+
+```ini
 [connection]
 gateway = hub.example.com
 ```
