@@ -19,7 +19,7 @@ setup(
     url="http://github.com/tobami/littlechef",
     download_url="http://github.com/tobami/littlechef/tags",
     keywords=["chef", "devops", "operations", "sysadmin"],
-    install_requires=['fabric>=1.5.4', 'argparse'],
+    install_requires=['fabric>=1.5.4', 'argparse', 'jinja2'],
     packages=['littlechef'],
     package_data={
         'littlechef': ['solo.rb', 'environment.rb']

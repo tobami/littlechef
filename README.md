@@ -69,9 +69,9 @@ to `solo.log.1`.
 
 #### metadata.rb and ruby roles ####
 
-LittleChef depends on the JSON versions of the cookbook metadata and roles to properly 
+LittleChef depends on the JSON versions of the cookbook metadata and roles to properly
 merge attributes. You can still use the ruby versions, and generate the JSON versions
-when you make changes. If you have knife locally installed, it will even be done 
+when you make changes. If you have knife locally installed, it will even be done
 automatically on every run if a changed metadata.rb is detected. Ruby roles are not
 yet automatically converted, but an implementation is planned.
 
@@ -115,7 +115,7 @@ for RHEL and CentOS.
 
 ### Installation
 
-You can install LittleChef directly from the PyPI:  
+You can install LittleChef directly from the PyPI:
 
     $ pip install littlechef
 
@@ -125,7 +125,7 @@ You can install LittleChef directly from the PyPI:
 
 Careful what you do with your nodes!:
 
-> A certain famous Chef: What do I always say? Anyone can cook.  
+> A certain famous Chef: What do I always say? Anyone can cook.
 > LittleChef: Yeah. Anyone can, that doesn't mean that anyone should.
 
 ### Local Setup
@@ -205,6 +205,14 @@ gateway = hub.example.com
 After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
 hub.example.com.
 
+If you want to use http/https proxy with chef_solo run. You have to add following entries to config file. They will create _solo.rb_ config file with http/https proxy configured.
+
+```ini
+[connection]
+http_proxy = "http://172.14.1.12:8888"
+https_proxy = "http://172.14.1.12:8888"
+```
+
 The `sync-packages` section allows you to define remote and local directories, which will then be synchronized at every run.
 
 ```ini
@@ -231,7 +239,7 @@ autodetect the distro type and version of that node, and will use the appropriat
 installation method and packages. LittleChef 2.x will use the omnibus method as default
 instead.
 
-You can also install Chef Solo with gems and/or without asking for confirmation:  
+You can also install Chef Solo with gems and/or without asking for confirmation:
 `fix node:MYNODE deploy_chef:gems=yes,ask=no`
 
 Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL,
