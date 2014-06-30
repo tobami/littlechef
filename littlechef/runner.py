@@ -17,6 +17,7 @@ import ConfigParser
 import os
 import sys
 import json
+import tempfile
 
 from fabric.api import *
 from fabric.contrib.console import confirm
