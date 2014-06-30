@@ -533,16 +533,20 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
         env.berksfile = None
     else:
+        env.cookbook_search_paths=[]
         try:
             env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
-            littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+            env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)+'/berks_cookbooks'
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
             if env.berksfile:
-                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
-                littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
+                env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)
             else:
                 env.berksfile_cookbooks_directory = None
         chef.ensure_berksfile_cookbooks_are_installed()
+
+    # Add defined cookbooks directories to search path
+    env.cookbook_search_paths+=cookbook_paths
 
     # Upload Directory
     try:

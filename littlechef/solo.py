@@ -91,10 +91,10 @@ def configure(current_node=None):
     if not exists('/etc/chef'):
         sudo('mkdir -p /etc/chef')
     # Set parameters and upload solo.rb template
-    reversed_cookbook_paths = cookbook_paths[:]
+    reversed_cookbook_paths = env.cookbook_search_paths[:]
     reversed_cookbook_paths.reverse()
-    cookbook_paths_list = '[{0}]'.format(', '.join(
-        ['"{0}/{1}"'.format(env.node_work_path, x)
+    cookbook_paths_list = '{0}'.format(', '.join(
+        ['"{0}/{1}"'.format(env.node_work_path, os.path.basename(x)) \
             for x in reversed_cookbook_paths]))
     data = {
         'node_work_path': env.node_work_path,

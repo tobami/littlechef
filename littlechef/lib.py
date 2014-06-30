@@ -278,7 +278,8 @@ def get_recipes_in_cookbook(name):
     path = None
     cookbook_exists = False
     metadata_exists = False
-    for cookbook_path in cookbook_paths:
+
+    for cookbook_path in env.cookbook_search_paths:
         path = os.path.join(cookbook_path, name)
         path_exists = os.path.exists(path)
         # cookbook exists if present in any of the cookbook paths
@@ -368,9 +369,10 @@ def get_recipes_in_node(node):
 def get_recipes():
     """Gets all recipes found in the cookbook directories"""
     dirnames = set()
-    for path in cookbook_paths:
+    for path in env.cookbook_search_paths:
         dirnames.update([d for d in os.listdir(path) if os.path.isdir(
                             os.path.join(path, d)) and not d.startswith('.')])
+
     recipes = []
     for dirname in dirnames:
         recipes.extend(get_recipes_in_cookbook(dirname))
