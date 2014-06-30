@@ -18,6 +18,8 @@ See http://wiki.opscode.com/display/chef/Anatomy+of+a+Chef+Run
 import os
 import shutil
 import json
+import subprocess
+import shutil
 from copy import deepcopy
 
 from fabric.api import *
@@ -133,9 +135,14 @@ def _synchronize_node(configfile, node):
             use_sudo=True,
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
+
+    paths_to_sync = ['./data_bags', './roles', './environments']
+    for cookbook_path in cookbook_paths:
+        paths_to_sync.append('./{0}'.format(cookbook_path))
+
     rsync_project(
         env.node_work_path,
-        './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
+        ' '.join(paths_to_sync),
         exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
         delete=True,
         extra_opts=extra_opts,
@@ -327,6 +334,36 @@ def remove_local_node_data_bag():
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
         shutil.rmtree(node_data_bag_path)
+
+
+def ensure_berksfile_cookbooks_are_installed():
+    """Run 'berks vendor' to berksfile cookbooks directory"""
+    msg = "Vendoring cookbooks from Berksfile {0} to directory {1}..."
+    print(msg.format(env.berksfile, env.berksfile_cookbooks_directory))
+
+    run_vendor = True
+    cookbooks_dir = env.berksfile_cookbooks_directory
+    berksfile_lock_path = cookbooks_dir+'/Berksfile.lock'
+
+    berksfile_lock_exists = os.path.isfile(berksfile_lock_path)
+    cookbooks_dir_exists = os.path.isdir(cookbooks_dir)
+
+    if cookbooks_dir_exists and berksfile_lock_exists:
+        berksfile_mtime = os.stat('Berksfile').st_mtime
+        cookbooks_mtime = os.stat(berksfile_lock_path).st_mtime
+        run_vendor = berksfile_mtime > cookbooks_mtime
+
+    if run_vendor:
+        if cookbooks_dir_exists:
+            shutil.rmtree(env.berksfile_cookbooks_directory)
+
+        p = subprocess.Popen(['berks', 'vendor', env.berksfile_cookbooks_directory],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        # TODO: output better
+        if env.verbose or p.returncode:
+            print stdout, stderr
 
 
 def _remove_remote_node_data_bag():

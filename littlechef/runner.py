@@ -17,13 +17,14 @@ import ConfigParser
 import os
 import sys
 import json
+import tempfile
 
 from fabric.api import *
 from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
@@ -524,6 +525,22 @@ def _readconfig():
         env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
+
+    try:
+        env.berksfile = config.get('kitchen', 'berksfile')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+        env.berksfile = None
+    else:
+        try:
+            env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
+            littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+            if env.berksfile:
+                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
+                littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+            else:
+                env.berksfile_cookbooks_directory = None
+        chef.ensure_berksfile_cookbooks_are_installed()
 
     # Upload Directory
     try:
