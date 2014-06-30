@@ -34,7 +34,6 @@ from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
-
 def save_config(node, force=False):
     """Saves node configuration
     if no nodes/hostname.json exists, or force=True, it creates one
@@ -139,6 +138,10 @@ def _synchronize_node(configfile, node):
     paths_to_sync = ['./data_bags', './roles', './environments']
     for cookbook_path in cookbook_paths:
         paths_to_sync.append('./{0}'.format(cookbook_path))
+
+    # Add berksfile directory to sync_list
+    if env.berksfile:
+        paths_to_sync.append(env.berksfile_cookbooks_directory)
 
     rsync_project(
         env.node_work_path,
