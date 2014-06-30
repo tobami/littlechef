@@ -100,13 +100,15 @@ def configure(current_node=None):
         'node_work_path': env.node_work_path,
         'cookbook_paths_list': cookbook_paths_list,
         'environment': current_node.get('chef_environment', '_default'),
-        'verbose': "true" if env.verbose else "false"
+        'verbose': "true" if env.verbose else "false",
+        'http_proxy': env.http_proxy,
+        'https_proxy': env.https_proxy
     }
     with settings(hide('everything')):
         try:
-            upload_template(os.path.join(BASEDIR, 'solo.rb'), '/etc/chef/',
-                            context=data, use_sudo=True, backup=False,
-                            mode=0400)
+            upload_template('solo.rb', '/etc/chef/',
+                            context=data, use_sudo=True, backup=False, template_dir=BASEDIR,
+                            use_jinja=True, mode=0400)
         except SystemExit:
             error = ("Failed to upload '/etc/chef/solo.rb'\nThis "
                      "can happen when the deployment user does not have a "

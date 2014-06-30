@@ -1,0 +1,16 @@
+file_cache_path "{{node_work_path}}/cache"
+cookbook_path {{cookbook_paths_list}}
+role_path "{{node_work_path}}/roles"
+data_bag_path "{{node_work_path}}/data_bags"
+environment_path "{{node_work_path}}/environments"
+environment "{{environment}}"
+verbose_logging {{verbose}}
+verify_api_cert true
+
+{% if http_proxy %}
+http_proxy "{{http_proxy}}"
+{% endif %}
+
+{% if https_proxy %}
+http_proxy "{{https_proxy}}"
+{% endif %}

@@ -212,6 +212,14 @@ gateway = hub.example.com
 After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
 hub.example.com.
 
+If you want to use http/https proxy with chef_solo run. You have to add following entries to config file. They will create _solo.rb_ config file with http/https proxy configured.
+
+```ini
+[connection]
+http_proxy = "http://172.14.1.12:8888"
+https_proxy = "http://172.14.1.12:8888"
+```
+
 The `sync-packages` section allows you to define remote and local directories, which will then be synchronized at every run.
 
 ```ini

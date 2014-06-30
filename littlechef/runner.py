@@ -447,6 +447,17 @@ def _readconfig():
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.gateway = None
 
+    # check for http_proxy which will be put into solo.rb
+    try:
+        env.http_proxy = config.get('connection', 'http_proxy')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.http_proxy = None
+
+    try:
+        env.https_proxy = config.get('connection', 'https_proxy')
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        env.https_proxy = None
+
     # Check for an encrypted_data_bag_secret file and set the env option
     try:
         env.encrypted_data_bag_secret = config.get('userinfo',
