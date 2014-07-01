@@ -17,13 +17,14 @@ import ConfigParser
 import os
 import sys
 import json
+import tempfile
 
 from fabric.api import *
 from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
@@ -173,10 +174,12 @@ def _node_runner():
         print "TEST: would now configure {0}".format(env.host_string)
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
+        if  env.autodeploy_chef and not chef.chef_test():
+            deploy_chef(method="omnibus")
         chef.sync_node(node)
 
 
-def deploy_chef(gems="no", ask="yes", version="0.10", distro_type=None,
+def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
                 distro=None, platform=None, stop_client='yes', method=None):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()
@@ -523,6 +526,22 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
 
+    try:
+        env.berksfile = config.get('kitchen', 'berksfile')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+        env.berksfile = None
+    else:
+        try:
+            env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
+            littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+            if env.berksfile:
+                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
+                littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+            else:
+                env.berksfile_cookbooks_directory = None
+        chef.ensure_berksfile_cookbooks_are_installed()
+
     # Upload Directory
     try:
         env.sync_packages_dest_dir = config.get('sync-packages',
@@ -536,6 +555,11 @@ def _readconfig():
                                                  'local-dir')
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         env.sync_packages_local_dir = None
+
+    try:
+        env.autodeploy_chef = config.get('userinfo', 'autodeploy_chef') or None
+    except ConfigParser.NoOptionError:
+        env.autodeploy_chef = None
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:

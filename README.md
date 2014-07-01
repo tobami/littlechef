@@ -170,6 +170,18 @@ An example `~/.ssh/config` file:
         IdentityFile ~/.ssh/dev_rsa
         User devuser
 
+### Berkshelf support
+
+_littlechef_ supports *Berkshelf*. If given file exists littlechef will execute _berks vendor berksfile-cookbooks-directory_,
+if use do not provide *berksfile_cookbooks_directory* then random directory in tmp is used. If user want's to upload some cookbooks
+which are not tracked in Berskfile, they have to place them to *cookbooks* directory.
+
+```ini
+[kitchen]
+berksfile = Berksfile
+berksfile_cookbooks_directory = berks-cookbooks
+```
+
 ### Other Configuration Options
 
 You can also optionally override the directory being used on the nodes to sync your
@@ -194,6 +206,13 @@ It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node
 ```ini
 [kitchen]
 autodeploy_chef=true
+```
+
+if set to true, a check will be performed before each deployment for chef-solo, and if it is not present it will be installed using the omnibus method.
+
+```ini
+[connection]
+gateway = hub.example.com
 ```
 
 if set to true, a check will be performed before each deployment for chef-solo, and if it is not present it will be installed using the omnibus method.
