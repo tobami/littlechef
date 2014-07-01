@@ -376,6 +376,17 @@ On Unix systems, you can do so by adding the `ControlMaster` directive to your s
       ControlMaster auto
       ControlPath /tmp/ssh-%r@%h:%p
 
+### Developing *littlechef*
+
+If you work on littlechef sometimes you want to see debug output from python fabric library.
+To enable fabric debug output add this code to a _runner.py_ and run *fix*.
+
+```python
+from fabric.state import output
+
+output['debug'] = True
+```
+
 ### Other tutorial material
 
 * [Automated Deployments with LittleChef][], nice introduction to Chef
