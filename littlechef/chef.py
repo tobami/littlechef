@@ -127,6 +127,20 @@ def _synchronize_node(configfile, node):
             use_sudo=True,
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
+
+    paths_to_sync = ['./data_bags', './roles', './environments']
+    for cookbook_path in cookbook_paths:
+        paths_to_sync.append('./{0}'.format(cookbook_path))
+
+    # Add berksfile directory to sync_list
+    if env.berksfile:
+        paths_to_sync.append(env.berksfile_cookbooks_directory)
+
+    if env.gateway:
+        ssh_key_file = '.ssh/'+os.path.basename(' '.join(env.ssh_config.lookup(env.host_string)['identityfile']))
+        extra_opts=""
+        ssh_opts+=" "+env.gateway+" ssh -i "+ssh_key_file
+
     rsync_project(
         env.node_work_path,
         './cookbooks ./data_bags ./roles ./site-cookbooks ./environments',
@@ -135,7 +149,7 @@ def _synchronize_node(configfile, node):
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-
+    sys.exit(1)
     if env.sync_packages_dest_dir and env.sync_packages_local_dir:
       print("Uploading packages from {0} to remote server {2} directory "
         "{1}").format(env.sync_packages_local_dir, env.sync_packages_dest_dir, env.host_string)
