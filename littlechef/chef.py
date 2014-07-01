@@ -143,6 +143,11 @@ def _synchronize_node(configfile, node):
     if env.berksfile:
         paths_to_sync.append(env.berksfile_cookbooks_directory)
 
+    if env.gateway:
+        ssh_key_file = '.ssh/'+os.path.basename(' '.join(env.ssh_config.lookup(env.host_string)['identityfile']))
+        extra_opts=""
+        ssh_opts+=" "+env.gateway+" ssh -i "+ssh_key_file
+
     rsync_project(
         env.node_work_path,
         ' '.join(paths_to_sync),
@@ -151,7 +156,7 @@ def _synchronize_node(configfile, node):
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-
+    sys.exit(1)
     if env.sync_packages_dest_dir and env.sync_packages_local_dir:
       print("Uploading packages from {0} to remote server {2} directory "
         "{1}").format(env.sync_packages_local_dir, env.sync_packages_dest_dir, env.host_string)
