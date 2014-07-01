@@ -106,7 +106,7 @@ def configure(current_node=None):
     }
     with settings(hide('everything')):
         try:
-            upload_template('solo.rb', '/etc/chef/',
+            upload_template('solo.rb.j2', '/etc/chef/solo.rb',
                             context=data, use_sudo=True, backup=False, template_dir=BASEDIR,
                             use_jinja=True, mode=0400)
         except SystemExit:
