@@ -146,7 +146,7 @@ def _synchronize_node(configfile, node):
     if env.gateway:
         ssh_key_file = '.ssh/'+os.path.basename(' '.join(env.ssh_config.lookup(env.host_string)['identityfile']))
         extra_opts=""
-        ssh_opts+=" "+env.gateway+" ssh -i "+ssh_key_file
+        ssh_opts+=" "+env.gateway+" ssh -o StrictHostKeyChecking=no -i "+ssh_key_file
 
     rsync_project(
         env.node_work_path,
