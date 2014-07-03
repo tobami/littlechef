@@ -156,7 +156,7 @@ def _synchronize_node(configfile, node):
         extra_opts=extra_opts,
         ssh_opts=ssh_opts
     )
-    sys.exit(1)
+
     if env.sync_packages_dest_dir and env.sync_packages_local_dir:
       print("Uploading packages from {0} to remote server {2} directory "
         "{1}").format(env.sync_packages_local_dir, env.sync_packages_dest_dir, env.host_string)
