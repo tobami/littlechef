@@ -325,13 +325,17 @@ def build_node_data_bag():
                   'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
 
-
 def remove_local_node_data_bag():
     """Removes generated 'node' data_bag locally"""
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
         shutil.rmtree(node_data_bag_path)
 
+def cleanup_berksfile_cookbooks():
+    """Removes berkshelf vendor directory """
+
+    if os.path.isdir(env.berksfile_cookbooks_directory):
+        shutil.rmtree(env.berksfile_cookbooks_directory)
 
 def ensure_berksfile_cookbooks_are_installed():
     """Run 'berks vendor' to berksfile cookbooks directory"""
