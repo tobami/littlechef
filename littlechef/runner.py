@@ -45,6 +45,7 @@ else:
 
 __testing__ = False
 
+env.berksfile_cookbooks_directory=""
 
 @hosts('setup')
 def new_kitchen():
@@ -123,6 +124,7 @@ def nodes_with_tag(tag):
 @hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
+    chef.ensure_berksfile_cookbooks_are_installed()
     chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
@@ -156,7 +158,7 @@ def node(*nodes):
         with settings():
             execute(_node_runner)
         chef.remove_local_node_data_bag()
-
+        chef.cleanup_berksfile_cookbooks()
 
 def _configure_fabric_for_platform(platform):
     """Configures fabric for a specific platform"""
@@ -543,8 +545,8 @@ def _readconfig():
                 env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)
             else:
                 env.berksfile_cookbooks_directory = None
-        chef.ensure_berksfile_cookbooks_are_installed()
 
+    #print("Setting env.berksfile_cookbooks_directory = {0}".format(env.berksfile_cookbooks_directory))
     # Add defined cookbooks directories to search path
     env.cookbook_search_paths+=cookbook_paths
 
