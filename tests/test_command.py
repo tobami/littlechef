@@ -16,6 +16,9 @@ import subprocess
 import os
 import platform
 import shutil
+import tempfile
+
+from fabric.api import env
 from os.path import join, normpath, abspath, split
 
 import sys
@@ -24,6 +27,8 @@ sys.path.insert(0, env_path)
 
 import littlechef
 
+env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
+env.berksfile = 'Berksfile'
 
 # Set some convenience variables
 test_path = split(normpath(abspath(__file__)))[0]
@@ -133,6 +138,7 @@ class TestEnvironment(BaseTest):
 class TestRunner(BaseTest):
     def test_no_node_given(self):
         """Should abort when no node is given"""
+        #import ipdb; ipdb.set_trace()
         resp, error = self.execute([fix, 'node:'])
         self.assertTrue("Fatal error: No node was given" in error)
 
