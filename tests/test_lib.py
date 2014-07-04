@@ -22,12 +22,13 @@ import sys
 env_path = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
 sys.path.insert(0, env_path)
 
-from littlechef import chef, lib, solo, exceptions
+from littlechef import chef, lib, solo, exceptions, cookbook_paths
 from test_base import BaseTest
 
 littlechef_src = os.path.split(os.path.normpath(os.path.abspath(__file__)))[0]
 littlechef_top = os.path.normpath(os.path.join(littlechef_src, '..'))
 
+env.cookbook_search_paths = cookbook_paths
 
 class TestSolo(BaseTest):
     def test_configure_no_sudo_rights(self):

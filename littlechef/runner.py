@@ -513,12 +513,12 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
 
+    env.cookbook_search_paths=[]
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
         env.berksfile = None
     else:
-        env.cookbook_search_paths=[]
         try:
             env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
             env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)+'/berks_cookbooks'
