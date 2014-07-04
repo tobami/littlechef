@@ -144,9 +144,11 @@ def _synchronize_node(configfile, node):
     if env.berksfile:
         paths_to_sync.append(env.berksfile_cookbooks_directory)
 
+    if env.loglevel is "debug":
+        extra_opts=""
+
     if env.gateway:
         ssh_key_file = '.ssh/'+os.path.basename(' '.join(env.ssh_config.lookup(env.host_string)['identityfile']))
-        extra_opts=""
         ssh_opts+=" "+env.gateway+" ssh -o StrictHostKeyChecking=no -i "+ssh_key_file
 
     rsync_project(
