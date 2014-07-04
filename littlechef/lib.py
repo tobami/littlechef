@@ -268,7 +268,6 @@ def _generate_metadata(path, cookbook_path, name):
         else:
             print("Generated metadata.json for {0}\n".format(path))
 
-
 def get_recipes_in_cookbook(name):
     """Gets the name of all recipes present in a cookbook
     Returns a list of dictionaries
