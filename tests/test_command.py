@@ -28,7 +28,7 @@ sys.path.insert(0, env_path)
 import littlechef
 
 env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
-env.berksfile = 'Berksfile'
+env.berksfile = None
 
 # Set some convenience variables
 test_path = split(normpath(abspath(__file__)))[0]
