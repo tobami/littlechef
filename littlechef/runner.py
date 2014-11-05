@@ -172,6 +172,15 @@ def _node_runner():
 
     _configure_fabric_for_platform(node.get("platform"))
 
+    if not env.gateway and node.get("gateway"):
+        env.gateway = node.get("gateway")
+
+    if not env.http_proxy and node.get("http_proxy"):
+        env.http_proxy = node.get("http_proxy")
+
+    if not env.https_proxy and node.get("https_proxy"):
+        env.https_proxy = node.get("https_proxy")
+
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
     else:
