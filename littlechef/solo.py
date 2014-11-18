@@ -250,6 +250,7 @@ def _omnibus_install(version):
     print("Downloading and installing Chef {0}...".format(version))
     with hide('stdout'):
         sudo("""bash /tmp/install.sh -v {0}""".format(version))
+        sudo('rm /tmp/install.sh')
 
 
 def _apt_install(distro, version, stop_client='yes'):
