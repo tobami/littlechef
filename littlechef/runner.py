@@ -24,7 +24,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef, cookbook_paths
+from littlechef import solo, lib, chef
 
 # Fabric settings
 import fabric
@@ -34,6 +34,7 @@ env.verbose = littlechef.verbose
 env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
+env.eagerly_disconnect = True
 
 if littlechef.concurrency:
     env.output_prefix = True
