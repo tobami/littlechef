@@ -34,7 +34,6 @@ from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
-
 def save_config(node, force=False):
     """Saves node configuration
     if no nodes/hostname.json exists, or force=True, it creates one
@@ -139,6 +138,10 @@ def _synchronize_node(configfile, node):
     paths_to_sync = ['./data_bags', './roles', './environments']
     for cookbook_path in cookbook_paths:
         paths_to_sync.append('./{0}'.format(cookbook_path))
+
+    # Add berksfile directory to sync_list
+    if env.berksfile:
+        paths_to_sync.append(env.berksfile_cookbooks_directory)
 
     rsync_project(
         env.node_work_path,
@@ -328,13 +331,17 @@ def build_node_data_bag():
                   'data_bags', 'node', node['id'] + '.json'), 'w') as f:
             f.write(json.dumps(node))
 
-
 def remove_local_node_data_bag():
     """Removes generated 'node' data_bag locally"""
     node_data_bag_path = os.path.join('data_bags', 'node')
     if os.path.exists(node_data_bag_path):
         shutil.rmtree(node_data_bag_path)
 
+def cleanup_berksfile_cookbooks():
+    """Removes berkshelf vendor directory """
+
+    if os.path.isdir(env.berksfile_cookbooks_directory):
+        shutil.rmtree(env.berksfile_cookbooks_directory)
 
 def ensure_berksfile_cookbooks_are_installed():
     """Run 'berks vendor' to berksfile cookbooks directory"""
