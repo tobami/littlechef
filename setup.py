@@ -26,7 +26,7 @@ setup(
         # NOTE: Chef 10 only (environment.rb)
     },
     scripts=['fix'],
-    setup_requires=['nose>=1.0'],
+    tests_require=['nose>=1.0'],
     test_suite='nose.collector',
     classifiers=[
         "Programming Language :: Python",

@@ -107,8 +107,8 @@ def configure(current_node=None):
     with settings(hide('everything')):
         try:
             upload_template('solo.rb.j2', '/etc/chef/solo.rb',
-                            context=data, use_sudo=True, backup=False, template_dir=BASEDIR,
-                            use_jinja=True, mode=0400)
+                            context=data, use_sudo=True, backup=False,
+                            template_dir=BASEDIR, use_jinja=True, mode=0400)
         except SystemExit:
             error = ("Failed to upload '/etc/chef/solo.rb'\nThis "
                      "can happen when the deployment user does not have a "
@@ -232,24 +232,29 @@ def _gem_pacman_install():
 def _gem_ports_install():
     """Install Chef from gems for FreeBSD"""
     with hide('stdout', 'running'):
-        sudo('grep -q RUBY_VER /etc/make.conf || echo \'RUBY_VER=1.9\' >> /etc/make.conf')
-        sudo('grep -q RUBY_DEFAULT_VER /etc/make.conf || echo \'RUBY_DEFAULT_VER=1.9\' >> /etc/make.conf')
+        sudo('grep -q RUBY_VER /etc/make.conf || '
+             'echo \'RUBY_VER=1.9\' >> /etc/make.conf')
+        sudo('grep -q RUBY_DEFAULT_VER /etc/make.conf || '
+             'echo \'RUBY_DEFAULT_VER=1.9\' >> /etc/make.conf')
     with show('running'):
         sudo('which -s rsync || pkg_add -r rsync')
         sudo('which -s perl || pkg_add -r perl')
         sudo('which -s m4 || pkg_add -r m4')
-        sudo('which -s chef || (cd /usr/ports/sysutils/rubygem-chef && make -DBATCH install)')
+        sudo('which -s chef || '
+             '(cd /usr/ports/sysutils/rubygem-chef && make -DBATCH install)')
 
 
 def _omnibus_install(version):
     """Install Chef using the omnibus installer"""
     url = "https://www.opscode.com/chef/install.sh"
     with hide('stdout', 'running'):
-        local("""python -c "import urllib; print urllib.urlopen('{0}').read()" > /tmp/install.sh""".format(url))
+        local("""python -c "import urllib; print urllib.urlopen('{0}').read()"'
+              ' > /tmp/install.sh""".format(url))
         put('/tmp/install.sh', '/tmp/install.sh')
     print("Downloading and installing Chef {0}...".format(version))
     with hide('stdout'):
         sudo("""bash /tmp/install.sh -v {0}""".format(version))
+        sudo('rm /tmp/install.sh')
 
 
 def _apt_install(distro, version, stop_client='yes'):
@@ -283,8 +288,8 @@ def _apt_install(distro, version, stop_client='yes'):
         else:
             version = "-" + version
         append('opscode.list',
-            'deb http://apt.opscode.com/ {0}{1} main'.format(distro, version),
-                use_sudo=True)
+               'deb http://apt.opscode.com/ {0}{1} main'.format(distro, version),
+               use_sudo=True)
         sudo('mv opscode.list /etc/apt/sources.list.d/')
         # Add repository GPG key
         gpg_key = "http://apt.opscode.com/packages@opscode.com.gpg.key"

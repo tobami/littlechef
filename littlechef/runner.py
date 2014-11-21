@@ -24,7 +24,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef, cookbook_paths
+from littlechef import solo, lib, chef
 
 # Fabric settings
 import fabric
@@ -34,6 +34,7 @@ env.verbose = littlechef.verbose
 env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
+env.eagerly_disconnect = True
 
 if littlechef.concurrency:
     env.output_prefix = True
@@ -185,7 +186,7 @@ def _node_runner():
         print "TEST: would now configure {0}".format(env.host_string)
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
-        if  env.autodeploy_chef and not chef.chef_test():
+        if env.autodeploy_chef and not chef.chef_test():
             deploy_chef(method="omnibus")
         chef.sync_node(node)
 
@@ -221,6 +222,7 @@ def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
         if not confirm(message):
             abort('Aborted by user')
 
+    lib.print_header("Configuring Chef Solo on {0}".format(env.host_string))
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
