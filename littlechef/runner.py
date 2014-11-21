@@ -175,7 +175,7 @@ def _node_runner():
         print "TEST: would now configure {0}".format(env.host_string)
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
-        if  env.autodeploy_chef and not chef.chef_test():
+        if env.autodeploy_chef and not chef.chef_test():
             deploy_chef(method="omnibus")
         chef.sync_node(node)
 
@@ -211,6 +211,7 @@ def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
         if not confirm(message):
             abort('Aborted by user')
 
+    lib.print_header("Configuring Chef Solo on {0}".format(env.host_string))
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
