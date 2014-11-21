@@ -240,31 +240,17 @@ to a node.
 
 #### Omnibus method
 The best way is to use the omnibus method [getchef][]:
-`fix node:MYNODE deploy_chef:method=omnibus,version=11.12`
+`fix node:MYNODE deploy_chef:version=11.12`
 
 #### Other methods
 
 The default installation method:
-`fix node:MYNODE deploy_chef` uses the packages from the [Opscode repository][], which
-are no longer updated, so its use is no longer recommended. LittleChef will try to
-autodetect the distro type and version of that node, and will use the appropriate
-installation method and packages. LittleChef 2.x will use the omnibus method as default
-instead.
+`fix node:MYNODE deploy_chef` LittleChef uses the omnibus method as default.
 
-You can also install Chef Solo with gems and/or without asking for confirmation:
-`fix node:MYNODE deploy_chef:gems=yes,ask=no`
+You can also install Chef Solo without asking for confirmation:
+`fix node:MYNODE deploy_chef:ask=no`
 
-Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL,
-Scientific Linux, Gentoo, and Arch Linux.
-
-When using the Debian repository, you need to take into account that Opscode has
-separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
-`fix node:MYNODE deploy_chef:version=0.9`
-
-Also, if you still want to keep the chef-client around in debian, use the `stop_client`
-option: `fix node:MYNODE deploy_chef:stop_client=no`
-
-Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method, removing the gem first might be a good idea.
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using any other procedure, please don't use the deploy_chef installation method, removing the chef first might be a good idea.
 
 #### Multihop littlechef setup
 
