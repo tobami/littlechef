@@ -24,7 +24,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
