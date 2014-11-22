@@ -96,14 +96,23 @@ def configure(current_node=None):
     cookbook_paths_list = '[{0}]'.format(', '.join(
         ['"{0}/{1}"'.format(env.node_work_path, x)
             for x in reversed_cookbook_paths]))
+
+    #
+    # Proxy variables might not be defined
+    proxy_list = {}
+    if env.http_proxy:
+        proxy_list['http_proxy'] = env.http_proxy
+    if env.https_proxy:
+        proxy_list['https_proxy'] = env.https_proxy
+
     data = {
         'node_work_path': env.node_work_path,
         'cookbook_paths_list': cookbook_paths_list,
-        'environment': current_node.get('chef_environment', '_default'),
-        'verbose': "true" if env.verbose else "false",
-        'http_proxy': env.http_proxy,
-        'https_proxy': env.https_proxy
+        'environment': current_node.get('chefenvironment', '_default'),
+        'verbose': "true" if env.verbose else "false"
     }
+    data.update(proxy_list)
+
     with settings(hide('everything')):
         try:
             upload_template('solo.rb.j2', '/etc/chef/solo.rb',
