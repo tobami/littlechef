@@ -124,7 +124,9 @@ def nodes_with_tag(tag):
 @hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
-    chef.ensure_berksfile_cookbooks_are_installed()
+    if env.berksfile:
+        chef.ensure_berksfile_cookbooks_are_installed()
+
     chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
