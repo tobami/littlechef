@@ -35,6 +35,7 @@ env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
 env.node_work_path = littlechef.node_work_path
 env.eagerly_disconnect = True
+env.skip_bad_hosts = True
 
 if littlechef.concurrency:
     env.output_prefix = True
