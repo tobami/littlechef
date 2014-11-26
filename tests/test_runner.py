@@ -1,11 +1,17 @@
+import tempfile
+
 from ConfigParser import SafeConfigParser
 
 from mock import patch
 from nose.tools import raises
 
+from fabric.api import env
+
 from littlechef import runner
 from test_base import BaseTest
 
+env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
+env.berksfile = None
 
 class TestConfig(BaseTest):
 

@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-"""LittleChef: Configuration Management using Chef Solo"""
+"""LittleChe: Configuration Management using Chef Solo"""
 import ConfigParser
 import os
 import sys
@@ -24,7 +24,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
@@ -45,6 +45,7 @@ else:
 
 __testing__ = False
 
+env.berksfile_cookbooks_directory=""
 
 @hosts('setup')
 def new_kitchen():
@@ -123,6 +124,9 @@ def nodes_with_tag(tag):
 @hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
+    if env.berksfile:
+        chef.ensure_berksfile_cookbooks_are_installed()
+
     chef.build_node_data_bag()
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
@@ -156,7 +160,7 @@ def node(*nodes):
         with settings():
             execute(_node_runner)
         chef.remove_local_node_data_bag()
-
+        chef.cleanup_berksfile_cookbooks()
 
 def _configure_fabric_for_platform(platform):
     """Configures fabric for a specific platform"""
@@ -171,38 +175,26 @@ def _node_runner():
 
     _configure_fabric_for_platform(node.get("platform"))
 
+    if not env.gateway and node.get("gateway"):
+        env.gateway = node.get("gateway")
+
+    if not env.http_proxy and node.get("http_proxy"):
+        env.http_proxy = node.get("http_proxy")
+
+    if not env.https_proxy and node.get("https_proxy"):
+        env.https_proxy = node.get("https_proxy")
+
     if __testing__:
         print "TEST: would now configure {0}".format(env.host_string)
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
         if env.autodeploy_chef and not chef.chef_test():
-            deploy_chef(method="omnibus")
+            deploy_chef(version=11)
         chef.sync_node(node)
 
-
-def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
-                distro=None, platform=None, stop_client='yes', method=None):
+def deploy_chef(ask="yes", version="11"):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()
-    deprecated_parameters = [distro_type, distro, platform]
-    if any(param is not None for param in deprecated_parameters) or gems != 'no':
-        print("DeprecationWarning: the parameters 'gems', distro_type',"
-              " 'distro' and 'platform' will no longer be supported "
-              "in future versions of LittleChef. Use 'method' instead")
-    if distro_type is None and distro is None:
-        distro_type, distro, platform = solo.check_distro()
-    elif distro_type is None or distro is None:
-        abort('Must specify both or neither of distro_type and distro')
-    if method:
-        if method not in ['omnibus', 'gentoo', 'pacman']:
-            abort('Invalid omnibus method {0}. Supported methods are '
-                  'omnibus, gentoo and pacman'.format(method))
-        msg = "{0} using the {1} installer".format(version, method)
-    else:
-        if gems == "yes":
-            msg = 'using gems for "{0}"'.format(distro)
-        else:
-            msg = '{0} using "{1}" packages'.format(version, distro)
     if method == 'omnibus' or ask == "no" or littlechef.noninteractive:
         print("Deploying Chef {0}...".format(msg))
     else:
@@ -215,7 +207,7 @@ def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
     _configure_fabric_for_platform(platform)
 
     if not __testing__:
-        solo.install(distro_type, distro, gems, version, stop_client, method)
+        solo.install(version)
         solo.configure()
 
         # Build a basic node file if there isn't one already
@@ -528,6 +520,7 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
 
+    env.cookbook_search_paths=[]
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
@@ -535,14 +528,17 @@ def _readconfig():
     else:
         try:
             env.berksfile_cookbooks_directory = config.get('kitchen', 'berksfile_cookbooks_directory')
-            littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+            env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)+'/berks_cookbooks'
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
             if env.berksfile:
-                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')
-                littlechef.cookbook_paths.append(env.berksfile_cookbooks_directory)
+                env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
+                env.cookbook_search_paths.append(env.berksfile_cookbooks_directory)
             else:
                 env.berksfile_cookbooks_directory = None
-        chef.ensure_berksfile_cookbooks_are_installed()
+
+    #print("Setting env.berksfile_cookbooks_directory = {0}".format(env.berksfile_cookbooks_directory))
+    # Add defined cookbooks directories to search path
+    env.cookbook_search_paths+=cookbook_paths
 
     # Upload Directory
     try:
