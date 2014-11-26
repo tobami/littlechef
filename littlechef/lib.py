@@ -163,7 +163,7 @@ def get_nodes_with_tag(tag, environment=None, include_guests=False):
             yield n
             # Walk guest if it is a host
             if include_guests and n.get('virtualization', {}).get('role') == 'host':
-                for guest in n['virtualization']['guests']:
+                for guest in n['virtualization'].get('guests', []):
                     try:
                         yield nodes_mapping[guest['fqdn']]
                     except KeyError:
