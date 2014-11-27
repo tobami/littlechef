@@ -182,7 +182,7 @@ def _node_runner():
 def deploy_chef(ask="yes", version="11"):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()
-    if method == 'omnibus' or ask == "no" or littlechef.noninteractive:
+    if ask == "no" or littlechef.noninteractive:
         print("Deploying Chef {0}...".format(msg))
     else:
         message = ('\nAre you sure you want to install Chef '
