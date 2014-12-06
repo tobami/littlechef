@@ -171,23 +171,29 @@ def _node_runner():
 
     _configure_fabric_for_platform(node.get("platform"))
 
-    if not env.gateway and node.get("gateway"):
-        env.gateway = node.get("gateway")
-
-    if not env.http_proxy and node.get("http_proxy"):
-        env.http_proxy = node.get("http_proxy")
-
-    if not env.https_proxy and node.get("https_proxy"):
-        env.https_proxy = node.get("https_proxy")
-
-    if __testing__:
-        print "TEST: would now configure {0}".format(env.host_string)
+    if node.get("gateway"):
+        gateway = node.get("gateway")
     else:
-        lib.print_header("Configuring {0}".format(env.host_string))
-        if env.autodeploy_chef and not chef.chef_test():
-            deploy_chef(method="omnibus")
-        chef.sync_node(node)
+        gateway = env.gateway
 
+    if node.get("http_proxy"):
+        http_proxy = node.get("http_proxy")
+    else:
+        http_proxy = env.http_proxy
+
+    if node.get("https_proxy"):
+        https_proxy = node.get("https_proxy")
+    else:
+        https_proxy = env.https_proxy
+
+    with settings(https_proxy=https_proxy, http_proxy=http_proxy, gateway=gateway):
+        if __testing__:
+            print "TEST: would now configure {0}".format(env.host_string)
+        else:
+            lib.print_header("Configuring {0}".format(env.host_string))
+            if env.autodeploy_chef and not chef.chef_test():
+                deploy_chef(method="omnibus")
+                chef.sync_node(node)
 
 def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
                 distro=None, platform=None, stop_client='yes', method=None):
