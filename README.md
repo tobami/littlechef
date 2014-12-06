@@ -257,7 +257,7 @@ The default installation method:
 You can also install Chef Solo without asking for confirmation:
 `fix node:MYNODE deploy_chef:ask=no`
 
-Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using any other procedure, please don't use the deploy_chef installation method, removing the chef first might be a good idea.
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using any other procedure, please don't use the deploy_chef installation method, removing chef first might be a good idea.
 
 ### Cooking
 

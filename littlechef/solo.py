@@ -80,7 +80,7 @@ def configure(current_node=None):
     data = {
         'node_work_path': env.node_work_path,
         'cookbook_paths_list': cookbook_paths_list,
-        'environment': current_node.get('chefenvironment', '_default'),
+        'environment': current_node.get('chef_environment', '_default'),
         'verbose': "true" if env.verbose else "false",
         'http_proxy': env.http_proxy,
         'https_proxy': env.https_proxy
