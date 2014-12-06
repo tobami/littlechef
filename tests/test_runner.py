@@ -11,7 +11,7 @@ from littlechef import runner
 from test_base import BaseTest
 
 env.berksfile_cookbooks_directory = tempfile.mkdtemp('littlechef-berks')+'/berks_cookbooks'
-env.berksfile = 'Berksfile'
+env.berksfile = None
 
 class TestConfig(BaseTest):
 
