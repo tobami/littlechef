@@ -196,7 +196,7 @@ def _node_runner(node_data=None):
             lib.print_header("Configuring {0}".format(env.host_string))
             if env.autodeploy_chef and not chef.chef_test():
                 deploy_chef(method="omnibus")
-                chef.sync_node(node)
+            chef.sync_node(node)
 
 
 def deploy_chef(gems="no", ask="yes", version="11", distro_type=None,
