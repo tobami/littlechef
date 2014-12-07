@@ -176,22 +176,21 @@ def _node_runner():
     else:
         lib.print_header("Configuring {0}".format(env.host_string))
         if env.autodeploy_chef and not chef.chef_test():
-            deploy_chef(version=11)
+            deploy_chef(ask="no")
         chef.sync_node(node)
 
 def deploy_chef(ask="yes", version="11"):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()
     if ask == "no" or littlechef.noninteractive:
-        print("Deploying Chef {0}...".format(msg))
+        print("Deploying Chef using omnibus installer version: ...".format(version))
     else:
-        message = ('\nAre you sure you want to install Chef '
-                   '{0} on node {1}?'.format(msg, env.host_string))
+        message = ('\nAre you sure you want to install Chef version:'
+                   '{0} on node {1}?'.format(version, env.host_string))
         if not confirm(message):
             abort('Aborted by user')
 
     lib.print_header("Configuring Chef Solo on {0}".format(env.host_string))
-    _configure_fabric_for_platform(platform)
 
     if not __testing__:
         solo.install(version)
@@ -229,6 +228,8 @@ def recipe(recipe):
     data = lib.get_node(env.host_string)
     data["run_list"] = ["recipe[{0}]".format(recipe)]
     if not __testing__:
+        if env.autodeploy_chef and not chef.chef_test():
+                deploy_chef(ask="no")
         chef.sync_node(data)
 
 
@@ -246,6 +247,8 @@ def role(role):
     data = lib.get_node(env.host_string)
     data["run_list"] = ["role[{0}]".format(role)]
     if not __testing__:
+        if env.autodeploy_chef and not chef.chef_test():
+                deploy_chef(ask="no")
         chef.sync_node(data)
 
 
