@@ -108,6 +108,11 @@ def parse_arguments():
         help=("When searching for nodes with tags also include virtualized"
               "guests of matching hosts")
     )
+    parser.add_argument(
+        "--no-color", dest="no_color", action="store_true",
+        default=False,
+        help=("Don't colerize the output")
+    )
     return parser, vars(parser.parse_args())
 
 
@@ -153,6 +158,7 @@ if __name__ == '__main__':
                 if not commands or ":" in args['environment']:
                     parser.error("No value given for --env")
                 littlechef.chef_environment = args['environment']
+            littlechef.no_color = args['no_color']
 
             # overwrite all commandline arguments and proxy
             # execution to the fabric script
