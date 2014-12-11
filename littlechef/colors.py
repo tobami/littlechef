@@ -1,10 +1,10 @@
-from fabric import env, colors
-
+from fabric import colors
+from fabric.api import env
 
 def _colorize(color, msg):
     if env.no_color:
         return msg
-    return colors.getattr(color)(msg)
+    return getattr(colors, color)(msg)
 
 red = lambda msg: _colorize('red', msg)
 green = lambda msg: _colorize('green', msg)
