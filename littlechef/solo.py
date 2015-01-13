@@ -97,7 +97,6 @@ def configure(current_node=None):
         ['"{0}/{1}"'.format(env.node_work_path, x)
             for x in reversed_cookbook_paths]))
 
-    #
     # Proxy variables might not be defined
     proxy_list = {}
     if env.http_proxy:
@@ -108,7 +107,7 @@ def configure(current_node=None):
     data = {
         'node_work_path': env.node_work_path,
         'cookbook_paths_list': cookbook_paths_list,
-        'environment': current_node.get('chefenvironment', '_default'),
+        'environment': current_node.get('chef_environment', '_default'),
         'verbose': "true" if env.verbose else "false"
     }
     data.update(proxy_list)
