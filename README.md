@@ -245,14 +245,8 @@ local-dir = ./packages
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
-#### Omnibus method
 The best way is to use the omnibus method [getchef][]:
 `fix node:MYNODE deploy_chef:version=11.12`
-
-#### Other methods
-
-The default installation method:
-`fix node:MYNODE deploy_chef` LittleChef uses the omnibus method as default.
 
 You can also install Chef Solo without asking for confirmation:
 `fix node:MYNODE deploy_chef:ask=no`
@@ -390,7 +384,7 @@ Happy cooking!
   [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
   [Kitchen]: https://github.com/edelight/kitchen/
   [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
-  [getchef]: http://www.getchef.com/chef/install/
+  [getchef]: https://www.chef.io/download-chef-client/
   [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
   [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
