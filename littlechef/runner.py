@@ -229,7 +229,7 @@ def recipe(recipe):
     data["run_list"] = ["recipe[{0}]".format(recipe)]
     if not __testing__:
         if env.autodeploy_chef and not chef.chef_test():
-                deploy_chef(ask="no")
+            deploy_chef(ask="no")
         chef.sync_node(data)
 
 
@@ -248,7 +248,7 @@ def role(role):
     data["run_list"] = ["role[{0}]".format(role)]
     if not __testing__:
         if env.autodeploy_chef and not chef.chef_test():
-                deploy_chef(ask="no")
+            deploy_chef(ask="no")
         chef.sync_node(data)
 
 
