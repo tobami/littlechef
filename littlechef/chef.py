@@ -19,7 +19,6 @@ import os
 import shutil
 import json
 import subprocess
-import shutil
 from copy import deepcopy
 
 from fabric.api import *
@@ -38,6 +37,7 @@ def save_config(node, force=False):
     """Saves node configuration
     if no nodes/hostname.json exists, or force=True, it creates one
     it also saves to tmp_node.json
+
     """
     filepath = os.path.join("nodes", env.host_string + ".json")
     tmp_filename = 'tmp_{0}.json'.format(env.host_string)
@@ -56,6 +56,7 @@ def _get_ipaddress(node):
     """Adds the ipaddress attribute to the given node object if not already
     present and it is correctly given by ohai
     Returns True if ipaddress is added, False otherwise
+
     """
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
@@ -71,6 +72,10 @@ def _get_ipaddress(node):
 
 
 def chef_test():
+    """Calls chef-solo on the remote node, returns True if successful,
+    False otherwise
+
+    """
     cmd = "chef-solo --version"
     output = sudo(cmd, warn_only=True, quiet=True)
     if 'chef-solo: command not found' in output:
@@ -82,6 +87,7 @@ def sync_node(node):
     """Builds, synchronizes and configures a node.
     It also injects the ipaddress to the node's config file if not already
     existent.
+
     """
     if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
@@ -111,6 +117,7 @@ def _synchronize_node(configfile, node):
 
     Returns the node object of the node which is about to be configured,
     or None if this node object cannot be found.
+
     """
     msg = "Synchronizing nodes, environments, roles, cookbooks and data bags..."
     if env.parallel:
@@ -141,6 +148,19 @@ def _synchronize_node(configfile, node):
     for cookbook_path in cookbook_paths:
         paths_to_sync.append('./{0}'.format(cookbook_path))
 
+    # Add berksfile directory to sync_list
+    if env.berksfile:
+        paths_to_sync.append(env.berksfile_cookbooks_directory)
+
+    if env.loglevel is "debug":
+        extra_opts = ""
+
+    if env.gateway:
+        ssh_key_file = '.ssh/' + os.path.basename(' '.join(env.ssh_config.lookup(
+            env.host_string)['identityfile']))
+        ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
+        ssh_opts += ssh_key_file
+
     rsync_project(
         env.node_work_path,
         ' '.join(paths_to_sync),
@@ -151,19 +171,20 @@ def _synchronize_node(configfile, node):
     )
 
     if env.sync_packages_dest_dir and env.sync_packages_local_dir:
-      print("Uploading packages from {0} to remote server {2} directory "
-        "{1}").format(env.sync_packages_local_dir, env.sync_packages_dest_dir, env.host_string)
-      try:
-        rsync_project(
-          env.sync_packages_dest_dir,
-          env.sync_packages_local_dir+"/*",
-          exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
-          delete=True,
-          extra_opts=extra_opts,
-          ssh_opts=ssh_opts
-        )
-      except:
-        print("Warning: package upload failed. Continuing cooking...")
+        print("Uploading packages from {0} to remote server {2} directory "
+              "{1}").format(env.sync_packages_local_dir,
+                            env.sync_packages_dest_dir, env.host_string)
+        try:
+            rsync_project(
+              env.sync_packages_dest_dir,
+              env.sync_packages_local_dir+"/*",
+              exclude=('*.svn', '.bzr*', '.git*', '.hg*'),
+              delete=True,
+              extra_opts=extra_opts,
+              ssh_opts=ssh_opts
+            )
+        except:
+            print("Warning: package upload failed. Continuing cooking...")
 
     _add_environment_lib()  # NOTE: Chef 10 only
 
@@ -294,6 +315,7 @@ def build_node_data_bag():
         All default cookbook attributes corresponding to the node
         All attributes found in nodes/<item>.json file
         Default and override attributes from all roles
+
     """
     nodes = lib.get_nodes()
     node_data_bag_path = os.path.join('data_bags', 'node')
@@ -362,7 +384,6 @@ def ensure_berksfile_cookbooks_are_installed():
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
-        # TODO: output better
         if env.verbose or p.returncode:
             print stdout, stderr
 

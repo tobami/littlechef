@@ -203,12 +203,6 @@ This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_sec
 Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
 It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
-If your nodes are not directly accessible, you might want to specify a gateway host.
-The fix command will connect to the host specified and issue all following connections
-from this host. All ssh communication will be tunneled through this gateway connection.
-This can be used if your nodes are behind a firewall and only one host is accessible
-from your current network location.
-
 ```ini
 [kitchen]
 autodeploy_chef=true
@@ -221,8 +215,7 @@ if set to true, a check will be performed before each deployment for chef-solo, 
 gateway = hub.example.com
 ```
 
-After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
-hub.example.com.
+if set to true, a check will be performed before each deployment for chef-solo, and if it is not present it will be installed using the omnibus method.
 
 If you want to use http/https proxy with chef_solo run. You have to add following entries to config file. They will create _solo.rb_ config file with http/https proxy configured.
 
@@ -245,33 +238,33 @@ local-dir = ./packages
 For convenience, there is a command that allows you to deploy chef-solo
 to a node.
 
-#### Omnibus method
 The best way is to use the omnibus method [getchef][]:
-`fix node:MYNODE deploy_chef:method=omnibus,version=11.12`
+`fix node:MYNODE deploy_chef:version=11.12`
 
-#### Other methods
+You can also install Chef Solo without asking for confirmation:
+`fix node:MYNODE deploy_chef:ask=no`
 
-The default installation method:
-`fix node:MYNODE deploy_chef` uses the packages from the [Opscode repository][], which
-are no longer updated, so its use is no longer recommended. LittleChef will try to
-autodetect the distro type and version of that node, and will use the appropriate
-installation method and packages. LittleChef 2.x will use the omnibus method as default
-instead.
+Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using any other procedure, please don't use the deploy_chef installation method, removing chef first might be a good idea.
 
-You can also install Chef Solo with gems and/or without asking for confirmation:
-`fix node:MYNODE deploy_chef:gems=yes,ask=no`
+#### Multihop littlechef setup
 
-Currently supported Linux distributions include Ubuntu, Debian, CentOS, RHEL,
-Scientific Linux, Gentoo, and Arch Linux.
+If your nodes are not directly accessible, you might want to specify a gateway host.
+The fix command will connect to the host specified and issue all following connections
+from this host. All ssh communication will be tunneled through this gateway connection.
+This can be used if your nodes are behind a firewall and only one host is accessible
+from your current network location.
 
-When using the Debian repository, you need to take into account that Opscode has
-separated Chef versions in different repos. Current default is Chef 0.10, but you can install Chef 0.9 by typing:
-`fix node:MYNODE deploy_chef:version=0.9`
+```ini
+[connection]
+gateway = hub.example.com
+```
 
-Also, if you still want to keep the chef-client around in debian, use the `stop_client`
-option: `fix node:MYNODE deploy_chef:stop_client=no`
+After issuing a fix command, this will connect to hub.example.com. All further node connections will be done from
+hub.example.com.
 
-Note that if you already have Chef Solo installed on your nodes, you won't need this. Also, if you previously installed Chef using the Gem procedure, please don't use the deploy_chef package installation method, removing the gem first might be a good idea.
+To be able to properly connect to hub.example.com same host should be defined in _ssh-config_. Because final connection
+is made from a hub.example.com any required ssh keys must be available on it or user needs to setup *ssh-agent* forwarding.
+
 
 ### Cooking
 
@@ -404,7 +397,7 @@ Happy cooking!
   [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
   [Kitchen]: https://github.com/edelight/kitchen/
   [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
-  [getchef]: http://www.getchef.com/chef/install/
+  [getchef]: https://www.chef.io/download-chef-client/
   [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
   [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
