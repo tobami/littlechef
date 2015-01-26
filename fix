@@ -111,7 +111,7 @@ def parse_arguments():
     parser.add_argument(
         "--no-color", dest="no_color", action="store_true",
         default=False,
-        help=("Don't colerize the output")
+        help=("Don't colorize the output")
     )
     return parser, vars(parser.parse_args())
 
