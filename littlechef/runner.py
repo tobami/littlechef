@@ -1,4 +1,4 @@
-#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2015 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -484,7 +484,7 @@ def _readconfig():
         pass
 
     try:
-        #If keypair-file is empty, assign None or fabric will try to read key "
+        # If keypair-file is empty, assign None or fabric will try to read key
         env.key_filename = config.get('userinfo', 'keypair-file') or None
     except ConfigParser.NoOptionError:
         pass
