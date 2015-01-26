@@ -18,12 +18,11 @@ import json
 import subprocess
 import imp
 
-from fabric import colors
 from fabric.api import env
 from fabric.contrib.console import confirm
 from fabric.utils import abort
 
-from littlechef import cookbook_paths
+from littlechef import cookbook_paths, colors
 from littlechef.exceptions import FileNotFoundError
 
 knife_installed = True

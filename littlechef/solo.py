@@ -17,11 +17,10 @@ import os
 import re
 
 from fabric.api import *
-from fabric import colors
 from fabric.contrib.files import append, exists, upload_template
 from fabric.utils import abort
 
-from littlechef import cookbook_paths
+from littlechef import cookbook_paths, colors
 from littlechef import LOGFILE
 
 # Path to local patch
