@@ -28,7 +28,7 @@ from fabric import colors
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
-from littlechef import cookbook_paths, whyrun, lib, solo
+from littlechef import cookbook_paths, whyrun, lib, solo, forward_agent
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
 
 # Path to local patch
@@ -432,7 +432,7 @@ def _configure_node():
     if env.loglevel == "debug":
         print("Executing Chef Solo with the following command:\n"
               "{0}".format(cmd))
-    with settings(hide('warnings', 'running'), warn_only=True):
+    with settings(hide('warnings', 'running'), warn_only=True, forward_agent=forward_agent):
         output = sudo(cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
             ("Chef Run complete" not in output and
