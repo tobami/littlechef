@@ -180,6 +180,7 @@ def _node_runner():
             deploy_chef(ask="no")
         chef.sync_node(node)
 
+
 def deploy_chef(ask="yes", version="11"):
     """Install chef-solo on a node"""
     env.host_string = lib.get_env_host_string()

@@ -21,7 +21,7 @@ import json
 import subprocess
 from copy import deepcopy
 
-from fabric.api import *
+from fabric.api import settings, hide, env, sudo, put
 from fabric.contrib.files import exists
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
