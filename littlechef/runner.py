@@ -121,7 +121,6 @@ def nodes_with_tag(tag):
     return node(*nodes)
 
 
-@hosts('setup')
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
     chef.build_node_data_bag()
