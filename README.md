@@ -215,8 +215,6 @@ if set to true, a check will be performed before each deployment for chef-solo, 
 gateway = hub.example.com
 ```
 
-if set to true, a check will be performed before each deployment for chef-solo, and if it is not present it will be installed using the omnibus method.
-
 If you want to use http/https proxy with chef_solo run. You have to add following entries to config file. They will create _solo.rb_ config file with http/https proxy configured.
 
 ```ini
