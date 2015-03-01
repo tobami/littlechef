@@ -6,3 +6,5 @@ dist
 littlechef.egg-info
 .coverage
 tags
+.eggs
+.ropeproject
