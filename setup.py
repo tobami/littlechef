@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """LittleChef's setup.py"""
 try:
     from setuptools import setup
