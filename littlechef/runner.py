@@ -86,6 +86,7 @@ def new_kitchen():
             print >> configfh, "encrypted_data_bag_secret = "
             print >> configfh, "[kitchen]"
             print >> configfh, "node_work_path = /tmp/chef-solo/"
+            print >> configfh, '[system]'
             print "{0} file created...".format(littlechef.CONFIGFILE)
 
 
@@ -545,6 +546,12 @@ def _readconfig():
         env.autodeploy_chef = config.get('userinfo', 'autodeploy_chef') or None
     except ConfigParser.NoOptionError:
         env.autodeploy_chef = None
+
+    # set chef binary path if users specify one
+    try:
+        littlechef.chef_binary_path = config.get('system', 'chef_binary_path')
+    except (ConfigParser.NoOptionError, ConfigParser.NoOptionError):
+        littlechef.chef_binary_path = '/bin'
 
 # Only read config if fix is being used and we are not creating a new kitchen
 if littlechef.__cooking__:

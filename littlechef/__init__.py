@@ -30,6 +30,7 @@ whyrun = False
 concurrency = False
 include_guests = False
 no_color = False
+chef_binary_path = None
 
 node_work_path = "/tmp/chef-solo"
 cookbook_paths = ['site-cookbooks', 'cookbooks']

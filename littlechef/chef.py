@@ -26,8 +26,10 @@ from fabric.contrib.files import exists
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
 
+import littlechef
 from littlechef import cookbook_paths, whyrun, lib, solo, colors
 from littlechef import LOGFILE, enable_logs as ENABLE_LOGS
+
 
 # Path to local patch
 basedir = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
@@ -58,9 +60,10 @@ def _get_ipaddress(node):
     Returns True if ipaddress is added, False otherwise
 
     """
+    ohai_exec = '{chef_path}/ohai -l warn ipaddress'.format(chef_path = littlechef.chef_binary_path)
     if "ipaddress" not in node:
         with settings(hide('stdout'), warn_only=True):
-            output = sudo('ohai -l warn ipaddress')
+            output = sudo(ohai_exec)
         if output.succeeded:
             try:
                 node['ipaddress'] = json.loads(output)[0]
@@ -76,7 +79,8 @@ def chef_test():
     False otherwise
 
     """
-    cmd = "chef-solo --version"
+
+    cmd = "{chef_path}/chef-solo --version".format(chef_path = littlechef.chef_binary_path)
     output = sudo(cmd, warn_only=True, quiet=True)
     if 'chef-solo: command not found' in output:
         return False
@@ -432,7 +436,7 @@ def _configure_node():
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
     # Build chef-solo command
-    cmd = "RUBYOPT=-Ku chef-solo"
+    cmd = "RUBYOPT=-Ku {chef_path}/chef-solo".format(chef_path = littlechef.chef_binary_path)
     if whyrun:
         cmd += " --why-run"
     cmd += ' -l {0} -j /etc/chef/node.json'.format(env.loglevel)
