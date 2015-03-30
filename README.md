@@ -204,7 +204,7 @@ Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem
 It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
 ```ini
-[kitchen]
+[userinfo]
 autodeploy_chef=true
 ```
 
