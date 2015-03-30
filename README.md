@@ -385,19 +385,19 @@ If you find bugs please report it on [https://github.com/tobami/littlechef/issue
 Happy cooking!
 
   [Chef]: http://www.getchef.com/chef/
-  [Nodes]: http://docs.opscode.com/essentials_node_object.html
-  [Cookbooks]: http://docs.opscode.com/essentials_cookbooks.html
-  [Environments]: http://docs.opscode.com/essentials_environments.html
-  [Roles]: http://docs.opscode.com/essentials_roles.html
-  [Data Bags]: http://docs.opscode.com/essentials_data_bags.html
-  [chef-solo-search library]: http://community.opscode.com/cookbooks/chef-solo-search
-  [Chef attribute preference rules]: http://docs.opscode.com/essentials_cookbook_attribute_files.html#attribute-precedence
-  [automatic attributes]: http://docs.opscode.com/essentials_cookbook_recipes.html#Recipes-CommonAutomaticAttributes
+  [Nodes]: http://docs.chef.io/nodes.html
+  [Cookbooks]: http://docs.chef.io/cookbooks.html
+  [Environments]: http://docs.chef.io/environments.html
+  [Roles]: http://docs.chef.io/roles.html
+  [Data Bags]: http://docs.chef.io/data_bags.html
+  [chef-solo-search library]: https://supermarket.chef.io/cookbooks/chef-solo-search
+  [Chef attribute preference rules]: https://docs.chef.io/attributes.html#attribute-precedence
+  [automatic attributes]: http://docs.chef.io/recipes.html
   [Kitchen]: https://github.com/edelight/kitchen/
-  [search wiki page]: http://docs.opscode.com/essentials_search.html#query-syntax
+  [search wiki page]: http://docs.chef.io/chef_search.html
   [getchef]: https://www.chef.io/download-chef-client/
-  [Opscode repository]: http://docs.opscode.com/install_server.html#Installation-InstallingChefClientandChefSolo
-  [Whyrun]: https://wiki.opscode.com/display/chef/Whyrun+Testing
+  [Opscode repository]: https://docs.chef.io/install_server.html#Installation-InstallingChefClientandChefSolo
+  [Whyrun]: https://docs.chef.io/debug.html
   [Automated Deployments with LittleChef]: http://sysadvent.blogspot.com/2010/12/day-9-automated-deployments-with.html
   [discussion group]: http://groups.google.com/group/littlechef
   [https://github.com/tobami/littlechef/issues]: https://github.com/tobami/littlechef/issues
