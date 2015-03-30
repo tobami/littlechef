@@ -1,4 +1,4 @@
-#Copyright 2010-2014 Miquel Torres <tobami@gmail.com>
+#Copyright 2010-2015 Miquel Torres <tobami@gmail.com>
 #
 #Licensed under the Apache License, Version 2.0 (the "License");
 #you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
 #
 """Chef Solo deployment"""
 import os
-import re
 
 from fabric.api import *
-from fabric.contrib.files import append, exists, upload_template
+from fabric.contrib.files import exists, upload_template
 from fabric.utils import abort
 
-from littlechef import cookbook_paths, colors
+from littlechef import cookbook_paths
 from littlechef import LOGFILE
 
 # Path to local patch
 BASEDIR = os.path.abspath(os.path.dirname(__file__).replace('\\', '/'))
 
+
 def install(version):
     """Install Chef using the omnibus installer"""
-    url = "https://www.opscode.com/chef/install.sh"
+    url = "https://www.chef.io/chef/install.sh"
     with hide('stdout', 'running'):
         local("""python -c "import urllib; print urllib.urlopen('{0}').read()"'
               ' > /tmp/install.sh""".format(url))
@@ -37,6 +37,7 @@ def install(version):
         with hide('stdout'):
             sudo("""bash /tmp/install.sh -v {0}""".format(version))
             sudo('rm /tmp/install.sh')
+
 
 def configure(current_node=None):
     """Deploy chef-solo specific files"""
