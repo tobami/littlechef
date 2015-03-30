@@ -2,6 +2,13 @@
 LittleChef Changelog
 ====================
 
+Version 1.8.0 March 30, 2015
+----------------------------------------
+New features:
+* #232: Option for colorless output
+* #228: Omnibus as default install method. Defaults to Chef 11
+* #212: http proxy
+
 
 Version 1.7.2 May 23, 2014
 ----------------------------------------
