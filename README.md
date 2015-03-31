@@ -192,7 +192,7 @@ kitchen to:
 node_work_path = /tmp/chef-solo
 ```
 
-If you're using encrypted data bags you can specify a path for the encrypted_data_bag_secret file:
+You can use encrypted data bags. [Create secret keys](https://docs.chef.io/chef/essentials_data_bags.html#secret-keys), Use [knife-solo_data_bag](https://github.com/thbishop/knife-solo_data_bag) Gem to create encrypted data bags, and specify a path for the encrypted_data_bag_secret file:
 
 ```ini
 [userinfo]
