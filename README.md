@@ -210,7 +210,6 @@ If you are not comfortable about leaving data bags in the remote node, which wil
 remove_data_bags=true
 ```
 
-
 ```ini
 [userinfo]
 autodeploy_chef=true
