@@ -398,11 +398,18 @@ def _remove_remote_node_data_bag():
     if exists(node_data_bag_path):
         sudo("rm -rf {0}".format(node_data_bag_path))
 
+def _remove_remote_data_bags():
+    """Remove remote data bags, so it won't leak any sensitive information"""
+    data_bags_path = os.path.join(env.node_work_path, 'data_bags')
+    if exists(data_bags_path):
+        sudo("rm -rf {0}".format(data_bags_path))
 
 def _node_cleanup():
     if env.loglevel is not "debug":
         with hide('running', 'stdout'):
             _remove_remote_node_data_bag()
+            if env.remove_data_bags:
+                _remove_remote_data_bags()
             with settings(warn_only=True):
                 sudo("rm '/etc/chef/node.json'")
                 if env.encrypted_data_bag_secret:
