@@ -203,6 +203,14 @@ This will put the encrypted_data_bag_secret in `/etc/chef/encrypted_data_bag_sec
 Chef-solo will automatically use it wherever you use `Chef::EncryptedDataBagItem.load` in your recipes.
 It will also remove the `/etc/chef/encrypted_data_bag_secret` file from the node at the end of the run.
 
+If you are not comfortable about leaving data bags in the remote node, which will leak sensitive information, you can tell littlechef to delete them all at the end of the run:
+
+```ini
+[userinfo]
+remove_data_bags=true
+```
+
+
 ```ini
 [userinfo]
 autodeploy_chef=true
