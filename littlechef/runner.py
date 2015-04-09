@@ -447,7 +447,7 @@ def _readconfig():
     try:
         env.remove_data_bags = config.get('userinfo', 'remove_data_bags')
     except ConfigParser.NoOptionError:
-        env.remove_data_bags = None
+        env.remove_data_bags = False
         
     # Check for an encrypted_data_bag_secret file and set the env option
     try:
