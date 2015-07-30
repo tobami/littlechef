@@ -261,6 +261,7 @@ class TestNewKitchen(BaseTest):
             print >> configfh, "[userinfo]"
             print >> configfh, "user = testuser"
             print >> configfh, "password = testpassword"
+            print >> configfh, "[system]"
 
         resp, error = self.execute([fix, 'list_nodes'])
         self.assertFalse(error)
