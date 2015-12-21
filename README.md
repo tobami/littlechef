@@ -359,7 +359,7 @@ from littlechef import runner as lc
 lc.env.user = 'MyUsername'
 lc.env.password = 'MyPassword'
 lc.env.host_string = 'MyHostnameOrIP'
-lc.deploy_chef(gems='yes', ask='no')
+lc.deploy_chef(ask='no')
 
 lc.recipe('MYRECIPE') #Applies <MYRECIPE> to <MyHostnameOrIP>
 lc.node('MyHostnameOrIP') #Applies the saved nodes/MyHostnameOrIP.json configuration
