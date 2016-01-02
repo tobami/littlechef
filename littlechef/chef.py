@@ -39,7 +39,7 @@ def save_config(node, force=False):
     it also saves to tmp_node.json
 
     """
-    filepath = os.path.join("nodes", env.host_string + ".json")
+    filepath = os.path.join(lib.kitchen_relative_path("nodes"), env.host_string + ".json")
     tmp_filename = 'tmp_{0}.json'.format(env.host_string)
     files_to_create = [tmp_filename]
     if not os.path.exists(filepath) or force:
@@ -144,13 +144,14 @@ def _synchronize_node(configfile, node):
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
 
-    paths_to_sync = ['./data_bags', './roles', './environments']
+    paths_to_sync = ['data_bags', 'roles', 'environments']
+    paths_to_sync = [lib.kitchen_relative_path(path) for path in paths_to_sync]
     for cookbook_path in cookbook_paths:
-        paths_to_sync.append('./{0}'.format(cookbook_path))
+        paths_to_sync.append(lib.kitchen_relative_path(cookbook_path))
 
     # Add berksfile directory to sync_list
     if env.berksfile:
-        paths_to_sync.append(env.berksfile_cookbooks_directory)
+        paths_to_sync.append(lib.kitchen_relative_path(env.berksfile_cookbooks_directory))
 
     if env.loglevel is "debug":
         extra_opts = ""
@@ -365,8 +366,8 @@ def ensure_berksfile_cookbooks_are_installed():
     print(msg.format(env.berksfile, env.berksfile_cookbooks_directory))
 
     run_vendor = True
-    cookbooks_dir = env.berksfile_cookbooks_directory
-    berksfile_lock_path = cookbooks_dir+'/Berksfile.lock'
+    cookbooks_dir = lib.kitchen_relative_path(env.berksfile_cookbooks_directory)
+    berksfile_lock_path = os.path.join(cookbooks_dir,'Berksfile.lock')
 
     berksfile_lock_exists = os.path.isfile(berksfile_lock_path)
     cookbooks_dir_exists = os.path.isdir(cookbooks_dir)
@@ -378,9 +379,10 @@ def ensure_berksfile_cookbooks_are_installed():
 
     if run_vendor:
         if cookbooks_dir_exists:
-            shutil.rmtree(env.berksfile_cookbooks_directory)
+            shutil.rmtree(cookbooks_dir)
 
-        p = subprocess.Popen(['berks', 'vendor', env.berksfile_cookbooks_directory],
+        p = subprocess.Popen(['berks', 'vendor', cookbooks_dir],
+                             cwd=lib.kitchen_relative_path('.'),
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()

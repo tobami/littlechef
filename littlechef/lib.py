@@ -278,7 +278,7 @@ def get_recipes_in_cookbook(name):
     cookbook_exists = False
     metadata_exists = False
     for cookbook_path in cookbook_paths:
-        path = os.path.join(cookbook_path, name)
+        path = os.path.join(kitchen_relative_path(cookbook_path), name)
         path_exists = os.path.exists(path)
         # cookbook exists if present in any of the cookbook paths
         cookbook_exists = cookbook_exists or path_exists
@@ -324,7 +324,7 @@ def get_recipes_in_cookbook(name):
     # Add recipes found in the 'recipes' directory but not listed
     # in the metadata
     for cookbook_path in cookbook_paths:
-        recipes_dir = os.path.join(cookbook_path, name, 'recipes')
+        recipes_dir = os.path.join(kitchen_relative_path(cookbook_path), name, 'recipes')
         if not os.path.isdir(recipes_dir):
             continue
         for basename in os.listdir(recipes_dir):
@@ -368,6 +368,7 @@ def get_recipes():
     """Gets all recipes found in the cookbook directories"""
     dirnames = set()
     for path in cookbook_paths:
+        path = kitchen_relative_path(path)
         dirnames.update([d for d in os.listdir(path) if os.path.isdir(
                             os.path.join(path, d)) and not d.startswith('.')])
     recipes = []
@@ -457,6 +458,11 @@ def print_role(role, detailed=True):
     print("")
 
 
+def kitchen_relative_path(path):
+    """Returns path relative to chef kitchen path"""
+    return os.path.join(env.kitchen_path, path)
+
+
 def print_plugin_list():
     """Prints a list of available plugins"""
     print("List of available plugins:")
@@ -502,7 +508,7 @@ def import_plugin(name):
 def get_cookbook_path(cookbook_name):
     """Returns path to the cookbook for the given cookbook name"""
     for cookbook_path in cookbook_paths:
-        path = os.path.join(cookbook_path, cookbook_name)
+        path = os.path.join(kitchen_relative_path(cookbook_path), cookbook_name)
         if os.path.exists(path):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
