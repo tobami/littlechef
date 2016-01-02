@@ -365,6 +365,9 @@ lc.recipe('MYRECIPE') #Applies <MYRECIPE> to <MyHostnameOrIP>
 lc.node('MyHostnameOrIP') #Applies the saved nodes/MyHostnameOrIP.json configuration
 ```
 
+You will need to specify additional `lc.env` parameters per your requirements.
+A simple [working example](https://gist.github.com/iashwash/4dd3e6c655c545cb272f).
+
 ### Performance Tips
 
 You can greatly reduce the SSH connection setup time by reusing existing connections.
