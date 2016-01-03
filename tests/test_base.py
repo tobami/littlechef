@@ -14,6 +14,7 @@ class BaseTest(unittest.TestCase):
             'testnode4'
         ]
         runner.__testing__ = True
+        runner.env.kitchen_path = os.getcwd()
 
     def tearDown(self):
         for nodename in self.nodes + ["extranode"]:
