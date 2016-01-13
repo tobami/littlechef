@@ -21,7 +21,7 @@ import json
 import subprocess
 from copy import deepcopy
 
-from fabric.api import settings, hide, env, sudo, put
+from fabric.api import settings, hide, env, sudo, put, run
 from fabric.contrib.files import exists
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
@@ -161,7 +161,10 @@ def _synchronize_node(configfile, node):
             env.host_string)['identityfile']))
         ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
         ssh_opts += ssh_key_file
-
+    
+    
+    ssh_opts += " -o StrictHostKeyChecking=no "
+    print "Rsyncing {} paths to {}".format(' '.join(paths_to_sync), env.node_work_path)
     rsync_project(
         env.node_work_path,
         ' '.join(paths_to_sync),
@@ -440,6 +443,9 @@ def _configure_node():
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
+        logfile_directory = os.path.dirname(LOGFILE)
+        # make sure the current user can write to the log
+        sudo("chown {} {}".format(env.user, logfile_directory))
     # Build chef-solo command
     cmd = "RUBYOPT=-Ku chef-solo"
     if whyrun:
@@ -450,8 +456,8 @@ def _configure_node():
     if env.loglevel == "debug":
         print("Executing Chef Solo with the following command:\n"
               "{0}".format(cmd))
-    with settings(hide('warnings', 'running'), warn_only=True):
-        output = sudo(cmd)
+    with settings(hide('warnings', 'running'), warn_only=True, forward_agent=True):
+        output = run("sudo -E -s " + cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
             ("Chef Run complete" not in output and
              "Report handlers complete" not in output)):

@@ -169,6 +169,22 @@ def _configure_fabric_for_platform(platform):
         env.shell = "/bin/sh -c"
 
 
+def apply_json_to_target(target, node):
+    """Testing out alternate deployment method"""
+    env.host_string = lib.get_env_host_string()
+    node = lib.get_node(node)
+
+    _configure_fabric_for_platform(node.get("platform"))
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        lib.print_header("Node config: {0}".format(json.dumps(node)))
+        
+        if env.autodeploy_chef and not chef.chef_test():
+            deploy_chef(ask="no")
+        chef.sync_node(node)
+    
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
     env.host_string = lib.get_env_host_string()
