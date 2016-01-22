@@ -123,6 +123,11 @@ def parse_arguments():
         default=False,
         help=("Skips creation of the node databag.")
     )
+    parser.add_argument(
+        "--skip-node-json", dest="skip_node_json", action="store_true",
+        default=False,
+        help=("Skips creation of the node json file.")
+    )
     return parser, vars(parser.parse_args())
 
 
@@ -170,6 +175,8 @@ if __name__ == '__main__':
                 littlechef.chef_environment = args['environment']
             if args['skip_node_data_bag']:
                 littlechef.skip_node_data_bag = True
+            if args['skip_node_json']:
+                littlechef.skip_node_json = True
             littlechef.no_color = args['no_color']
             littlechef.kitchen_path = args['kitchen_path']
 

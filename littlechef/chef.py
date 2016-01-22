@@ -44,8 +44,13 @@ def save_config(node, force=False):
     files_to_create = [tmp_filename]
     if not os.path.exists(filepath) or force:
         # Only save to nodes/ if there is not already a file
-        print "Saving node configuration to {0}...".format(filepath)
-        files_to_create.append(filepath)
+        # and --skip-node-json was not called
+        if env.skip_node_json and not force:
+            print "SKIPPING save of node configuration to {0}...".format(filepath)
+        else:
+            print "Saving node configuration to {0}...".format(filepath)
+            files_to_create.append(filepath)
+
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4, sort_keys=True))

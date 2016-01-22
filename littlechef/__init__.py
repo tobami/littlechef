@@ -32,6 +32,7 @@ whyrun = False
 concurrency = False
 include_guests = False
 skip_node_data_bag = False
+skip_node_json = False
 no_color = False
 
 node_work_path = "/tmp/chef-solo"
