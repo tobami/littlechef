@@ -36,6 +36,7 @@ env.chef_environment = littlechef.chef_environment
 env.kitchen_path = littlechef.kitchen_path
 env.node_work_path = littlechef.node_work_path
 env.skip_node_data_bag = littlechef.skip_node_data_bag
+env.skip_node_json = littlechef.skip_node_json
 env.eagerly_disconnect = True
 env.no_color = littlechef.no_color
 
@@ -544,6 +545,12 @@ def _readconfig():
         env.skip_node_data_bag = config.getboolean('kitchen', 'skip_node_data_bag')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.skip_node_data_bag = littlechef.skip_node_data_bag
+
+    # Skip saving the node json
+    try:
+        env.skip_node_hson = config.getboolean('kitchen', 'skip_node_json')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.skip_node_json = littlechef.skip_node_json
 
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
