@@ -170,6 +170,22 @@ def _configure_fabric_for_platform(platform):
         env.shell = "/bin/sh -c"
 
 
+def node_by_json(target, node):
+    """Applies node file named node.json to target"""
+    env.host_string = lib.get_env_host_string()
+    node = lib.get_node(node)
+
+    _configure_fabric_for_platform(node.get("platform"))
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        lib.print_header("Node config: {0}".format(json.dumps(node)))
+        
+        if env.autodeploy_chef and not chef.chef_test():
+            deploy_chef(ask="no")
+        chef.sync_node(node)
+    
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
     env.host_string = lib.get_env_host_string()
@@ -532,9 +548,15 @@ def _readconfig():
 
     # Skip saving the node json
     try:
-        env.skip_node_hson = config.getboolean('kitchen', 'skip_node_json')
+        env.skip_node_json = config.getboolean('kitchen', 'skip_node_json')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.skip_node_json = littlechef.skip_node_json
+
+    # Get the path to the kitchen
+    try:
+        env.kitchen_path = config.get('kitchen', 'kitchen_path')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.kitchen_path = littlechef.kitchen_path
 
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
