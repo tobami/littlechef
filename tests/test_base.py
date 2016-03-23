@@ -17,6 +17,7 @@ class BaseTest(unittest.TestCase):
         runner.env.kitchen_path = os.getcwd()
 
     def tearDown(self):
+        print("Running teardown")
         for nodename in self.nodes + ["extranode"]:
             filename = 'tmp_' + nodename + '.json'
             if os.path.exists(filename):
@@ -31,3 +32,6 @@ class BaseTest(unittest.TestCase):
         runner.env.key_filename = None
         runner.env.node_work_path = None
         runner.env.encrypted_data_bag_secret = None
+        runner.env.skip_node_data_bag = False
+        runner.env.skip_node_json = False
+        runner.env.kitchen_path = os.getcwd()
