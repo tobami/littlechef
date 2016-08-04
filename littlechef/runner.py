@@ -24,7 +24,7 @@ from fabric.contrib.console import confirm
 from paramiko.config import SSHConfig as _SSHConfig
 
 import littlechef
-from littlechef import solo, lib, chef
+from littlechef import solo, lib, chef, cookbook_paths
 
 # Fabric settings
 import fabric
@@ -516,6 +516,7 @@ def _readconfig():
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
 
+    env.cookbook_search_paths=[]
     try:
         env.berksfile = config.get('kitchen', 'berksfile')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
