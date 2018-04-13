@@ -155,12 +155,6 @@ def _synchronize_node(configfile, node):
     if env.loglevel is "debug":
         extra_opts = ""
 
-    if env.gateway:
-        ssh_key_file = '.ssh/' + os.path.basename(' '.join(env.ssh_config.lookup(
-            env.host_string)['identityfile']))
-        ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
-        ssh_opts += ssh_key_file
-
     rsync_project(
         env.node_work_path,
         ' '.join(paths_to_sync),
