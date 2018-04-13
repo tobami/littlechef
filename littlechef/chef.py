@@ -92,10 +92,16 @@ def sync_node(node):
     if node.get('dummy') or 'dummy' in node.get('tags', []):
         lib.print_header("Skipping dummy: {0}".format(env.host))
         return False
+
+    # Allow for each node to have it's own gateway instead of the one in littlechef.cfg
+    if node.get('ssh_gateway'):
+        env.gateway = node.get('ssh_gateway')
+
     current_node = lib.get_node(node['name'])
     # Always configure Chef Solo
     solo.configure(current_node)
     ipaddress = _get_ipaddress(node)
+
     # Everything was configured alright, so save the node configuration
     # This is done without credentials, so that we keep the node name used
     # by the user and not the hostname or IP translated by .ssh/config
@@ -154,12 +160,6 @@ def _synchronize_node(configfile, node):
 
     if env.loglevel is "debug":
         extra_opts = ""
-
-    if env.gateway:
-        ssh_key_file = '.ssh/' + os.path.basename(' '.join(env.ssh_config.lookup(
-            env.host_string)['identityfile']))
-        ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
-        ssh_opts += ssh_key_file
 
     rsync_project(
         env.node_work_path,
