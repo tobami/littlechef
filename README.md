@@ -79,7 +79,7 @@ yet automatically converted, but an implementation is planned.
 
 You can define your own LittleChef tasks as Python plugin modules. They should be located
 in the `plugins` directory. The filename will be the plugin name and the module docstring
-the description. Each plugin should define an execute funtion, which will then be
+the description. Each plugin should define an execute function, which will then be
 executed when applying a plugin on a node (the *Cooking* section describes how to run a
 plugins).
 
