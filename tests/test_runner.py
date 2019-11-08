@@ -1,3 +1,5 @@
+import littlechef
+
 from ConfigParser import SafeConfigParser
 
 from mock import patch
@@ -10,9 +12,23 @@ from test_base import BaseTest
 class TestConfig(BaseTest):
 
     def test_get_config(self):
-        """Should read configuration from config file when config.cfg is found
+        """Should read configuration from config file when littlechef.cfg is found
         """
         runner._readconfig()
+        self._common_config_assertions()
+
+    def test_settable_config(self):
+        """Should read configuration from config file when littlechef.cfg is found
+        """
+        littlechef.CONFIGFILE = "_mock_littlechef.cfg"
+        runner._readconfig()
+        self._common_config_assertions()
+        self.assertEqual(runner.env.skip_node_data_bag, True)
+        self.assertEqual(runner.env.skip_node_json, True)
+        self.assertEqual(runner.env.kitchen_path, "/dev/null")
+
+    def _common_config_assertions(self):
+        """Assertions shared between configuration testers"""
         self.assertEqual(runner.env.ssh_config_path, None)
         self.assertEqual(runner.env.ssh_config, None)
         self.assertEqual(runner.env.user, "testuser")

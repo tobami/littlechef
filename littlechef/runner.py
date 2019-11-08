@@ -33,7 +33,10 @@ env.loglevel = littlechef.loglevel
 env.verbose = littlechef.verbose
 env.abort_on_prompts = littlechef.noninteractive
 env.chef_environment = littlechef.chef_environment
+env.kitchen_path = littlechef.kitchen_path
 env.node_work_path = littlechef.node_work_path
+env.skip_node_data_bag = littlechef.skip_node_data_bag
+env.skip_node_json = littlechef.skip_node_json
 env.eagerly_disconnect = True
 env.no_color = littlechef.no_color
 
@@ -69,15 +72,16 @@ def new_kitchen():
         "run_list": ["recipe[apt]"]
     }
     content += "{0}".format(json.dumps(data, indent=2))
-    _mkdir("nodes", content)
-    _mkdir("roles")
-    _mkdir("data_bags")
-    _mkdir("environments")
+    _mkdir(lib.kitchen_relative_path("nodes"), content)
+    _mkdir(lib.kitchen_relative_path("roles"))
+    _mkdir(lib.kitchen_relative_path("data_bags"))
+    _mkdir(lib.kitchen_relative_path("environments"))
     for cookbook_path in littlechef.cookbook_paths:
-        _mkdir(cookbook_path)
+        _mkdir(lib.kitchen_relative_path(cookbook_path))
     # Add skeleton config file
-    if not os.path.exists(littlechef.CONFIGFILE):
-        with open(littlechef.CONFIGFILE, 'w') as configfh:
+    configfile = lib.kitchen_relative_path(littlechef.CONFIGFILE)
+    if not os.path.exists(configfile):
+        with open(configfile, 'w') as configfh:
             print >> configfh, "[userinfo]"
             print >> configfh, "user = "
             print >> configfh, "password = "
@@ -123,7 +127,9 @@ def nodes_with_tag(tag):
 
 def node(*nodes):
     """Selects and configures a list of nodes. 'all' configures all nodes"""
-    chef.build_node_data_bag()
+    if not env.skip_node_data_bag:
+        chef.build_node_data_bag()
+
     if not len(nodes) or nodes[0] == '':
         abort('No node was given')
     elif nodes[0] == 'all':
@@ -164,6 +170,22 @@ def _configure_fabric_for_platform(platform):
         env.shell = "/bin/sh -c"
 
 
+def node_by_json(target, node):
+    """Applies node file named node.json to target"""
+    env.host_string = lib.get_env_host_string()
+    node = lib.get_node(node)
+
+    _configure_fabric_for_platform(node.get("platform"))
+    if __testing__:
+        print "TEST: would now configure {0}".format(env.host_string)
+    else:
+        lib.print_header("Configuring {0}".format(env.host_string))
+        lib.print_header("Node config: {0}".format(json.dumps(node)))
+        
+        if env.autodeploy_chef and not chef.chef_test():
+            deploy_chef(ask="no")
+        chef.sync_node(node)
+    
 def _node_runner():
     """This is only used by node so that we can execute in parallel"""
     env.host_string = lib.get_env_host_string()
@@ -366,10 +388,10 @@ def _check_appliances():
     """Looks around and return True or False based on whether we are in a
     kitchen
     """
-    filenames = os.listdir(os.getcwd())
+    filenames = os.listdir(env.kitchen_path)
     missing = []
     for dirname in ['nodes', 'environments', 'roles', 'cookbooks', 'data_bags']:
-        if (dirname not in filenames) or (not os.path.isdir(dirname)):
+        if (dirname not in filenames) or (not os.path.isdir(lib.kitchen_relative_path(dirname))):
             missing.append(dirname)
     return (not bool(missing)), missing
 
@@ -377,8 +399,9 @@ def _check_appliances():
 def _readconfig():
     """Configures environment variables"""
     config = ConfigParser.SafeConfigParser()
+    configfile = lib.kitchen_relative_path(littlechef.CONFIGFILE)
     try:
-        found = config.read(littlechef.CONFIGFILE)
+        found = config.read(configfile)
     except ConfigParser.ParsingError as e:
         abort(str(e))
     if not len(found):
@@ -399,7 +422,8 @@ def _readconfig():
         abort("Couldn't find {0}. "
               "Are you executing 'fix' outside of a kitchen?\n"
               "To create a new kitchen in the current directory "
-              " type 'fix new_kitchen'".format(missing_str(missing)))
+              " type 'fix new_kitchen' or pass in --kitchen-path option"
+              " to specify an existing kitchen".format(missing_str(missing)))
 
     # We expect an ssh_config file here,
     # and/or a user, (password/keyfile) pair
@@ -515,6 +539,24 @@ def _readconfig():
         env.follow_symlinks = config.getboolean('kitchen', 'follow_symlinks')
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         env.follow_symlinks = False
+
+    # Skip building the node data bag
+    try:
+        env.skip_node_data_bag = config.getboolean('kitchen', 'skip_node_data_bag')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.skip_node_data_bag = littlechef.skip_node_data_bag
+
+    # Skip saving the node json
+    try:
+        env.skip_node_json = config.getboolean('kitchen', 'skip_node_json')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.skip_node_json = littlechef.skip_node_json
+
+    # Get the path to the kitchen
+    try:
+        env.kitchen_path = config.get('kitchen', 'kitchen_path')
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        env.kitchen_path = littlechef.kitchen_path
 
     try:
         env.berksfile = config.get('kitchen', 'berksfile')

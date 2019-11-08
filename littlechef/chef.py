@@ -21,7 +21,7 @@ import json
 import subprocess
 from copy import deepcopy
 
-from fabric.api import settings, hide, env, sudo, put
+from fabric.api import settings, hide, env, sudo, put, run
 from fabric.contrib.files import exists
 from fabric.utils import abort
 from fabric.contrib.project import rsync_project
@@ -39,13 +39,18 @@ def save_config(node, force=False):
     it also saves to tmp_node.json
 
     """
-    filepath = os.path.join("nodes", env.host_string + ".json")
+    filepath = os.path.join(lib.kitchen_relative_path("nodes"), env.host_string + ".json")
     tmp_filename = 'tmp_{0}.json'.format(env.host_string)
     files_to_create = [tmp_filename]
     if not os.path.exists(filepath) or force:
         # Only save to nodes/ if there is not already a file
-        print "Saving node configuration to {0}...".format(filepath)
-        files_to_create.append(filepath)
+        # and --skip-node-json was not called
+        if env.skip_node_json and not force:
+            print "SKIPPING save of node configuration to {0}...".format(filepath)
+        else:
+            print "Saving node configuration to {0}...".format(filepath)
+            files_to_create.append(filepath)
+
     for node_file in files_to_create:
         with open(node_file, 'w') as f:
             f.write(json.dumps(node, indent=4, sort_keys=True))
@@ -144,13 +149,14 @@ def _synchronize_node(configfile, node):
             mode=0600)
         sudo('chown root:$(id -g -n root) /etc/chef/encrypted_data_bag_secret')
 
-    paths_to_sync = ['./data_bags', './roles', './environments']
+    paths_to_sync = ['data_bags', 'roles', 'environments']
+    paths_to_sync = [lib.kitchen_relative_path(path) for path in paths_to_sync]
     for cookbook_path in cookbook_paths:
-        paths_to_sync.append('./{0}'.format(cookbook_path))
+        paths_to_sync.append(lib.kitchen_relative_path(cookbook_path))
 
     # Add berksfile directory to sync_list
     if env.berksfile:
-        paths_to_sync.append(env.berksfile_cookbooks_directory)
+        paths_to_sync.append(lib.kitchen_relative_path(env.berksfile_cookbooks_directory))
 
     if env.loglevel is "debug":
         extra_opts = ""
@@ -160,7 +166,10 @@ def _synchronize_node(configfile, node):
             env.host_string)['identityfile']))
         ssh_opts += " " + env.gateway + " ssh -o StrictHostKeyChecking=no -i "
         ssh_opts += ssh_key_file
-
+    
+    
+    ssh_opts += " -o StrictHostKeyChecking=no "
+    print "Rsyncing {} paths to {}".format(' '.join(paths_to_sync), env.node_work_path)
     rsync_project(
         env.node_work_path,
         ' '.join(paths_to_sync),
@@ -365,8 +374,8 @@ def ensure_berksfile_cookbooks_are_installed():
     print(msg.format(env.berksfile, env.berksfile_cookbooks_directory))
 
     run_vendor = True
-    cookbooks_dir = env.berksfile_cookbooks_directory
-    berksfile_lock_path = cookbooks_dir+'/Berksfile.lock'
+    cookbooks_dir = lib.kitchen_relative_path(env.berksfile_cookbooks_directory)
+    berksfile_lock_path = os.path.join(cookbooks_dir,'Berksfile.lock')
 
     berksfile_lock_exists = os.path.isfile(berksfile_lock_path)
     cookbooks_dir_exists = os.path.isdir(cookbooks_dir)
@@ -378,9 +387,10 @@ def ensure_berksfile_cookbooks_are_installed():
 
     if run_vendor:
         if cookbooks_dir_exists:
-            shutil.rmtree(env.berksfile_cookbooks_directory)
+            shutil.rmtree(cookbooks_dir)
 
-        p = subprocess.Popen(['berks', 'vendor', env.berksfile_cookbooks_directory],
+        p = subprocess.Popen(['berks', 'vendor', cookbooks_dir],
+                             cwd=lib.kitchen_relative_path('.'),
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -438,6 +448,9 @@ def _configure_node():
     # Backup last report
     with settings(hide('stdout', 'warnings', 'running'), warn_only=True):
         sudo("mv {0} {0}.1".format(LOGFILE))
+        logfile_directory = os.path.dirname(LOGFILE)
+        # make sure the current user can write to the log
+        sudo("chown {} {}".format(env.user, logfile_directory))
     # Build chef-solo command
     cmd = "RUBYOPT=-Ku chef-solo"
     if whyrun:
@@ -448,8 +461,8 @@ def _configure_node():
     if env.loglevel == "debug":
         print("Executing Chef Solo with the following command:\n"
               "{0}".format(cmd))
-    with settings(hide('warnings', 'running'), warn_only=True):
-        output = sudo(cmd)
+    with settings(hide('warnings', 'running'), warn_only=True, forward_agent=True):
+        output = run("sudo -E -s " + cmd)
     if (output.failed or "FATAL: Stacktrace dumped" in output or
             ("Chef Run complete" not in output and
              "Report handlers complete" not in output)):

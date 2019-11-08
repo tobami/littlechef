@@ -14,12 +14,14 @@ Server users: data bag search, and node search.
 .. _Chef: http://wiki.opscode.com/display/chef/Home
 
 """
-__version__ = "1.8.0"
+import os
+__version__ = "1.8.1"
 __author__ = "Miquel Torres <tobami@gmail.com>"
 
 __cooking__ = False
 
 chef_environment = None
+kitchen_path = os.getcwd()
 
 loglevel = "info"
 noninteractive = False
@@ -29,6 +31,8 @@ LOGFILE = "/var/log/chef/solo.log"
 whyrun = False
 concurrency = False
 include_guests = False
+skip_node_data_bag = False
+skip_node_json = False
 no_color = False
 
 node_work_path = "/tmp/chef-solo"

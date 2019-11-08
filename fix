@@ -109,9 +109,24 @@ def parse_arguments():
               "guests of matching hosts")
     )
     parser.add_argument(
+        "--kitchen-path", dest="kitchen_path", default=os.getcwd(),
+        help=("Path to the kitchen repository (containing cookbooks, databags,"
+              " nodes, etc.) - assumed to be the working directory if not provided.")
+    )
+    parser.add_argument(
         "--no-color", dest="no_color", action="store_true",
         default=False,
         help=("Don't colorize the output")
+    )
+    parser.add_argument(
+        "--skip-node-data-bag", dest="skip_node_data_bag", action="store_true",
+        default=False,
+        help=("Skips creation of the node databag.")
+    )
+    parser.add_argument(
+        "--skip-node-json", dest="skip_node_json", action="store_true",
+        default=False,
+        help=("Skips creation of the node json file.")
     )
     return parser, vars(parser.parse_args())
 
@@ -158,7 +173,12 @@ if __name__ == '__main__':
                 if not commands or ":" in args['environment']:
                     parser.error("No value given for --env")
                 littlechef.chef_environment = args['environment']
+            if args['skip_node_data_bag']:
+                littlechef.skip_node_data_bag = True
+            if args['skip_node_json']:
+                littlechef.skip_node_json = True
             littlechef.no_color = args['no_color']
+            littlechef.kitchen_path = args['kitchen_path']
 
             # overwrite all commandline arguments and proxy
             # execution to the fabric script

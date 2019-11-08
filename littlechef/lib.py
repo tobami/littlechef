@@ -32,9 +32,9 @@ def _resolve_hostname(name):
     """Returns resolved hostname using the ssh config"""
     if env.ssh_config is None:
         return name
-    elif not os.path.exists(os.path.join("nodes", name + ".json")):
+    elif not os.path.exists(os.path.join(kitchen_relative_path("nodes"), name + ".json")):
         resolved_name = env.ssh_config.lookup(name)['hostname']
-        if os.path.exists(os.path.join("nodes", resolved_name + ".json")):
+        if os.path.exists(os.path.join(kitchen_relative_path("nodes"), resolved_name + ".json")):
             name = resolved_name
     return name
 
@@ -63,7 +63,7 @@ def get_environment(name):
     """Returns a JSON environment file as a dictionary"""
     if name == "_default":
         return env_from_template(name)
-    filename = os.path.join("environments", name + ".json")
+    filename = os.path.join(kitchen_relative_path("environments"), name + ".json")
     try:
         with open(filename) as f:
             try:
@@ -79,11 +79,11 @@ def get_environment(name):
 def get_environments():
     """Gets all environments found in the 'environments' directory"""
     envs = []
-    for root, subfolders, files in os.walk('environments'):
+    for root, subfolders, files in os.walk(kitchen_relative_path('environments')):
         for filename in files:
             if filename.endswith(".json"):
                 path = os.path.join(
-                    root[len('environments'):], filename[:-len('.json')])
+                    root.split('environments')[1], filename[:-len('.json')])
                 envs.append(get_environment(path))
     return sorted(envs, key=lambda x: x['name'])
 
@@ -91,9 +91,12 @@ def get_environments():
 def get_node(name, merged=False):
     """Returns a JSON node file as a dictionary"""
     if merged:
-        node_path = os.path.join("data_bags", "node", name.replace('.', '_') + ".json")
+        node_path = os.path.join(kitchen_relative_path("data_bags"),
+                                 kitchen_relative_path("node"),
+                                 name.replace('.', '_') + ".json")
     else:
-        node_path = os.path.join("nodes", name + ".json")
+        node_path = os.path.join(kitchen_relative_path("nodes"),
+                                 name + ".json")
     if os.path.exists(node_path):
         # Read node.json
         with open(node_path, 'r') as f:
@@ -115,11 +118,11 @@ def get_node(name, merged=False):
 
 def get_nodes(environment=None):
     """Gets all nodes found in the nodes/ directory"""
-    if not os.path.exists('nodes'):
+    if not os.path.exists(kitchen_relative_path('nodes')):
         return []
     nodes = []
     for filename in sorted(
-            [f for f in os.listdir('nodes')
+            [f for f in os.listdir(kitchen_relative_path('nodes'))
              if (not os.path.isdir(f)
                  and f.endswith(".json") and not f.startswith('.'))]):
         fqdn = ".".join(filename.split('.')[:-1])  # Remove .json from name
@@ -278,7 +281,7 @@ def get_recipes_in_cookbook(name):
     cookbook_exists = False
     metadata_exists = False
     for cookbook_path in cookbook_paths:
-        path = os.path.join(cookbook_path, name)
+        path = os.path.join(kitchen_relative_path(cookbook_path), name)
         path_exists = os.path.exists(path)
         # cookbook exists if present in any of the cookbook paths
         cookbook_exists = cookbook_exists or path_exists
@@ -324,7 +327,7 @@ def get_recipes_in_cookbook(name):
     # Add recipes found in the 'recipes' directory but not listed
     # in the metadata
     for cookbook_path in cookbook_paths:
-        recipes_dir = os.path.join(cookbook_path, name, 'recipes')
+        recipes_dir = os.path.join(kitchen_relative_path(cookbook_path), name, 'recipes')
         if not os.path.isdir(recipes_dir):
             continue
         for basename in os.listdir(recipes_dir):
@@ -368,6 +371,7 @@ def get_recipes():
     """Gets all recipes found in the cookbook directories"""
     dirnames = set()
     for path in cookbook_paths:
+        path = kitchen_relative_path(path)
         dirnames.update([d for d in os.listdir(path) if os.path.isdir(
                             os.path.join(path, d)) and not d.startswith('.')])
     recipes = []
@@ -457,6 +461,11 @@ def print_role(role, detailed=True):
     print("")
 
 
+def kitchen_relative_path(path):
+    """Returns path relative to chef kitchen path"""
+    return os.path.join(env.kitchen_path, path)
+
+
 def print_plugin_list():
     """Prints a list of available plugins"""
     print("List of available plugins:")
@@ -502,7 +511,7 @@ def import_plugin(name):
 def get_cookbook_path(cookbook_name):
     """Returns path to the cookbook for the given cookbook name"""
     for cookbook_path in cookbook_paths:
-        path = os.path.join(cookbook_path, cookbook_name)
+        path = os.path.join(kitchen_relative_path(cookbook_path), cookbook_name)
         if os.path.exists(path):
             return path
     raise IOError('Can\'t find cookbook with name "{0}"'.format(cookbook_name))
