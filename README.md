@@ -3,7 +3,8 @@
 With LittleChef you will be able to get started more quickly cooking with [Chef][], the excellent Configuration Management System.
 
 ## Overview
-
+ 
+ 
 You may think of this like a pocket Chef that doesn't need a Chef Server. Just your
 local kitchen with all your cookbooks, roles data bags and nodes, which will get rsynced
 to a node each time you start a Chef Solo configuration run with the bundled `fix`
